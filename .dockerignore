@@ -1,11 +1,11 @@
-node_modules
-npm-debug.log
+**/node_modules
+**/npm-debug.log
 Dockerfile
 .dockerignore
 .git
 .gitignore
 README.md
-frontend/dist
+**/dist
+**/build
 backend/uploads
 .env
-

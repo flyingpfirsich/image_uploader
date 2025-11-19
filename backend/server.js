@@ -30,6 +30,10 @@ const checkAuth = (req, res, next) => {
     next();
 };
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', uptime: process.uptime() });
+});
+
 app.post('/login', (req, res) => {
     const { password } = req.body;
     if (password === SHARED_PASSWORD) {
@@ -82,6 +86,14 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Current directory:', __dirname);
+    const publicPath = path.join(__dirname, 'public');
+    console.log('Public directory:', publicPath);
+    if (fs.existsSync(publicPath)) {
+        console.log('Public directory contents:', fs.readdirSync(publicPath));
+    } else {
+        console.log('Public directory does not exist!');
+    }
 });
 
 // Handle SPA client-side routing
