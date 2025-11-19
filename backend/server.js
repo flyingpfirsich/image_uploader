@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 const SHARED_PASSWORD = process.env.SHARED_PASSWORD || 'changeme';
 
 // Middleware for simple auth

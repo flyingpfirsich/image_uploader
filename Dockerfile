@@ -17,6 +17,6 @@ RUN mkdir uploads
 # Copy frontend build
 COPY --from=frontend-build /app/frontend/dist ./public
 
-EXPOSE 3000
+EXPOSE 80
 CMD ["node", "server.js"]
 
