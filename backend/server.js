@@ -18,6 +18,8 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 80;
+console.log('PORT configured as:', PORT);
+console.log('process.env.PORT is:', process.env.PORT);
 const SHARED_PASSWORD = process.env.SHARED_PASSWORD || 'changeme';
 
 // Middleware for simple auth
