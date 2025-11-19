@@ -3,11 +3,6 @@ services:
     build: .
     expose:
       - "80"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.image-uploader.rule=Host(`${SERVICE_FQDN_WEB}`)"
-      - "traefik.http.routers.image-uploader.entrypoints=http"
-      - "traefik.http.services.image-uploader.loadbalancer.server.port=80"
     networks:
       - coolify
     healthcheck:
