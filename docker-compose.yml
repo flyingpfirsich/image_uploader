@@ -1,8 +1,8 @@
 services:
   web:
     build: .
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     environment:
       - PORT=80
       - SHARED_PASSWORD=secret
