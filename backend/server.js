@@ -86,7 +86,7 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     console.log('Current directory:', __dirname);
     const publicPath = path.join(__dirname, 'public');
