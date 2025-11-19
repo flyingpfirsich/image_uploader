@@ -3,6 +3,8 @@ services:
     build: .
     expose:
       - "80"
+    labels:
+      - "traefik.http.services.f88g4kccskg0cg8040c8ck0s-web.loadbalancer.server.port=80"
     networks:
       - coolify
     healthcheck:
