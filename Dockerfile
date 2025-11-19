@@ -15,6 +15,7 @@ COPY backend/ .
 # Create uploads directory
 RUN mkdir uploads
 # Copy frontend build
+RUN apk add --no-cache curl wget
 COPY --from=frontend-build /app/frontend/dist ./public
 
 EXPOSE 80

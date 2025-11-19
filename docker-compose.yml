@@ -3,6 +3,12 @@ services:
     build: .
     expose:
       - "80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     environment:
       - PORT=80
       - SHARED_PASSWORD=secret
