@@ -5,10 +5,11 @@ services:
       - "80"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.image-uploader.rule=Host(`chat.marten.lol`)"
-      - "traefik.http.routers.image-uploader.entrypoints=https"
-      - "traefik.http.routers.image-uploader.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.image-uploader.rule=Host(`${SERVICE_FQDN_WEB}`)"
+      - "traefik.http.routers.image-uploader.entrypoints=http"
       - "traefik.http.services.image-uploader.loadbalancer.server.port=80"
+    networks:
+      - coolify
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 5s
@@ -20,4 +21,8 @@ services:
       - SHARED_PASSWORD=secret
       # Mock Pi for local testing? Or real credentials
       # - PI_HOST=...
+
+networks:
+  coolify:
+    external: true
 
