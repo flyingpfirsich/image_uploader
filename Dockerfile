@@ -9,6 +9,7 @@ RUN npm run build
 # Stage 2: Setup the backend
 FROM node:18-alpine
 WORKDIR /app
+RUN apk add --no-cache curl
 COPY backend/package*.json ./
 RUN npm install --production
 
