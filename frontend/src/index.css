@@ -1,61 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
+
 :root {
-  font-family: 'Courier New', Courier, monospace;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #000;
-  font-size: 16px;
+  --bg: #0d0d0d;
+  --fg: #c8c8c8;
+  --fg-dim: #5a5a5a;
+  --accent: #f0f0f0;
+  --border: #2a2a2a;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  background-color: var(--bg);
+  color: var(--fg);
   min-height: 100vh;
-  padding: 20px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
 }
 
 #root {
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
-  width: 100%;
+  padding: 2rem;
 }
 
-input, button {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  background: #111;
-  border: 1px solid #333;
-  color: #fff;
-  font-family: inherit;
-  font-size: 1rem;
+::selection {
+  background: var(--fg);
+  color: var(--bg);
 }
 
-button {
-  cursor: pointer;
-  background: #333;
-  border: 1px solid #555;
+a {
+  color: var(--fg);
+  text-decoration: none;
 }
 
-button:hover {
-  background: #444;
-}
-
-.status {
-  margin-top: 20px;
-  padding: 10px;
-  border: 1px dashed #333;
-}
-
-h1 {
-  font-size: 1.2rem;
-  border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+a:hover {
+  text-decoration: underline;
 }
