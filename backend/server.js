@@ -5,7 +5,7 @@ const cors = require('cors');
 const { NodeSSH } = require('node-ssh');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/.env' });
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
@@ -98,8 +98,8 @@ app.listen(PORT, '0.0.0.0', () => {
     }
 });
 
-// Handle SPA client-side routing
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Handle SPA client-side routing - disabled for now due to path-to-regexp compatibility
+// app.get('/*', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// });
 
