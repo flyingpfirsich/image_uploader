@@ -61,8 +61,17 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
         
         // Handle private key - sanitize and normalize format
         let privateKey;
-        if (process.env.PI_PRIVATE_KEY) {
-            privateKey = process.env.PI_PRIVATE_KEY
+        
+        // Option 1: Base64-encoded key (most reliable for env vars)
+        if (process.env.PI_PRIVATE_KEY_BASE64) {
+            console.log('Using base64-encoded private key...');
+            privateKey = Buffer.from(process.env.PI_PRIVATE_KEY_BASE64, 'base64').toString('utf8');
+            console.log('Decoded key first line:', privateKey.split('\n')[0]);
+            console.log('Decoded key line count:', privateKey.split('\n').length);
+        }
+        // Option 2: Raw key in env var
+        else if (process.env.PI_PRIVATE_KEY) {
+            let rawKey = process.env.PI_PRIVATE_KEY
                 // Replace literal \n with actual newlines (if escaped)
                 .replace(/\\n/g, '\n')
                 // Normalize Windows line endings
@@ -72,12 +81,30 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
                 .replace(/^['"]|['"]$/g, '')
                 .trim();
             
+            // Fix keys where newlines were converted to spaces by Coolify
+            // Check if key is all on one line (header followed by space and base64)
+            if (rawKey.includes('-----BEGIN') && rawKey.includes('-----END') && !rawKey.includes('\n')) {
+                console.log('Detected single-line key, reconstructing with newlines...');
+                // Extract parts: header, base64 content, footer
+                const match = rawKey.match(/^(-----BEGIN [A-Z ]+ KEY-----)\s*(.+?)\s*(-----END [A-Z ]+ KEY-----)$/);
+                if (match) {
+                    const header = match[1];
+                    const base64Content = match[2].replace(/\s+/g, ''); // Remove any spaces from base64
+                    const footer = match[3];
+                    // Reconstruct with proper newlines (base64 in 70-char lines)
+                    const base64Lines = base64Content.match(/.{1,70}/g) || [];
+                    privateKey = header + '\n' + base64Lines.join('\n') + '\n' + footer + '\n';
+                } else {
+                    privateKey = rawKey;
+                }
+            } else {
+                privateKey = rawKey;
+            }
+            
             // Debug: Log key info (not the actual key content for security)
-            console.log('Private key starts with:', privateKey.substring(0, 40));
-            console.log('Private key ends with:', privateKey.substring(privateKey.length - 40));
+            console.log('Private key first line:', privateKey.split('\n')[0]);
+            console.log('Private key line count:', privateKey.split('\n').length);
             console.log('Private key length:', privateKey.length);
-            console.log('Private key has proper header:', privateKey.includes('-----BEGIN'));
-            console.log('Private key has proper footer:', privateKey.includes('-----END'));
         } else if (process.env.PI_KEY_PATH) {
             privateKey = fs.readFileSync(process.env.PI_KEY_PATH, 'utf8');
         }
