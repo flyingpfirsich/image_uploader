@@ -98,3 +98,4 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
   };
 }
 
+

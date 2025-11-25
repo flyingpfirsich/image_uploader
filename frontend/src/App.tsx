@@ -1,91 +1,93 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import './App.css';
 
-// Hooks
-import { useAuth } from './hooks/useAuth';
+// Context
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Components
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { LoginScreen } from './components/auth/LoginScreen';
-import { UploadScreen } from './components/upload/UploadScreen';
-import { CaptureScreen } from './components/camera/CaptureScreen';
-import { HelpScreen } from './components/help/HelpScreen';
-import { MemoriesCalendar } from './components/memories/MemoriesCalendar';
+import { Feed } from './components/feed/Feed';
+import { Profile } from './components/profile/Profile';
+import { Friends } from './components/friends/Friends';
 
 // Types
-import type { NavMode, InputMode } from './types';
+import type { NavMode } from './types';
 
-function App() {
-  const { token, isLoading, status, login, logout } = useAuth();
-  const [activeNav, setActiveNav] = useState<NavMode>('upload');
-  const [inputMode, setInputMode] = useState<InputMode>('upload');
-  const [capturedFile, setCapturedFile] = useState<File | null>(null);
+function AppContent() {
+  const { user, token, isLoading, isAuthenticated, logout, updateUser } = useAuth();
+  const [activeNav, setActiveNav] = useState<NavMode>('feed');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  // Handle file from capture screen
-  const handleFileFromCapture = useCallback((file: File) => {
-    setCapturedFile(file);
-  }, []);
-
-  // Clear captured file after it's been used
-  const clearCapturedFile = useCallback(() => {
-    setCapturedFile(null);
-  }, []);
-
-  // Switch to upload mode
-  const switchToUpload = useCallback(() => {
-    setInputMode('upload');
-  }, []);
-
-  // Login Screen
-  if (!token) {
+  // Loading state
+  if (isLoading) {
     return (
-      <LoginScreen 
-        onLogin={login} 
-        isLoading={isLoading} 
-        status={status} 
-      />
+      <div className="container">
+        <div className="loading-screen">
+          <span className="logo-kaomoji">(◕‿◕)</span>
+          <span className="cursor-blink">Loading</span>
+        </div>
+      </div>
     );
   }
 
-  // Main Upload Screen
+  // Not authenticated
+  if (!isAuthenticated || !user || !token) {
+    return <LoginScreen />;
+  }
+
+  // Handle friend selection
+  const handleSelectUser = (userId: string) => {
+    setSelectedUserId(userId);
+    setActiveNav('profile');
+  };
+
+  // Reset to own profile when clicking profile nav
+  const handleNavChange = (nav: NavMode) => {
+    if (nav === 'profile') {
+      setSelectedUserId(null);
+    }
+    setActiveNav(nav);
+  };
+
+  const profileUserId = selectedUserId || user.id;
+
   return (
     <div className="container">
-      <Header 
-        activeNav={activeNav}
-        onNavChange={setActiveNav}
-        inputMode={inputMode}
-        onInputModeChange={setInputMode}
-        showModeToggle={true}
-      />
+      <Header activeNav={activeNav} onNavChange={handleNavChange} />
 
       <main className="main">
-        {activeNav === 'upload' && (
-          <div className="upload-container">
-            {inputMode === 'upload' ? (
-              <UploadScreen 
-                token={token}
-                externalFile={capturedFile}
-                onExternalFileUsed={clearCapturedFile}
-              />
-            ) : (
-              <CaptureScreen 
-                onFileReady={handleFileFromCapture}
-                onSwitchToUpload={switchToUpload}
-              />
-            )}
-          </div>
+        {activeNav === 'feed' && (
+          <Feed token={token} userId={user.id} />
         )}
-        {activeNav === 'memories' && (
-          <MemoriesCalendar token={token} />
+        {activeNav === 'friends' && (
+          <Friends
+            token={token}
+            currentUserId={user.id}
+            onSelectUser={handleSelectUser}
+          />
         )}
-        {activeNav === 'hilfe' && (
-          <HelpScreen />
+        {activeNav === 'profile' && (
+          <Profile
+            userId={profileUserId}
+            currentUserId={user.id}
+            token={token}
+            onUserUpdate={updateUser}
+          />
         )}
       </main>
 
       <Footer onLogout={logout} />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

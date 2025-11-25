@@ -1,5 +1,3 @@
-import { TEXT } from '../../constants/text';
-
 interface FooterProps {
   onLogout: () => void;
 }
@@ -7,11 +5,14 @@ interface FooterProps {
 export function Footer({ onLogout }: FooterProps) {
   return (
     <footer className="footer">
-      <span>{TEXT.footer.session}</span>
-      <button className="btn btn--text" onClick={onLogout}>
-        {TEXT.footer.logout}
+      <span>druzi v1.0</span>
+      <button
+        className="btn--text"
+        onClick={onLogout}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'var(--fg-dim)' }}
+      >
+        Logout
       </button>
     </footer>
   );
 }
-

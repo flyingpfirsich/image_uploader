@@ -1,4 +1,8 @@
 export function KaomojiLogo() {
-  return <span className="logo-kaomoji">ʕ•ᴥ•ʔ</span>;
+  return (
+    <div className="logo">
+      <span className="logo-kaomoji">(◕‿◕)</span>
+      <span className="logo-text">druzi</span>
+    </div>
+  );
 }
-
