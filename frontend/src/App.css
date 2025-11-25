@@ -222,22 +222,36 @@
   font-size: 0.9rem;
 }
 
-/* Status */
-.status {
+/* Status List - matches info-list style */
+.status-list {
+  list-style: none;
   margin-top: 1.5rem;
-  padding: 1rem;
-  border-left: 2px solid var(--fg-dim);
-  font-size: 0.85rem;
+}
+
+.status-item {
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.status-item::before {
+  content: '>';
+  margin-right: 0.75rem;
   color: var(--fg-dim);
 }
 
-.status--success {
-  border-color: #4a9;
+.status-item--success {
+  color: var(--fg);
+}
+
+.status-item--success::before {
   color: #4a9;
 }
 
-.status--error {
-  border-color: #a54;
+.status-item--error {
+  color: var(--fg);
+}
+
+.status-item--error::before {
   color: #a54;
 }
 

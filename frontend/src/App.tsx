@@ -16,9 +16,9 @@ const TEXT = {
     passwordLabel: 'ПАРОЛЬ / PASSWORT',
     placeholder: 'введіть код...', // Ukrainian: enter code
     submit: 'УВІЙТИ',      // Ukrainian: enter
-    loading: 'ПЕРЕВІРКА...', // Ukrainian: checking
-    error: 'ПОМИЛКА: Невірний пароль', // Ukrainian: error, wrong password
-    serverError: 'FEHLER: Server nicht erreichbar', // German: error, server not reachable
+    loading: '[SYS] ПЕРЕВІРКА...', // Ukrainian: checking
+    error: '[ERR] Невірний пароль / Falsches Passwort', // Ukrainian + German: wrong password
+    serverError: '[ERR] Server nicht erreichbar', // German: server not reachable
   },
   // Upload
   upload: {
@@ -28,9 +28,9 @@ const TEXT = {
     dropHint: 'або натисніть для вибору', // Ukrainian: or click to select
     selected: 'Обрано:', // Ukrainian: selected
     submit: 'ÜBERTRAGEN', // German: transfer
-    loading: 'ПЕРЕДАЧА...', // Ukrainian: transferring
-    success: 'ERFOLG: Datei übertragen', // German: success, file transferred
-    error: 'ПОМИЛКА', // Ukrainian: error
+    loading: '[SYS] ПЕРЕДАЧА...', // Ukrainian: transferring
+    success: '[OK] Datei erfolgreich übertragen', // German: file successfully transferred
+    error: '[ERR]', // Error prefix
   },
   // Footer
   footer: {
@@ -184,9 +184,9 @@ function App() {
             </form>
 
             {status.message && (
-              <div className={`status status--${status.type}`}>
-                {status.message}
-              </div>
+              <ul className="status-list">
+                <li className={`status-item status-item--${status.type}`}>{status.message}</li>
+              </ul>
             )}
           </div>
         </main>
@@ -261,9 +261,9 @@ function App() {
             </form>
 
             {status.message && (
-              <div className={`status status--${status.type}`}>
-                {status.message}
-              </div>
+              <ul className="status-list">
+                <li className={`status-item status-item--${status.type}`}>{status.message}</li>
+              </ul>
             )}
           </div>
         ) : (
