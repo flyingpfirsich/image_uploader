@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { beforeEach } from 'vitest';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -30,7 +31,13 @@ class MockNotification {
     return Promise.resolve('granted');
   }
   
-  constructor(public title: string, public options?: NotificationOptions) {}
+  title: string;
+  options?: NotificationOptions;
+  
+  constructor(title: string, options?: NotificationOptions) {
+    this.title = title;
+    this.options = options;
+  }
 }
 
 Object.defineProperty(window, 'Notification', {
