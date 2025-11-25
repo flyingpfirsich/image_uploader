@@ -59,11 +59,25 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
     try {
         console.log(`Connecting to Pi at ${process.env.PI_HOST}...`);
         
-        // Handle private key - convert escaped newlines to real newlines
+        // Handle private key - sanitize and normalize format
         let privateKey;
         if (process.env.PI_PRIVATE_KEY) {
-            // Replace literal \n with actual newlines (common issue with env vars)
-            privateKey = process.env.PI_PRIVATE_KEY.replace(/\\n/g, '\n');
+            privateKey = process.env.PI_PRIVATE_KEY
+                // Replace literal \n with actual newlines (if escaped)
+                .replace(/\\n/g, '\n')
+                // Normalize Windows line endings
+                .replace(/\r\n/g, '\n')
+                .replace(/\r/g, '\n')
+                // Remove any surrounding quotes that might have been added
+                .replace(/^['"]|['"]$/g, '')
+                .trim();
+            
+            // Debug: Log key info (not the actual key content for security)
+            console.log('Private key starts with:', privateKey.substring(0, 40));
+            console.log('Private key ends with:', privateKey.substring(privateKey.length - 40));
+            console.log('Private key length:', privateKey.length);
+            console.log('Private key has proper header:', privateKey.includes('-----BEGIN'));
+            console.log('Private key has proper footer:', privateKey.includes('-----END'));
         } else if (process.env.PI_KEY_PATH) {
             privateKey = fs.readFileSync(process.env.PI_KEY_PATH, 'utf8');
         }
