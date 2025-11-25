@@ -21,7 +21,7 @@ function generateMockMemories(): MemoryFile[] {
     if (Math.random() < 0.3) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatDateKey(date); // Use local timezone
       
       // Sometimes add multiple uploads per day
       const uploadsToday = Math.random() < 0.2 ? Math.floor(Math.random() * 3) + 2 : 1;
@@ -100,12 +100,15 @@ export function MemoriesCalendar({ token }: MemoriesCalendarProps) {
     loadMemories();
   }, [token, useMockData]);
 
-  // Group memories by date
+  // Group memories by date (using LOCAL timezone from timestamp)
   const memoriesByDate = useMemo(() => {
     const map = new Map<string, MemoryFile[]>();
     memories.forEach(memory => {
-      const existing = map.get(memory.date) || [];
-      map.set(memory.date, [...existing, memory]);
+      // Convert timestamp to local date key instead of using server's UTC date
+      const localDate = new Date(memory.timestamp);
+      const dateKey = formatDateKey(localDate);
+      const existing = map.get(dateKey) || [];
+      map.set(dateKey, [...existing, memory]);
     });
     return map;
   }, [memories]);
@@ -365,9 +368,12 @@ export function MemoriesCalendar({ token }: MemoriesCalendarProps) {
   );
 }
 
-// Helper to format date as YYYY-MM-DD
+// Helper to format date as YYYY-MM-DD using LOCAL timezone (not UTC)
 function formatDateKey(date: Date): string {
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 // Generate days for a month including padding days

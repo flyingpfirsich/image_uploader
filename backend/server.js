@@ -69,10 +69,16 @@ app.get('/memories', checkAuth, async (req, res) => {
             .filter(line => line.trim())
             .map(line => {
                 const [timestamp, filename] = line.split(' ');
+                const ts = parseInt(timestamp) * 1000;
+                const d = new Date(ts);
+                // Format date in local timezone (YYYY-MM-DD) instead of UTC
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
                 return {
                     filename,
-                    timestamp: parseInt(timestamp) * 1000,
-                    date: new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0]
+                    timestamp: ts,
+                    date: `${year}-${month}-${day}`
                 };
             })
             .filter(f => f.filename);
