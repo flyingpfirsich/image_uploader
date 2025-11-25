@@ -19,9 +19,9 @@ export function useVideoRecording({ streamRef, onRecordingComplete, onStopCamera
     
     recordedChunksRef.current = [];
     
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-      ? 'video/webm;codecs=vp9' 
-      : 'video/webm';
+    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') 
+      ? 'video/mp4;codecs=avc1' 
+      : 'video/mp4';
     
     // Lower bitrate for smaller file sizes (500 kbps video @ 480p)
     const mediaRecorder = new MediaRecorder(streamRef.current, { 
@@ -37,7 +37,7 @@ export function useVideoRecording({ streamRef, onRecordingComplete, onStopCamera
     };
     
     mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/mp4' });
       const url = URL.createObjectURL(blob);
       onRecordingComplete({ blob, type: 'video', url });
       onStopCamera();

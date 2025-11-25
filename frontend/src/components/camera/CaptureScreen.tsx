@@ -97,8 +97,8 @@ export function CaptureScreen({ onFileReady, onSwitchToUpload }: CaptureScreenPr
   const useCapturedMedia = useCallback(() => {
     if (!capturedMedia) return;
     
-    const extension = capturedMedia.type === 'photo' ? 'jpg' : 'webm';
-    const mimeType = capturedMedia.type === 'photo' ? 'image/jpeg' : 'video/webm';
+    const extension = capturedMedia.type === 'photo' ? 'jpg' : 'mp4';
+    const mimeType = capturedMedia.type === 'photo' ? 'image/jpeg' : 'video/mp4';
     const fileName = `capture_${Date.now()}.${extension}`;
     
     const file = new File([capturedMedia.blob], fileName, { type: mimeType });
