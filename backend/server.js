@@ -1,4 +1,3 @@
-
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
@@ -11,21 +10,15 @@ const app = express();
 const upload = multer({ dest: 'uploads/' });
 const ssh = new NodeSSH();
 
-// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 80;
-console.log('PORT configured as:', PORT);
-console.log('process.env.PORT is:', process.env.PORT);
 const SHARED_PASSWORD = process.env.SHARED_PASSWORD || 'changeme';
 
-// Middleware for simple auth
 const checkAuth = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    // Expecting "Bearer <password>"
     if (!authHeader || authHeader.split(' ')[1] !== SHARED_PASSWORD) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -52,83 +45,27 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
 
     const localFilePath = req.file.path;
     const originalName = req.file.originalname;
-    // Sanitize filename to prevent command injection or weird path issues on remote
     const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const remotePath = `/home/${process.env.PI_USER}/Videos/${safeName}`;
 
     try {
-        console.log(`Connecting to Pi at ${process.env.PI_HOST}...`);
-        
-        // Handle private key - sanitize and normalize format
-        let privateKey;
-        
-        // Option 1: Base64-encoded key (most reliable for env vars)
-        if (process.env.PI_PRIVATE_KEY_BASE64) {
-            console.log('Using base64-encoded private key...');
-            privateKey = Buffer.from(process.env.PI_PRIVATE_KEY_BASE64, 'base64').toString('utf8');
-            console.log('Decoded key first line:', privateKey.split('\n')[0]);
-            console.log('Decoded key line count:', privateKey.split('\n').length);
-        }
-        // Option 2: Raw key in env var
-        else if (process.env.PI_PRIVATE_KEY) {
-            let rawKey = process.env.PI_PRIVATE_KEY
-                // Replace literal \n with actual newlines (if escaped)
-                .replace(/\\n/g, '\n')
-                // Normalize Windows line endings
-                .replace(/\r\n/g, '\n')
-                .replace(/\r/g, '\n')
-                // Remove any surrounding quotes that might have been added
-                .replace(/^['"]|['"]$/g, '')
-                .trim();
-            
-            // Fix keys where newlines were converted to spaces by Coolify
-            // Check if key is all on one line (header followed by space and base64)
-            if (rawKey.includes('-----BEGIN') && rawKey.includes('-----END') && !rawKey.includes('\n')) {
-                console.log('Detected single-line key, reconstructing with newlines...');
-                // Extract parts: header, base64 content, footer
-                const match = rawKey.match(/^(-----BEGIN [A-Z ]+ KEY-----)\s*(.+?)\s*(-----END [A-Z ]+ KEY-----)$/);
-                if (match) {
-                    const header = match[1];
-                    const base64Content = match[2].replace(/\s+/g, ''); // Remove any spaces from base64
-                    const footer = match[3];
-                    // Reconstruct with proper newlines (base64 in 70-char lines)
-                    const base64Lines = base64Content.match(/.{1,70}/g) || [];
-                    privateKey = header + '\n' + base64Lines.join('\n') + '\n' + footer + '\n';
-                } else {
-                    privateKey = rawKey;
-                }
-            } else {
-                privateKey = rawKey;
-            }
-            
-            // Debug: Log key info (not the actual key content for security)
-            console.log('Private key first line:', privateKey.split('\n')[0]);
-            console.log('Private key line count:', privateKey.split('\n').length);
-            console.log('Private key length:', privateKey.length);
-        } else if (process.env.PI_KEY_PATH) {
-            privateKey = fs.readFileSync(process.env.PI_KEY_PATH, 'utf8');
-        }
-        
+        // Decode base64-encoded private key (avoids newline issues in env vars)
+        const privateKey = Buffer.from(process.env.PI_PRIVATE_KEY_BASE64, 'base64').toString('utf8');
+
         await ssh.connect({
             host: process.env.PI_HOST,
             username: process.env.PI_USER,
             privateKey: privateKey,
-            password: process.env.PI_PASSWORD // fallback
+            password: process.env.PI_PASSWORD
         });
 
-        console.log('Connected. Uploading file...');
         await ssh.putFile(localFilePath, remotePath);
-        console.log(`File uploaded to ${remotePath}`);
-
-        // Cleanup local file
         fs.unlinkSync(localFilePath);
 
         res.json({ success: true, message: 'File sent to Pi successfully' });
     } catch (error) {
         console.error('Upload failed:', error);
-        // Try to cleanup even if upload failed
         if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
-        
         res.status(500).json({ error: 'Failed to upload to Pi: ' + error.message });
     } finally {
         ssh.dispose();
@@ -137,18 +74,4 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
-    console.log('Current directory:', __dirname);
-    const publicPath = path.join(__dirname, 'public');
-    console.log('Public directory:', publicPath);
-    if (fs.existsSync(publicPath)) {
-        console.log('Public directory contents:', fs.readdirSync(publicPath));
-    } else {
-        console.log('Public directory does not exist!');
-    }
 });
-
-// Handle SPA client-side routing - disabled for now due to path-to-regexp compatibility
-// app.get('/*', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public', 'index.html'));
-// });
-
