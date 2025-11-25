@@ -65,6 +65,20 @@ export const TEXT = {
       '[NET] Зберігання: приватний сервер', // Ukrainian: storage: private server
       '[CAM] BeReal-стиль: два фото', // Ukrainian: BeReal style: two photos
     ]
+  },
+  // Notifications
+  notifications: {
+    title: 'НАГАДУВАННЯ / ERINNERUNGEN', // Ukrainian + German: reminders
+    description: 'Щодня випадковий час для фото / Täglich zufällige Zeit für Foto', // Ukrainian + German: daily random time for photo
+    on: 'УВІМК', // Ukrainian: on
+    off: 'ВИМК', // Ukrainian: off
+    loading: '[SYS]...',
+    unsupported: '[ERR] Сповіщення не підтримуються / Benachrichtigungen nicht unterstützt', // Ukrainian + German: notifications not supported
+    denied: '[ERR] Доступ заборонено в налаштуваннях / Zugang in Einstellungen verweigert', // Ukrainian + German: access denied in settings
+    nextReminder: 'Наступне / Nächste:', // Ukrainian + German: next
+    timeWindow: '[INFO] Вікно: 9:00 - 22:00', // Time window info
+    permissionRequest: 'Дозволити сповіщення? / Benachrichtigungen erlauben?', // Ukrainian + German: allow notifications?
+    testButton: '[TEST] НАДІСЛАТИ ЗАРАЗ', // Ukrainian: send now
   }
 } as const;
 
