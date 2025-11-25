@@ -59,11 +59,12 @@ export const TEXT = {
   hilfe: {
     title: 'СИСТЕМНА ІНФОРМАЦІЯ', // Ukrainian: system information
     items: [
-      '[SYS] Максимальний розмір: 50MB', // Ukrainian: max size
-      '[SYS] Формати: JPEG, PNG, GIF, WEBP, MP4',
-      '[NET] Übertragung verschlüsselt', // German: transfer encrypted
-      '[NET] Зберігання: приватний сервер', // Ukrainian: storage: private server
-      '[CAM] BeReal-стиль: два фото', // Ukrainian: BeReal style: two photos
+      '[DATEI] Drag & Drop • JPEG, PNG, GIF, WEBP, MP4 • max 50MB',
+      '[VIDEO] Відеозапис підтримується',
+      '[NET] Verschlüsselte Übertragung • приватний сервер',
+      '[AUTH] Пароль-захищений доступ',
+      '[BELL] Щоденні нагадування: 9:00 - 22:00',
+      '[PWA] Встанови як додаток для push-сповіщень',
     ]
   },
   // Notifications
