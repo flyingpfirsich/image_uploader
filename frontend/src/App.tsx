@@ -1,4 +1,4 @@
-import { useState, useRef, type DragEvent } from 'react';
+import { useState, useRef, useCallback, useEffect, type DragEvent } from 'react';
 import './App.css';
 
 const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
@@ -32,6 +32,25 @@ const TEXT = {
     success: '[OK] Datei erfolgreich übertragen', // German: file successfully transferred
     error: '[ERR]', // Error prefix
   },
+  // Camera capture
+  camera: {
+    subtitle: 'Фото або відео • Foto oder Video', // Ukrainian + German: photo or video
+    photo: 'ФОТО',    // Ukrainian: photo
+    video: 'ВІДЕО',   // Ukrainian: video
+    start: 'START',
+    stop: 'STOP',
+    capture: 'ЗНЯТО', // Ukrainian: capture
+    retake: 'ПОВТОР / NOCHMAL', // Ukrainian + German: retake
+    use: 'VERWENDEN', // German: use
+    recording: '[REC] ЗАПИС...', // Ukrainian: recording
+    noCamera: '[ERR] Kamera nicht verfügbar', // German: camera not available
+    permissionDenied: '[ERR] Доступ заборонено / Zugang verweigert', // Ukrainian + German: access denied
+  },
+  // Mode selector
+  mode: {
+    upload: 'DATEI', // German: file
+    capture: 'KAMERA', // German: camera
+  },
   // Footer
   footer: {
     session: 'СЕСІЯ АКТИВНА', // Ukrainian: session active
@@ -45,6 +64,7 @@ const TEXT = {
       '[SYS] Формати: JPEG, PNG, GIF, WEBP, MP4',
       '[NET] Übertragung verschlüsselt', // German: transfer encrypted
       '[NET] Зберігання: приватний сервер', // Ukrainian: storage: private server
+      '[CAM] Фото/відео з камери підтримуються', // Ukrainian: camera photo/video supported
     ]
   }
 };
@@ -62,7 +82,168 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [activeNav, setActiveNav] = useState<'upload' | 'hilfe'>('upload');
+  const [inputMode, setInputMode] = useState<'upload' | 'capture'>('upload');
+  const [captureMode, setCaptureMode] = useState<'photo' | 'video'>('photo');
+  const [isRecording, setIsRecording] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [capturedMedia, setCapturedMedia] = useState<{ blob: Blob; type: 'photo' | 'video'; url: string } | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+
+  // Start camera stream (reduced resolution for smaller files)
+  const startCamera = useCallback(async () => {
+    try {
+      const constraints: MediaStreamConstraints = {
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: captureMode === 'video',
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      
+      setCameraActive(true);
+      setStatus({ type: '', message: '' });
+    } catch (error) {
+      console.error('Camera error:', error);
+      if ((error as Error).name === 'NotAllowedError') {
+        setStatus({ type: 'error', message: TEXT.camera.permissionDenied });
+      } else {
+        setStatus({ type: 'error', message: TEXT.camera.noCamera });
+      }
+    }
+  }, [captureMode]);
+
+  // Stop camera stream
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setCameraActive(false);
+    setIsRecording(false);
+  }, []);
+
+  // Capture photo
+  const capturePhoto = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        setCapturedMedia({ blob, type: 'photo', url });
+        stopCamera();
+      }
+    }, 'image/jpeg', 0.7);
+  }, [stopCamera]);
+
+  // Start video recording (lower quality for smaller files)
+  const startRecording = useCallback(() => {
+    if (!streamRef.current) return;
+    
+    recordedChunksRef.current = [];
+    
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+      ? 'video/webm;codecs=vp9' 
+      : 'video/webm';
+    
+    // Lower bitrate for smaller file sizes (500 kbps video @ 480p)
+    const mediaRecorder = new MediaRecorder(streamRef.current, { 
+      mimeType,
+      videoBitsPerSecond: 500000,  // 500 kbps
+      audioBitsPerSecond: 32000,   // 32 kbps
+    });
+    
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        recordedChunksRef.current.push(event.data);
+      }
+    };
+    
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      setCapturedMedia({ blob, type: 'video', url });
+      stopCamera();
+    };
+    
+    mediaRecorderRef.current = mediaRecorder;
+    mediaRecorder.start(100);
+    setIsRecording(true);
+  }, [stopCamera]);
+
+  // Stop video recording
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  }, []);
+
+  // Retake - discard captured media and restart camera
+  const retake = useCallback(() => {
+    if (capturedMedia) {
+      URL.revokeObjectURL(capturedMedia.url);
+      setCapturedMedia(null);
+    }
+    startCamera();
+  }, [capturedMedia, startCamera]);
+
+  // Use captured media - convert to File and set for upload
+  const useCapturedMedia = useCallback(() => {
+    if (!capturedMedia) return;
+    
+    const extension = capturedMedia.type === 'photo' ? 'jpg' : 'webm';
+    const mimeType = capturedMedia.type === 'photo' ? 'image/jpeg' : 'video/webm';
+    const fileName = `capture_${Date.now()}.${extension}`;
+    
+    const file = new File([capturedMedia.blob], fileName, { type: mimeType });
+    setFile(file);
+    
+    URL.revokeObjectURL(capturedMedia.url);
+    setCapturedMedia(null);
+    setInputMode('upload'); // Switch to upload mode to show the file
+  }, [capturedMedia]);
+
+  // Cleanup on unmount or mode change
+  useEffect(() => {
+    return () => {
+      stopCamera();
+      if (capturedMedia) {
+        URL.revokeObjectURL(capturedMedia.url);
+      }
+    };
+  }, []);
+
+  // Stop camera when switching away from capture mode
+  useEffect(() => {
+    if (inputMode !== 'capture') {
+      stopCamera();
+    }
+  }, [inputMode, stopCamera]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +384,28 @@ function App() {
   return (
     <div className="container">
       <header className="header">
-        <KaomojiLogo />
+        <div className="header-left">
+          <KaomojiLogo />
+          {activeNav === 'upload' && (
+            <nav className="nav nav--mode">
+              <button 
+                className={`nav-link ${inputMode === 'upload' ? 'active' : ''}`}
+                onClick={() => setInputMode('upload')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+              >
+                {TEXT.mode.upload}
+              </button>
+              <span className="nav-sep">/</span>
+              <button 
+                className={`nav-link ${inputMode === 'capture' ? 'active' : ''}`}
+                onClick={() => setInputMode('capture')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+              >
+                {TEXT.mode.capture}
+              </button>
+            </nav>
+          )}
+        </div>
         <nav className="nav">
           <button 
             className={`nav-link ${activeNav === 'upload' ? 'active' : ''}`}
@@ -226,39 +428,131 @@ function App() {
       <main className="main">
         {activeNav === 'upload' ? (
           <div className="upload-container">
-            <h1 className="upload-title">{TEXT.upload.title}</h1>
-            <p className="upload-subtitle">{TEXT.upload.subtitle}</p>
+            {inputMode === 'upload' ? (
+              <>
+                <h1 className="upload-title">{TEXT.upload.title}</h1>
+                <p className="upload-subtitle">{TEXT.upload.subtitle}</p>
 
-            <form onSubmit={handleUpload}>
-              <div
-                className={`drop-zone ${isDragging ? 'active' : ''}`}
-                onDragEnter={(e) => handleDrag(e, true)}
-                onDragLeave={(e) => handleDrag(e, false)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onClick={handleFileClick}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                  style={{ display: 'none' }}
-                />
-                {file ? (
-                  <span className="file-selected">{TEXT.upload.selected} {file.name}</span>
-                ) : (
-                  <>
-                    <p className="drop-zone-text">{TEXT.upload.dropText}</p>
-                    <p className="drop-zone-hint">{TEXT.upload.dropHint}</p>
-                  </>
-                )}
-              </div>
+                <form onSubmit={handleUpload}>
+                  <div
+                    className={`drop-zone ${isDragging ? 'active' : ''}`}
+                    onDragEnter={(e) => handleDrag(e, true)}
+                    onDragLeave={(e) => handleDrag(e, false)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
+                    onClick={handleFileClick}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                      style={{ display: 'none' }}
+                    />
+                    {file ? (
+                      <span className="file-selected">{TEXT.upload.selected} {file.name}</span>
+                    ) : (
+                      <>
+                        <p className="drop-zone-text">{TEXT.upload.dropText}</p>
+                        <p className="drop-zone-hint">{TEXT.upload.dropHint}</p>
+                      </>
+                    )}
+                  </div>
 
-              <button type="submit" className="btn" disabled={!file || isLoading}>
-                {isLoading ? TEXT.upload.loading : TEXT.upload.submit}
-              </button>
-            </form>
+                  <button type="submit" className="btn" disabled={!file || isLoading}>
+                    {isLoading ? TEXT.upload.loading : TEXT.upload.submit}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <p className="upload-subtitle">{TEXT.camera.subtitle}</p>
+
+                {/* Capture Mode Toggle (Photo/Video) */}
+                <div className="capture-mode-toggle">
+                  <button
+                    className={`capture-mode-btn ${captureMode === 'photo' ? 'active' : ''}`}
+                    onClick={() => { setCaptureMode('photo'); if (cameraActive) { stopCamera(); startCamera(); } }}
+                    disabled={isRecording}
+                  >
+                    {TEXT.camera.photo}
+                  </button>
+                  <button
+                    className={`capture-mode-btn ${captureMode === 'video' ? 'active' : ''}`}
+                    onClick={() => { setCaptureMode('video'); if (cameraActive) { stopCamera(); startCamera(); } }}
+                    disabled={isRecording}
+                  >
+                    {TEXT.camera.video}
+                  </button>
+                </div>
+
+                {/* Camera Preview / Captured Media */}
+                <div className="camera-container">
+                  {capturedMedia ? (
+                    <div className="captured-preview">
+                      {capturedMedia.type === 'photo' ? (
+                        <img src={capturedMedia.url} alt="Captured" className="captured-media" />
+                      ) : (
+                        <video src={capturedMedia.url} controls className="captured-media" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="video-wrapper">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className={`camera-feed ${cameraActive ? 'active' : ''}`}
+                      />
+                      {!cameraActive && (
+                        <div className="camera-placeholder">
+                          <span className="camera-icon">◎</span>
+                          <p>{TEXT.camera.start}</p>
+                        </div>
+                      )}
+                      {isRecording && (
+                        <div className="recording-indicator">
+                          <span className="rec-dot" />
+                          {TEXT.camera.recording}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <canvas ref={canvasRef} style={{ display: 'none' }} />
+                </div>
+
+                {/* Camera Controls */}
+                <div className="camera-controls">
+                  {capturedMedia ? (
+                    <>
+                      <button className="btn btn--secondary" onClick={retake}>
+                        {TEXT.camera.retake}
+                      </button>
+                      <button className="btn" onClick={useCapturedMedia}>
+                        {TEXT.camera.use}
+                      </button>
+                    </>
+                  ) : !cameraActive ? (
+                    <button className="btn" onClick={startCamera}>
+                      {TEXT.camera.start}
+                    </button>
+                  ) : captureMode === 'photo' ? (
+                    <button className="btn btn--capture" onClick={capturePhoto}>
+                      {TEXT.camera.capture}
+                    </button>
+                  ) : !isRecording ? (
+                    <button className="btn btn--record" onClick={startRecording}>
+                      {TEXT.camera.start}
+                    </button>
+                  ) : (
+                    <button className="btn btn--stop" onClick={stopRecording}>
+                      {TEXT.camera.stop}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
 
             {status.message && (
               <ul className="status-list">
