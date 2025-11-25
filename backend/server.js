@@ -59,11 +59,19 @@ app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
     try {
         console.log(`Connecting to Pi at ${process.env.PI_HOST}...`);
         
+        // Handle private key - convert escaped newlines to real newlines
+        let privateKey;
+        if (process.env.PI_PRIVATE_KEY) {
+            // Replace literal \n with actual newlines (common issue with env vars)
+            privateKey = process.env.PI_PRIVATE_KEY.replace(/\\n/g, '\n');
+        } else if (process.env.PI_KEY_PATH) {
+            privateKey = fs.readFileSync(process.env.PI_KEY_PATH, 'utf8');
+        }
+        
         await ssh.connect({
             host: process.env.PI_HOST,
             username: process.env.PI_USER,
-            // Priority: 1. Key String, 2. Key Path, 3. Password
-            privateKey: process.env.PI_PRIVATE_KEY || (process.env.PI_KEY_PATH ? fs.readFileSync(process.env.PI_KEY_PATH, 'utf8') : undefined),
+            privateKey: privateKey,
             password: process.env.PI_PASSWORD // fallback
         });
 
