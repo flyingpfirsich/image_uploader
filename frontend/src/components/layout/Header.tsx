@@ -51,6 +51,14 @@ export function Header({
         </button>
         <span className="nav-sep">/</span>
         <button 
+          className={`nav-link ${activeNav === 'memories' ? 'active' : ''}`}
+          onClick={() => onNavChange('memories')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+        >
+          {TEXT.nav.memories}
+        </button>
+        <span className="nav-sep">/</span>
+        <button 
           className={`nav-link ${activeNav === 'hilfe' ? 'active' : ''}`}
           onClick={() => onNavChange('hilfe')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}

@@ -41,6 +41,99 @@ app.post('/login', (req, res) => {
     }
 });
 
+// Get list of uploaded files from Pi
+app.get('/memories', checkAuth, async (req, res) => {
+    const ssh = new NodeSSH();
+
+    try {
+        const privateKey = Buffer.from(process.env.PI_PRIVATE_KEY_BASE64, 'base64').toString('utf8');
+        
+        await ssh.connect({
+            host: process.env.PI_HOST,
+            username: process.env.PI_USER,
+            privateKey: privateKey,
+            password: process.env.PI_PASSWORD,
+            readyTimeout: 15000,
+        });
+
+        // List files with their modification dates (format: timestamp filename)
+        const result = await ssh.execCommand(
+            `cd /home/${process.env.PI_USER}/Videos && ls -la --time-style=+%s 2>/dev/null | awk 'NR>1 && !/^d/ {print $6, $7}'`
+        );
+
+        if (result.stderr && !result.stdout) {
+            throw new Error(result.stderr);
+        }
+
+        const files = result.stdout.split('\n')
+            .filter(line => line.trim())
+            .map(line => {
+                const [timestamp, filename] = line.split(' ');
+                return {
+                    filename,
+                    timestamp: parseInt(timestamp) * 1000,
+                    date: new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0]
+                };
+            })
+            .filter(f => f.filename);
+
+        res.json({ success: true, files });
+    } catch (error) {
+        console.error('Failed to list memories:', error.message);
+        res.status(500).json({ error: 'Failed to fetch memories: ' + error.message });
+    } finally {
+        ssh.dispose();
+    }
+});
+
+// Get thumbnail/file from Pi
+app.get('/memories/:filename', checkAuth, async (req, res) => {
+    const ssh = new NodeSSH();
+    const { filename } = req.params;
+    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+    try {
+        const privateKey = Buffer.from(process.env.PI_PRIVATE_KEY_BASE64, 'base64').toString('utf8');
+        
+        await ssh.connect({
+            host: process.env.PI_HOST,
+            username: process.env.PI_USER,
+            privateKey: privateKey,
+            password: process.env.PI_PASSWORD,
+            readyTimeout: 30000,
+        });
+
+        const remotePath = `/home/${process.env.PI_USER}/Videos/${safeName}`;
+        const localPath = path.join(__dirname, 'uploads', `temp_${Date.now()}_${safeName}`);
+        
+        await ssh.getFile(localPath, remotePath);
+        
+        // Determine content type
+        const ext = path.extname(safeName).toLowerCase();
+        const contentTypes = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.mp4': 'video/mp4',
+            '.mov': 'video/quicktime',
+            '.webm': 'video/webm',
+        };
+        
+        res.setHeader('Content-Type', contentTypes[ext] || 'application/octet-stream');
+        res.sendFile(localPath, {}, (err) => {
+            // Clean up temp file after sending
+            if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
+        });
+    } catch (error) {
+        console.error('Failed to fetch file:', error.message);
+        res.status(500).json({ error: 'Failed to fetch file: ' + error.message });
+    } finally {
+        ssh.dispose();
+    }
+});
+
 app.post('/upload', checkAuth, upload.single('image'), async (req, res) => {
     console.log('=== Upload request received ===');
     

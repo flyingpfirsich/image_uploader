@@ -28,6 +28,20 @@ export interface CapturedMedia {
 export type FacingMode = 'user' | 'environment';
 export type CaptureMode = 'photo' | 'video';
 export type InputMode = 'upload' | 'capture';
-export type NavMode = 'upload' | 'hilfe';
+export type NavMode = 'upload' | 'memories' | 'hilfe';
 export type MainPhotoPosition = 'front' | 'back';
+
+// Memory/Calendar types
+export interface MemoryItem {
+  filename: string;
+  timestamp: number;
+  date: string;
+  thumbnailUrl?: string;
+}
+
+export interface DayMemories {
+  date: string;
+  memories: MemoryItem[];
+  count: number;
+}
 

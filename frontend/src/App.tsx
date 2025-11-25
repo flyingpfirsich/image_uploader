@@ -11,6 +11,7 @@ import { LoginScreen } from './components/auth/LoginScreen';
 import { UploadScreen } from './components/upload/UploadScreen';
 import { CaptureScreen } from './components/camera/CaptureScreen';
 import { HelpScreen } from './components/help/HelpScreen';
+import { MemoriesCalendar } from './components/memories/MemoriesCalendar';
 
 // Types
 import type { NavMode, InputMode } from './types';
@@ -59,7 +60,7 @@ function App() {
       />
 
       <main className="main">
-        {activeNav === 'upload' ? (
+        {activeNav === 'upload' && (
           <div className="upload-container">
             {inputMode === 'upload' ? (
               <UploadScreen 
@@ -74,7 +75,11 @@ function App() {
               />
             )}
           </div>
-        ) : (
+        )}
+        {activeNav === 'memories' && (
+          <MemoriesCalendar token={token} />
+        )}
+        {activeNav === 'hilfe' && (
           <HelpScreen />
         )}
       </main>

@@ -1,0 +1,513 @@
+/* Memories Calendar - BeReal Style */
+
+.memories-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Loading State */
+.memories-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1.5rem;
+  color: var(--fg-dim);
+}
+
+.memories-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border);
+  border-top-color: var(--fg);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.memories-error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--fg-dim);
+}
+
+.memories-error-detail {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #a54;
+}
+
+/* Empty State */
+.memories-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--fg-dim);
+}
+
+.empty-calendar-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.memories-hint {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Calendar */
+.memories-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.calendar-month {
+  width: 100%;
+}
+
+/* Calendar Navigation */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.calendar-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s;
+}
+
+.calendar-nav-btn:hover:not(:disabled) {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+.calendar-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.calendar-today-btn {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--fg-dim);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.calendar-today-btn:hover {
+  border-color: var(--fg-dim);
+  color: var(--fg);
+}
+
+.calendar-month-title {
+  font-size: 0.9rem;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin: 0;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-weekday {
+  font-size: 0.65rem;
+  color: var(--fg-dim);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+/* Individual Day Cell */
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--fg);
+  transition: all 0.15s;
+}
+
+.calendar-day.other-month {
+  opacity: 0.3;
+}
+
+.calendar-day.other-month .day-number {
+  color: var(--fg-dim);
+}
+
+/* Today indicator - ring outline */
+.calendar-day.is-today {
+  box-shadow: inset 0 0 0 2px var(--fg);
+}
+
+.calendar-day.is-today .day-number {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+/* Days with memories */
+.calendar-day.has-memories {
+  cursor: pointer;
+}
+
+.calendar-day.has-memories:hover {
+  transform: scale(1.05);
+}
+
+/* Day Number */
+.day-number {
+  font-weight: 400;
+  color: var(--fg-dim);
+}
+
+.calendar-day.has-memories .day-number {
+  color: var(--fg);
+}
+
+/* Thumbnail Container */
+.day-thumbnail-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.calendar-day.has-memories:hover .day-thumbnail-container {
+  border-color: var(--fg);
+}
+
+.day-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Day with uploads (no thumbnail) - outline only */
+.day-dot-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: transparent;
+  border-radius: 8px;
+  border: 1px solid var(--fg-dim);
+  transition: all 0.15s;
+}
+
+.calendar-day.has-memories:hover .day-dot-container {
+  border-color: var(--fg);
+}
+
+.day-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+/* Count Badge - hidden */
+.day-count {
+  display: none;
+}
+
+/* Streak Indicator - stamp style at top right */
+.streak-indicator {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  transform: rotate(12deg);
+  font-size: 1rem;
+  z-index: 2;
+  white-space: nowrap;
+  color: var(--fg);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Day Detail Modal */
+.day-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.day-modal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.day-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.day-modal-close {
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.15s;
+  width: 40px;
+}
+
+.day-modal-close:hover {
+  color: var(--accent);
+}
+
+.day-modal-spacer {
+  width: 40px;
+}
+
+.day-modal-title {
+  font-size: 0.85rem;
+  color: var(--fg);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.day-modal-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.day-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.day-modal-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-modal-media {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--border);
+}
+
+.day-modal-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--fg-dim);
+  padding: 0.5rem;
+  word-break: break-all;
+  text-align: center;
+}
+
+.day-modal-filename {
+  font-size: 0.7rem;
+  color: var(--fg-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Debug Panel - Dev Mode Only */
+.debug-panel {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px dashed #f0a;
+  background: rgba(255, 0, 170, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.debug-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.debug-label {
+  color: #f0a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.debug-toggle {
+  background: transparent;
+  border: 1px solid #f0a;
+  color: #f0a;
+  padding: 0.4rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.debug-toggle:hover {
+  background: rgba(255, 0, 170, 0.2);
+}
+
+.debug-toggle.active {
+  background: #f0a;
+  color: var(--bg);
+}
+
+.debug-info {
+  color: #f0a;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.debug-streaks {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(255, 0, 170, 0.3);
+}
+
+.debug-streak-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.debug-streak-item {
+  color: #f0a;
+  font-size: 0.65rem;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .calendar-grid {
+    gap: 3px;
+  }
+  
+  .calendar-day {
+    border-radius: 6px;
+    font-size: 0.75rem;
+  }
+  
+  .day-thumbnail-container {
+    border-radius: 6px;
+  }
+  
+  .day-dot-container {
+    border-radius: 6px;
+  }
+  
+  .day-count {
+    font-size: 0.55rem;
+    min-width: 14px;
+    height: 14px;
+  }
+  
+  .day-modal-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

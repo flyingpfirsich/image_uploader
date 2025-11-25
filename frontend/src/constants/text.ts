@@ -3,6 +3,7 @@ export const TEXT = {
   // Navigation
   nav: {
     upload: 'ЗАВАНТАЖИТИ', // Ukrainian: upload
+    memories: 'СПОГАДИ',   // Ukrainian: memories
     hilfe: 'HILFE',        // German: help
   },
   // Login
@@ -80,6 +81,15 @@ export const TEXT = {
     timeWindow: '[INFO] Вікно: 9:00 - 22:00', // Time window info
     permissionRequest: 'Дозволити сповіщення? / Benachrichtigungen erlauben?', // Ukrainian + German: allow notifications?
     testButton: '[TEST] НАДІСЛАТИ ЗАРАЗ', // Ukrainian: send now
-  }
+  },
+  // Memories calendar
+  memories: {
+    title: "СПОГАДИ", // Ukrainian: memories
+    loading: "[SYS] ЗАВАНТАЖЕННЯ...", // Ukrainian: loading
+    error: "[ERR] Помилка завантаження / Fehler beim Laden", // Ukrainian + German: loading error
+    empty: "Ще немає спогадів / Noch keine Erinnerungen", // Ukrainian + German: no memories yet
+    close: "ЗАКРИТИ", // Ukrainian: close
+    today: "СЬОГОДНІ", // Ukrainian: today
+  },
 } as const;
 
