@@ -1043,6 +1043,12 @@
   margin-top: 0.5rem;
 }
 
+.profile-calendar-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+}
+
 .profile-archive {
   margin-top: 2rem;
 }

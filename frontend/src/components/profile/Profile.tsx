@@ -4,6 +4,7 @@ import * as api from '../../services/api';
 import { getAvatarUrl } from '../../services/api';
 import { PostCard } from '../feed/PostCard';
 import { EditProfile } from './EditProfile';
+import { ProfileCalendar } from './ProfileCalendar';
 import { NotificationSettings } from '../settings/NotificationSettings';
 import { formatDate } from '../../utils/date';
 import { getKaomojiForUser } from '../../utils/kaomoji';
@@ -120,6 +121,13 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
           </div>
         )}
       </header>
+
+      {isOwnProfile && (
+        <section className="profile-calendar-section">
+          <h3 className="section-title">Activity Calendar</h3>
+          <ProfileCalendar posts={posts} friends={friends} />
+        </section>
+      )}
 
       {isOwnProfile && (
         <section className="profile-friends">

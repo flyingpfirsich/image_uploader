@@ -1,0 +1,598 @@
+/* Profile Calendar - Matching MemoriesCalendar Style */
+
+.profile-calendar {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ============================================
+   STREAK HEADER
+   ============================================ */
+
+.streak-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.streak-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.streak-kaomoji {
+  font-size: 2rem;
+  color: var(--fg);
+  animation: streakPulse 3s ease-in-out infinite;
+}
+
+@keyframes streakPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.streak-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.streak-count {
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--fg);
+  line-height: 1;
+}
+
+.streak-label {
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.streak-stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.streak-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.streak-stat-value {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.streak-stat-label {
+  font-size: 0.65rem;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   CALENDAR SECTION
+   ============================================ */
+
+.calendar-section {
+  width: 100%;
+}
+
+/* Calendar Navigation - matches MemoriesCalendar */
+.profile-calendar .calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.profile-calendar .calendar-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.profile-calendar .calendar-nav-btn:hover:not(:disabled) {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+.profile-calendar .calendar-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.profile-calendar .calendar-today-btn {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--fg-dim);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.profile-calendar .calendar-today-btn:hover {
+  border-color: var(--fg-dim);
+  color: var(--fg);
+}
+
+.profile-calendar .calendar-month-title {
+  font-size: 0.9rem;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Calendar Weekdays */
+.profile-calendar .calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.profile-calendar .calendar-weekday {
+  font-size: 0.65rem;
+  color: var(--fg-dim);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0;
+}
+
+/* Calendar Grid */
+.profile-calendar .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+/* Individual Day Cell (button) */
+.profile-calendar .calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--fg);
+  transition: all 0.15s;
+  gap: 2px;
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0;
+  font-family: inherit;
+  cursor: default;
+}
+
+.profile-calendar .calendar-day.other-month {
+  opacity: 0.3;
+}
+
+.profile-calendar .calendar-day.other-month .day-number {
+  color: var(--fg-dim);
+}
+
+/* Today indicator - ring outline matching MemoriesCalendar */
+.profile-calendar .calendar-day.is-today {
+  box-shadow: inset 0 0 0 2px var(--fg);
+}
+
+.profile-calendar .calendar-day.is-today .day-number {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+/* Day Number */
+.profile-calendar .day-number {
+  font-weight: 400;
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  z-index: 1;
+}
+
+/* Days with uploads */
+.profile-calendar .calendar-day.has-uploads {
+  border: 1px solid var(--fg-dim);
+  cursor: pointer;
+}
+
+.profile-calendar .calendar-day.has-uploads .day-number {
+  color: var(--fg);
+}
+
+.profile-calendar .calendar-day.has-uploads:hover:not(:disabled) {
+  transform: scale(1.05);
+  border-color: var(--fg);
+}
+
+.profile-calendar .calendar-day:disabled {
+  cursor: default;
+}
+
+/* Upload dot indicator */
+.day-upload-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+/* Birthday indicator */
+.day-birthday-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.7rem;
+  z-index: 2;
+}
+
+/* Days with birthdays */
+.profile-calendar .calendar-day.has-birthday {
+  /* No background - just the indicator */
+}
+
+/* ============================================
+   CALENDAR LEGEND
+   ============================================ */
+
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot--upload {
+  background: var(--accent);
+}
+
+.legend-kaomoji {
+  font-size: 0.75rem;
+  color: var(--fg);
+}
+
+.legend-label {
+  font-size: 0.7rem;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   UPCOMING BIRTHDAYS
+   ============================================ */
+
+.upcoming-birthdays {
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+}
+
+.upcoming-title {
+  font-size: 0.8rem;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+}
+
+.upcoming-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.upcoming-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.upcoming-item:last-child {
+  border-bottom: none;
+}
+
+.upcoming-name {
+  color: var(--fg);
+  font-size: 0.9rem;
+}
+
+.upcoming-date {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+}
+
+.upcoming-today {
+  color: #f0c674;
+  font-weight: 500;
+}
+
+.upcoming-soon {
+  color: var(--fg);
+  font-style: italic;
+}
+
+/* ============================================
+   DAY DETAIL MODAL
+   ============================================ */
+
+.day-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.day-modal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.day-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.day-modal-close {
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.15s;
+  width: 40px;
+  font-family: inherit;
+}
+
+.day-modal-close:hover {
+  color: var(--accent);
+}
+
+.day-modal-spacer {
+  width: 40px;
+}
+
+.day-modal-title {
+  font-size: 0.8rem;
+  color: var(--fg);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.day-modal-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.day-modal-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.day-modal-post {
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.day-modal-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.day-modal-media {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--border);
+}
+
+.day-modal-text {
+  color: var(--fg);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
+}
+
+.day-modal-location {
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.day-modal-time {
+  color: var(--fg-dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ============================================
+   DEBUG PANEL
+   ============================================ */
+
+.debug-panel {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px dashed #f0a;
+  background: rgba(255, 0, 170, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.debug-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.debug-label {
+  color: #f0a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.debug-toggle {
+  background: transparent;
+  border: 1px solid #f0a;
+  color: #f0a;
+  padding: 0.4rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.debug-toggle:hover {
+  background: rgba(255, 0, 170, 0.2);
+}
+
+.debug-toggle.active {
+  background: #f0a;
+  color: var(--bg);
+}
+
+.debug-info {
+  color: #f0a;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 480px) {
+  .streak-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .streak-main {
+    flex-direction: column;
+  }
+
+  .streak-stats {
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .streak-stat {
+    align-items: center;
+  }
+
+  .profile-calendar .calendar-grid {
+    gap: 3px;
+  }
+
+  .profile-calendar .calendar-day {
+    border-radius: 6px;
+    font-size: 0.75rem;
+  }
+
+  .calendar-legend {
+    gap: 1rem;
+  }
+
+  .day-modal-media-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
