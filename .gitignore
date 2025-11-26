@@ -1,3 +1,7 @@
+# SQLite database files (temporary)
+*.db-wal
+*.db-shm
+
 # Logs
 logs
 *.log

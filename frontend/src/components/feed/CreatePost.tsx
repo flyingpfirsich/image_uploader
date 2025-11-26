@@ -1,5 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import * as api from '../../services/api';
+import { TEXT } from '../../constants/text';
+import { CameraPreview } from '../camera/CameraPreview';
+import { useCamera } from '../../hooks/useCamera';
+import { useBeRealCapture } from '../../hooks/useBeRealCapture';
+import { useVideoRecording } from '../../hooks/useVideoRecording';
+import type { CapturedMedia, CaptureMode, Status } from '../../types';
+
+type PostMode = 'select' | 'camera' | 'compose';
 
 interface CreatePostProps {
   token: string;
@@ -8,6 +16,12 @@ interface CreatePostProps {
 }
 
 export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
+  const [mode, setMode] = useState<PostMode>('select');
+  const [captureMode, setCaptureMode] = useState<CaptureMode>('photo');
+  const [capturedMedia, setCapturedMedia] = useState<CapturedMedia | null>(null);
+  const [status, setStatus] = useState<Status>({ type: '', message: '' });
+  
+  // Post form state
   const [text, setText] = useState('');
   const [location, setLocation] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -17,23 +31,146 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Camera hooks
+  const handleCameraError = useCallback((newStatus: Status) => {
+    setStatus(newStatus);
+  }, []);
+
+  const {
+    cameraActive,
+    facingMode,
+    setFacingMode,
+    videoRef,
+    streamRef,
+    startCamera,
+    stopCamera,
+    switchCamera,
+  } = useCamera({ captureMode, onError: handleCameraError });
+
+  const setCameraActive = useCallback((active: boolean) => {
+    if (!active) {
+      stopCamera();
+    }
+  }, [stopCamera]);
+
+  const {
+    beRealPhotos,
+    isCapturingSecond,
+    mainPhotoPosition,
+    hasBeRealPhotos,
+    canvasRef,
+    captureBeRealPhoto,
+    swapBeRealPhotos,
+    compositeBeRealPhotos,
+    clearBeRealPhotos,
+  } = useBeRealCapture({
+    videoRef,
+    streamRef,
+    facingMode,
+    setFacingMode,
+    setCameraActive,
+    onStatusChange: setStatus,
+  });
+
+  const handleRecordingComplete = useCallback((media: CapturedMedia) => {
+    setCapturedMedia(media);
+  }, []);
+
+  const {
+    isRecording,
+    startRecording,
+    stopRecording,
+  } = useVideoRecording({
+    streamRef,
+    onRecordingComplete: handleRecordingComplete,
+    onStopCamera: stopCamera,
+  });
+
+  // File upload handling
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
 
-    // Create previews
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     
     setFiles((prev) => [...prev, ...selectedFiles]);
     setPreviews((prev) => [...prev, ...newPreviews]);
+    setMode('compose');
   };
 
   const removeFile = (index: number) => {
     URL.revokeObjectURL(previews[index]);
     setFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviews((prev) => prev.filter((_, i) => i !== index));
+    if (files.length === 1) {
+      setMode('select');
+    }
   };
 
+  // Camera mode handlers
+  const handleStartCamera = useCallback(() => {
+    setMode('camera');
+    startCamera();
+  }, [startCamera]);
+
+  const handleCaptureModeChange = useCallback((newMode: CaptureMode) => {
+    setCaptureMode(newMode);
+    if (cameraActive) {
+      stopCamera();
+      startCamera();
+    }
+  }, [cameraActive, stopCamera, startCamera]);
+
+  const handleRetake = useCallback(() => {
+    if (capturedMedia) {
+      URL.revokeObjectURL(capturedMedia.url);
+      setCapturedMedia(null);
+    }
+    clearBeRealPhotos();
+    setFacingMode('environment');
+    startCamera('environment');
+  }, [capturedMedia, clearBeRealPhotos, setFacingMode, startCamera]);
+
+  const handleUseBeRealPhotos = useCallback(async () => {
+    const file = await compositeBeRealPhotos();
+    if (file) {
+      const preview = URL.createObjectURL(file);
+      setFiles([file]);
+      setPreviews([preview]);
+      clearBeRealPhotos();
+      setMode('compose');
+    }
+  }, [compositeBeRealPhotos, clearBeRealPhotos]);
+
+  const handleUseCapturedMedia = useCallback(() => {
+    if (!capturedMedia) return;
+    
+    const extension = capturedMedia.type === 'photo' ? 'jpg' : 'mp4';
+    const mimeType = capturedMedia.type === 'photo' ? 'image/jpeg' : 'video/mp4';
+    const fileName = `capture_${Date.now()}.${extension}`;
+    
+    const file = new File([capturedMedia.blob], fileName, { type: mimeType });
+    const preview = URL.createObjectURL(file);
+    
+    setFiles([file]);
+    setPreviews([preview]);
+    
+    URL.revokeObjectURL(capturedMedia.url);
+    setCapturedMedia(null);
+    setMode('compose');
+  }, [capturedMedia]);
+
+  const handleBackToSelect = useCallback(() => {
+    stopCamera();
+    clearBeRealPhotos();
+    if (capturedMedia) {
+      URL.revokeObjectURL(capturedMedia.url);
+      setCapturedMedia(null);
+    }
+    setMode('select');
+  }, [stopCamera, clearBeRealPhotos, capturedMedia]);
+
+  // Submit post
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim() && files.length === 0) {
@@ -55,7 +192,6 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
         files.length > 0 ? files : undefined
       );
       
-      // Clean up previews
       previews.forEach((p) => URL.revokeObjectURL(p));
       
       onPostCreated();
@@ -67,26 +203,176 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     }
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+      if (capturedMedia) {
+        URL.revokeObjectURL(capturedMedia.url);
+      }
+      clearBeRealPhotos();
+      previews.forEach((p) => URL.revokeObjectURL(p));
+    };
+  }, []);
+
   return (
     <div className="create-post-overlay" onClick={onClose}>
       <div className="create-post-modal" onClick={(e) => e.stopPropagation()}>
         <header className="create-post-header">
-          <h2 className="section-title">New Post</h2>
-          <button className="btn--text" onClick={onClose}>×</button>
+          <h2 className="section-title">
+            {mode === 'select' && 'New Post'}
+            {mode === 'camera' && 'Capture'}
+            {mode === 'compose' && 'Compose'}
+          </h2>
+          <button className="btn--text" onClick={onClose}>x</button>
         </header>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-row">
-            <textarea
-              className="form-input form-textarea"
-              placeholder="What's happening?"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={3}
-              autoFocus
-            />
-          </div>
+        {/* Mode: Select - Primary photo options */}
+        {mode === 'select' && (
+          <div className="create-post-select">
+            <div className="photo-options">
+              <button 
+                className="photo-option photo-option--camera"
+                onClick={handleStartCamera}
+              >
+                <span className="photo-option-icon">[  ]</span>
+                <span className="photo-option-label">Take Photo</span>
+                <span className="photo-option-hint">BeReal style</span>
+              </button>
+              
+              <button 
+                className="photo-option photo-option--upload"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <span className="photo-option-icon">^</span>
+                <span className="photo-option-label">Upload</span>
+                <span className="photo-option-hint">From device</span>
+              </button>
+            </div>
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+
+            <div className="text-only-option">
+              <button 
+                className="btn btn--secondary"
+                onClick={() => setMode('compose')}
+              >
+                Text only
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Mode: Camera */}
+        {mode === 'camera' && (
+          <div className="create-post-camera">
+            {/* Capture Mode Toggle */}
+            <div className="capture-mode-toggle">
+              <button
+                className={`capture-mode-btn ${captureMode === 'photo' ? 'active' : ''}`}
+                onClick={() => handleCaptureModeChange('photo')}
+                disabled={isRecording}
+              >
+                {TEXT.camera.photo}
+              </button>
+              <button
+                className={`capture-mode-btn ${captureMode === 'video' ? 'active' : ''}`}
+                onClick={() => handleCaptureModeChange('video')}
+                disabled={isRecording}
+              >
+                {TEXT.camera.video}
+              </button>
+            </div>
+
+            {/* Camera Preview */}
+            <CameraPreview
+              captureMode={captureMode}
+              capturedMedia={capturedMedia}
+              hasBeRealPhotos={hasBeRealPhotos}
+              beRealPhotos={beRealPhotos}
+              mainPhotoPosition={mainPhotoPosition}
+              cameraActive={cameraActive}
+              isCapturingSecond={isCapturingSecond}
+              isRecording={isRecording}
+              facingMode={facingMode}
+              videoRef={videoRef}
+              canvasRef={canvasRef}
+              onSwapBeRealPhotos={swapBeRealPhotos}
+              onSwitchCamera={switchCamera}
+            />
+
+            {/* Camera Controls */}
+            <div className="camera-controls">
+              {/* Video captured */}
+              {captureMode === 'video' && capturedMedia ? (
+                <>
+                  <button className="btn btn--secondary" onClick={handleRetake}>
+                    {TEXT.camera.retake}
+                  </button>
+                  <button className="btn" onClick={handleUseCapturedMedia}>
+                    {TEXT.camera.use}
+                  </button>
+                </>
+              ) : hasBeRealPhotos ? (
+                /* BeReal photos captured */
+                <>
+                  <button className="btn btn--secondary" onClick={handleRetake}>
+                    {TEXT.camera.retake}
+                  </button>
+                  <button className="btn" onClick={handleUseBeRealPhotos}>
+                    {TEXT.camera.use}
+                  </button>
+                </>
+              ) : isCapturingSecond ? (
+                /* Capturing second photo */
+                <button className="btn" disabled>
+                  {TEXT.camera.capturingSecond}
+                </button>
+              ) : !cameraActive ? (
+                /* Camera not started */
+                <button className="btn" onClick={() => startCamera()}>
+                  {TEXT.camera.start}
+                </button>
+              ) : captureMode === 'photo' ? (
+                /* Photo mode - capture button */
+                <button className="btn btn--capture" onClick={captureBeRealPhoto}>
+                  {TEXT.camera.capture}
+                </button>
+              ) : !isRecording ? (
+                /* Video mode - start recording */
+                <button className="btn btn--record" onClick={startRecording}>
+                  {TEXT.camera.start}
+                </button>
+              ) : (
+                /* Video mode - stop recording */
+                <button className="btn btn--stop" onClick={stopRecording}>
+                  {TEXT.camera.stop}
+                </button>
+              )}
+            </div>
+
+            <button className="btn--text camera-back-btn" onClick={handleBackToSelect}>
+              {'<-'} Back
+            </button>
+
+            {status.message && (
+              <p className={`camera-status ${status.type === 'error' ? 'camera-status--error' : ''}`}>
+                {status.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Mode: Compose */}
+        {mode === 'compose' && (
+          <form onSubmit={handleSubmit}>
           {previews.length > 0 && (
             <div className="create-post-previews">
               {previews.map((preview, index) => (
@@ -101,12 +387,23 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
                     className="preview-remove"
                     onClick={() => removeFile(index)}
                   >
-                    ×
+                      x
                   </button>
                 </div>
               ))}
             </div>
           )}
+
+            <div className="form-row">
+              <textarea
+                className="form-input form-textarea"
+                placeholder="What's happening?"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={3}
+                autoFocus={files.length === 0}
+              />
+            </div>
 
           <div className="create-post-actions">
             <input
@@ -128,7 +425,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
             <input
               type="text"
               className="form-input form-input--small"
-              placeholder="📍 Location"
+                placeholder="@ Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
@@ -136,7 +433,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
             <input
               type="url"
               className="form-input form-input--small"
-              placeholder="🔗 Link"
+                placeholder="~> Link"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
             />
@@ -149,13 +446,20 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
           )}
 
           <div className="create-post-submit">
+              <button 
+                type="button" 
+                className="btn btn--secondary"
+                onClick={handleBackToSelect}
+              >
+                {'<-'} Back
+              </button>
             <button type="submit" className="btn" disabled={isLoading}>
               {isLoading ? 'Posting...' : 'Post'}
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
 }
-

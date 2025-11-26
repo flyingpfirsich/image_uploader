@@ -10,7 +10,6 @@ import { Footer } from './components/layout/Footer';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { Feed } from './components/feed/Feed';
 import { Profile } from './components/profile/Profile';
-import { Friends } from './components/friends/Friends';
 
 // Types
 import type { NavMode } from './types';
@@ -61,19 +60,13 @@ function AppContent() {
         {activeNav === 'feed' && (
           <Feed token={token} userId={user.id} />
         )}
-        {activeNav === 'friends' && (
-          <Friends
-            token={token}
-            currentUserId={user.id}
-            onSelectUser={handleSelectUser}
-          />
-        )}
         {activeNav === 'profile' && (
           <Profile
             userId={profileUserId}
             currentUserId={user.id}
             token={token}
             onUserUpdate={updateUser}
+            onSelectUser={handleSelectUser}
           />
         )}
       </main>

@@ -5,7 +5,6 @@ export const TEXT = {
   },
   nav: {
     feed: 'Feed',
-    friends: 'Friends',
     profile: 'Profile',
   },
   login: {
@@ -31,8 +30,8 @@ export const TEXT = {
   post: {
     placeholder: "What's happening?",
     addMedia: '+ Media',
-    locationPlaceholder: '📍 Location',
-    linkPlaceholder: '🔗 Link',
+    locationPlaceholder: '@ Location',
+    linkPlaceholder: '~> Link',
     submit: 'Post',
     delete: 'Delete',
     confirm: 'Confirm',
@@ -50,5 +49,28 @@ export const TEXT = {
     title: 'Friends',
     empty: 'No friends yet!',
     emptyHint: 'Invite your friends to join druzi',
+  },
+  camera: {
+    subtitle: 'Capture a moment',
+    photo: 'Photo',
+    video: 'Video',
+    start: 'Start Camera',
+    capture: '[ SNAP ]',
+    stop: '[ STOP ]',
+    retake: 'Retake',
+    use: 'Use This',
+    capturingSecond: 'Getting selfie...',
+    switchCamera: '(~)',
+    front: 'Front',
+    back: 'Back',
+    recording: 'REC',
+    permissionDenied: 'Camera permission denied',
+    noCamera: 'No camera found',
+  },
+  upload: {
+    title: 'Upload',
+    subtitle: 'Share a file',
+    loading: 'Uploading...',
+    submit: 'Upload',
   },
 };

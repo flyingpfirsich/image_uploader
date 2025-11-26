@@ -5,17 +5,20 @@ import { getAvatarUrl } from '../../services/api';
 import { PostCard } from '../feed/PostCard';
 import { EditProfile } from './EditProfile';
 import { formatDate } from '../../utils/date';
+import { getKaomojiForUser } from '../../utils/kaomoji';
 
 interface ProfileProps {
   userId: string;
   currentUserId: string;
   token: string;
   onUserUpdate?: (user: User) => void;
+  onSelectUser?: (userId: string) => void;
 }
 
-export function Profile({ userId, currentUserId, token, onUserUpdate }: ProfileProps) {
+export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUser }: ProfileProps) {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [friends, setFriends] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -26,9 +29,15 @@ export function Profile({ userId, currentUserId, token, onUserUpdate }: ProfileP
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { user, posts } = await api.getUserProfile(token, userId);
-        setUser(user);
-        setPosts(posts);
+        const [profileData, usersData] = await Promise.all([
+          api.getUserProfile(token, userId),
+          isOwnProfile ? api.getUsers(token) : Promise.resolve({ users: [] }),
+        ]);
+        setUser(profileData.user);
+        setPosts(profileData.posts);
+        if (isOwnProfile) {
+          setFriends(usersData.users.filter((u: User) => u.id !== currentUserId));
+        }
       } catch (error) {
         console.error('Failed to load profile:', error);
       } finally {
@@ -37,7 +46,7 @@ export function Profile({ userId, currentUserId, token, onUserUpdate }: ProfileP
     };
 
     fetchProfile();
-  }, [token, userId]);
+  }, [token, userId, isOwnProfile, currentUserId]);
 
   const handleCreateInvite = async () => {
     setIsCreatingInvite(true);
@@ -87,8 +96,8 @@ export function Profile({ userId, currentUserId, token, onUserUpdate }: ProfileP
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="profile-avatar" />
           ) : (
-            <div className="profile-avatar profile-avatar--placeholder">
-              {user.displayName.charAt(0).toUpperCase()}
+            <div className="profile-avatar profile-avatar--placeholder profile-avatar--kaomoji">
+              {getKaomojiForUser(user.id)}
             </div>
           )}
         </div>
@@ -97,7 +106,7 @@ export function Profile({ userId, currentUserId, token, onUserUpdate }: ProfileP
           <h1 className="profile-name">{user.displayName}</h1>
           <p className="profile-username">@{user.username}</p>
           {user.birthday && (
-            <p className="profile-birthday">🎂 {formatDate(new Date(user.birthday))}</p>
+            <p className="profile-birthday">(^o^)/ {formatDate(new Date(user.birthday))}</p>
           )}
           <p className="profile-joined">Joined {formatDate(new Date(user.createdAt))}</p>
         </div>
@@ -112,28 +121,66 @@ export function Profile({ userId, currentUserId, token, onUserUpdate }: ProfileP
       </header>
 
       {isOwnProfile && (
-        <section className="profile-invite">
-          <h3 className="section-title">Invite a Friend</h3>
-          {inviteCode ? (
-            <div className="invite-code-display">
-              <code className="invite-code">{inviteCode}</code>
-              <button
-                className="btn--text"
-                onClick={() => navigator.clipboard.writeText(inviteCode)}
-              >
-                Copy
-              </button>
+        <section className="profile-friends">
+          <h3 className="section-title">Friends ({friends.length})</h3>
+          {friends.length === 0 ? (
+            <div className="friends-empty">
+              <p className="friends-empty-text">No friends yet!</p>
+              <p className="friends-empty-hint">
+                Invite your friends to join druzi
+              </p>
             </div>
           ) : (
-            <button
-              className="btn btn--secondary"
-              onClick={handleCreateInvite}
-              disabled={isCreatingInvite}
-            >
-              {isCreatingInvite ? 'Creating...' : 'Generate Invite Code'}
-            </button>
+            <ul className="friends-list">
+              {friends.map((friend) => {
+                const friendAvatarUrl = getAvatarUrl(friend.avatar);
+                return (
+                  <li key={friend.id} className="friend-item">
+                    <button
+                      className="friend-btn"
+                      onClick={() => onSelectUser?.(friend.id)}
+                    >
+                      {friendAvatarUrl ? (
+                        <img src={friendAvatarUrl} alt="" className="friend-avatar" />
+                      ) : (
+                        <div className="friend-avatar friend-avatar--placeholder friend-avatar--kaomoji">
+                          {getKaomojiForUser(friend.id)}
+                        </div>
+                      )}
+                      <div className="friend-info">
+                        <span className="friend-name">{friend.displayName}</span>
+                        <span className="friend-username">@{friend.username}</span>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-          <p className="invite-hint">Code expires in 7 days</p>
+
+          <div className="profile-invite">
+            <h4 className="section-title" style={{ marginTop: '1.5rem' }}>Invite a Friend</h4>
+            {inviteCode ? (
+              <div className="invite-code-display">
+                <code className="invite-code">{inviteCode}</code>
+                <button
+                  className="btn--text"
+                  onClick={() => navigator.clipboard.writeText(inviteCode)}
+                >
+                  Copy
+                </button>
+              </div>
+            ) : (
+              <button
+                className="btn btn--secondary"
+                onClick={handleCreateInvite}
+                disabled={isCreatingInvite}
+              >
+                {isCreatingInvite ? 'Creating...' : 'Generate Invite Code'}
+              </button>
+            )}
+            <p className="invite-hint">Code expires in 7 days</p>
+          </div>
         </section>
       )}
 

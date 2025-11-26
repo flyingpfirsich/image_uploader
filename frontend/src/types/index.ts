@@ -88,7 +88,7 @@ export interface CapturedMedia {
 export type FacingMode = 'user' | 'environment';
 export type CaptureMode = 'photo' | 'video';
 export type InputMode = 'upload' | 'capture';
-export type NavMode = 'feed' | 'profile' | 'friends';
+export type NavMode = 'feed' | 'profile';
 export type MainPhotoPosition = 'front' | 'back';
 
 // Kaomoji reactions preset

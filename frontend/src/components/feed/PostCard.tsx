@@ -3,6 +3,7 @@ import type { Post } from '../../types';
 import { getMediaUrl, getAvatarUrl } from '../../services/api';
 import { Reactions } from './Reactions';
 import { formatDistanceToNow } from '../../utils/date';
+import { getKaomojiForUser } from '../../utils/kaomoji';
 
 interface PostCardProps {
   post: Post;
@@ -46,8 +47,8 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="post-avatar" />
           ) : (
-            <div className="post-avatar post-avatar--placeholder">
-              {post.user.displayName.charAt(0).toUpperCase()}
+            <div className="post-avatar post-avatar--placeholder post-avatar--kaomoji">
+              {getKaomojiForUser(post.user.id)}
             </div>
           )}
           <div className="post-user-info">
@@ -57,7 +58,7 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
         </div>
         <div className="post-meta">
           <span className="post-time">{formatDistanceToNow(new Date(post.createdAt))}</span>
-          {post.location && <span className="post-location">📍 {post.location}</span>}
+          {post.location && <span className="post-location">@ {post.location}</span>}
         </div>
       </header>
 
@@ -106,7 +107,7 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
 
       {post.linkUrl && (
         <a href={post.linkUrl} target="_blank" rel="noopener noreferrer" className="post-link">
-          🔗 {post.linkTitle || post.linkUrl}
+          ~&gt; {post.linkTitle || post.linkUrl}
         </a>
       )}
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { User } from '../../types';
 import * as api from '../../services/api';
 import { getAvatarUrl } from '../../services/api';
+import { getKaomojiForUser } from '../../utils/kaomoji';
 
 interface FriendsProps {
   token: string;
@@ -62,8 +63,8 @@ export function Friends({ token, currentUserId, onSelectUser }: FriendsProps) {
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="friend-avatar" />
                   ) : (
-                    <div className="friend-avatar friend-avatar--placeholder">
-                      {friend.displayName.charAt(0).toUpperCase()}
+                    <div className="friend-avatar friend-avatar--placeholder friend-avatar--kaomoji">
+                      {getKaomojiForUser(friend.id)}
                     </div>
                   )}
                   <div className="friend-info">
