@@ -87,7 +87,6 @@ export interface CapturedMedia {
 // Type aliases
 export type FacingMode = 'user' | 'environment';
 export type CaptureMode = 'photo' | 'video';
-export type InputMode = 'upload' | 'capture';
 export type NavMode = 'feed' | 'profile' | 'admin';
 
 // Admin username constant

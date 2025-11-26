@@ -1489,32 +1489,6 @@
   font-family: inherit;
 }
 
-/* Help Screen */
-.help-screen {
-  max-width: 480px;
-}
-
-.help-section {
-  margin-top: 2rem;
-}
-
-.info-list {
-  list-style: none;
-  margin-top: 1rem;
-}
-
-.info-list li {
-  padding: 0.5rem 0;
-  color: var(--fg-dim);
-  font-size: 0.9rem;
-}
-
-.info-list li::before {
-  content: '>';
-  margin-right: 0.75rem;
-  color: var(--fg-dim);
-}
-
 /* ============================================
    ADMIN PANEL STYLES
    ============================================ */

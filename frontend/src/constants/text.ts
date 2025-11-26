@@ -45,11 +45,6 @@ export const TEXT = {
     archive: 'Archive',
     noPostsYet: 'No posts yet',
   },
-  friends: {
-    title: 'Friends',
-    empty: 'No friends yet!',
-    emptyHint: 'Invite your friends to join druzi',
-  },
   camera: {
     subtitle: 'Capture a moment',
     photo: 'Photo',
@@ -66,17 +61,6 @@ export const TEXT = {
     recording: 'REC',
     permissionDenied: 'Camera permission denied',
     noCamera: 'No camera found',
-  },
-  upload: {
-    title: 'Upload',
-    subtitle: 'Share a file',
-    loading: 'Uploading...',
-    submit: 'Upload',
-    success: 'Upload successful!',
-    error: 'Upload failed',
-    selected: 'Selected:',
-    dropText: 'Drop file here',
-    dropHint: 'or click to browse',
   },
   notifications: {
     title: 'Notifications',
@@ -96,13 +80,5 @@ export const TEXT = {
     },
     testButton: '[TEST] Send Now',
     loading: '...',
-  },
-  hilfe: {
-    title: 'About',
-    items: [
-      'druzi is a private space for friends',
-      'Share moments, react with kaomoji',
-      'Built with (◠‿◠)',
-    ],
   },
 };
