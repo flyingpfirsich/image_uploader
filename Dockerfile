@@ -26,6 +26,9 @@ RUN npm install --production
 # Copy compiled backend
 COPY --from=backend-builder /app/dist ./dist
 
+# Copy drizzle migrations
+COPY --from=backend-builder /app/drizzle ./drizzle
+
 # Copy built frontend assets to backend's public directory
 COPY --from=frontend-builder /app/frontend/dist ./public
 
