@@ -78,7 +78,7 @@ export function CaptureScreen({ onFileReady, onSwitchToUpload }: CaptureScreenPr
     setCaptureMode(mode);
     if (cameraActive) {
       stopCamera();
-      startCamera();
+      startCamera(undefined, mode);
     }
   }, [cameraActive, stopCamera, startCamera]);
 

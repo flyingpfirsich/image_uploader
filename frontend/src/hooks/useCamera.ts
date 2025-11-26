@@ -19,12 +19,13 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
   }, [onError]);
 
   // Start camera stream (reduced resolution for smaller files)
-  const startCamera = useCallback(async (overrideFacingMode?: FacingMode) => {
+  const startCamera = useCallback(async (overrideFacingMode?: FacingMode, overrideCaptureMode?: CaptureMode) => {
     try {
       const useFacingMode = overrideFacingMode || facingMode;
+      const useCaptureMode = overrideCaptureMode || captureMode;
       const constraints: MediaStreamConstraints = {
         video: { facingMode: useFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: captureMode === 'video',
+        audio: useCaptureMode === 'video',
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);

@@ -117,7 +117,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     setCaptureMode(newMode);
     if (cameraActive) {
       stopCamera();
-      startCamera();
+      startCamera(undefined, newMode);
     }
   }, [cameraActive, stopCamera, startCamera]);
 
