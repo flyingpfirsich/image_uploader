@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import * as postService from '../services/post.service.js';
+import * as notificationService from '../services/notification.service.js';
+import * as authService from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { uploadMedia } from '../middleware/upload.js';
 
@@ -37,6 +39,15 @@ router.post(
         },
         mediaInputs
       );
+      
+      // Send notification to friends (async, don't wait)
+      authService.getUserById(req.user!.userId).then((user) => {
+        if (user) {
+          notificationService.notifyFriendPosted(req.user!.userId, user.displayName);
+        }
+      }).catch((err) => {
+        console.error('Failed to send friend notification:', err);
+      });
       
       res.json(post);
     } catch (error) {

@@ -1,263 +1,217 @@
 import { useState, useEffect, useCallback } from 'react';
-
-const NOTIFICATION_ENABLED_KEY = 'notifications_enabled';
-const SCHEDULED_TIME_KEY = 'notification_scheduled_time';
-
-// Notification window: 9am - 10pm (9:00 - 22:00)
-const START_HOUR = 9;
-const END_HOUR = 22;
+import * as api from '../services/api';
 
 interface NotificationState {
   isEnabled: boolean;
   permission: NotificationPermission | 'unsupported';
-  scheduledTime: Date | null;
   isSupported: boolean;
+  dailyReminder: boolean;
+  friendPosts: boolean;
+  scheduledTime: Date | null;
+  isLoading: boolean;
 }
 
-export function useNotifications() {
+interface UseNotificationsOptions {
+  token: string | null;
+}
+
+// Convert VAPID key to Uint8Array for push subscription
+function urlBase64ToUint8Array(base64String: string): BufferSource {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+  
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray.buffer;
+}
+
+export function useNotifications({ token }: UseNotificationsOptions) {
   const [state, setState] = useState<NotificationState>({
-    isEnabled: localStorage.getItem(NOTIFICATION_ENABLED_KEY) === 'true',
+    isEnabled: false,
     permission: 'Notification' in window ? Notification.permission : 'unsupported',
+    isSupported: 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window,
+    dailyReminder: true,
+    friendPosts: true,
     scheduledTime: null,
-    isSupported: 'Notification' in window && 'serviceWorker' in navigator,
+    isLoading: true,
   });
 
-  // Generate a random time between START_HOUR and END_HOUR for today or tomorrow
-  const generateRandomTime = useCallback((forTomorrow = false): Date => {
-    const now = new Date();
-    const targetDate = new Date(now);
-    
-    if (forTomorrow) {
-      targetDate.setDate(targetDate.getDate() + 1);
+  // Load preferences from backend
+  useEffect(() => {
+    if (!token || !state.isSupported) {
+      setState(prev => ({ ...prev, isLoading: false }));
+      return;
     }
-    
-    // Random hour between START_HOUR and END_HOUR
-    const randomHour = Math.floor(Math.random() * (END_HOUR - START_HOUR)) + START_HOUR;
-    // Random minute
-    const randomMinute = Math.floor(Math.random() * 60);
-    // Random second
-    const randomSecond = Math.floor(Math.random() * 60);
-    
-    targetDate.setHours(randomHour, randomMinute, randomSecond, 0);
-    
-    return targetDate;
-  }, []);
 
-  // Get or create today's scheduled time
-  const getScheduledTime = useCallback((): Date => {
-    const stored = localStorage.getItem(SCHEDULED_TIME_KEY);
-    
-    if (stored) {
-      const storedDate = new Date(stored);
-      const now = new Date();
-      
-      // If stored time is in the past and it's a different day, generate new time
-      if (storedDate < now) {
-        // Check if we're in the notification window today
-        const currentHour = now.getHours();
-        if (currentHour < END_HOUR) {
-          // Still time today, generate time for later today if possible
-          if (currentHour < START_HOUR) {
-            // Before window starts, generate for today
-            const newTime = generateRandomTime(false);
-            localStorage.setItem(SCHEDULED_TIME_KEY, newTime.toISOString());
-            return newTime;
-          } else {
-            // In window but past stored time, generate for later today
-            const newTime = new Date();
-            const remainingHours = END_HOUR - currentHour;
-            const randomHour = currentHour + Math.floor(Math.random() * remainingHours) + 1;
-            newTime.setHours(
-              Math.min(randomHour, END_HOUR - 1),
-              Math.floor(Math.random() * 60),
-              Math.floor(Math.random() * 60),
-              0
-            );
-            
-            // If generated time is still past, schedule for tomorrow
-            if (newTime <= now) {
-              const tomorrowTime = generateRandomTime(true);
-              localStorage.setItem(SCHEDULED_TIME_KEY, tomorrowTime.toISOString());
-              return tomorrowTime;
-            }
-            
-            localStorage.setItem(SCHEDULED_TIME_KEY, newTime.toISOString());
-            return newTime;
-          }
-        } else {
-          // Past today's window, schedule for tomorrow
-          const newTime = generateRandomTime(true);
-          localStorage.setItem(SCHEDULED_TIME_KEY, newTime.toISOString());
-          return newTime;
-        }
+    const loadPreferences = async () => {
+      try {
+        const [prefs, scheduledTime] = await Promise.all([
+          api.getNotificationPreferences(token),
+          api.getScheduledNotificationTime(token),
+        ]);
+        
+        // Check if user has an active subscription
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        
+        setState(prev => ({
+          ...prev,
+          isEnabled: !!subscription,
+          dailyReminder: prefs.dailyReminder,
+          friendPosts: prefs.friendPosts,
+          scheduledTime,
+          isLoading: false,
+        }));
+      } catch (error) {
+        console.error('[Notifications] Failed to load preferences:', error);
+        setState(prev => ({ ...prev, isLoading: false }));
       }
-      
-      return storedDate;
-    }
-    
-    // No stored time, generate new one
-    const now = new Date();
-    const currentHour = now.getHours();
-    
-    let newTime: Date;
-    if (currentHour >= END_HOUR) {
-      // Past today's window, schedule for tomorrow
-      newTime = generateRandomTime(true);
-    } else if (currentHour < START_HOUR) {
-      // Before today's window, schedule for today
-      newTime = generateRandomTime(false);
-    } else {
-      // In today's window, schedule for later today or tomorrow
-      const tempTime = new Date();
-      const remainingHours = END_HOUR - currentHour - 1;
-      
-      if (remainingHours > 0) {
-        const randomHour = currentHour + 1 + Math.floor(Math.random() * remainingHours);
-        tempTime.setHours(randomHour, Math.floor(Math.random() * 60), Math.floor(Math.random() * 60), 0);
-        newTime = tempTime;
-      } else {
-        newTime = generateRandomTime(true);
-      }
-    }
-    
-    localStorage.setItem(SCHEDULED_TIME_KEY, newTime.toISOString());
-    return newTime;
-  }, [generateRandomTime]);
+    };
 
-  // Schedule notification with service worker
-  const scheduleNotification = useCallback(async () => {
-    if (!state.isSupported) return;
+    loadPreferences();
+  }, [token, state.isSupported]);
+
+  // Subscribe to push notifications
+  const subscribeToPush = useCallback(async (): Promise<boolean> => {
+    if (!token || !state.isSupported) return false;
     
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const scheduledTime = getScheduledTime();
-      
-      // Send message to service worker
-      registration.active?.postMessage({
-        type: 'SCHEDULE_NOTIFICATION',
-        scheduledTime: scheduledTime.getTime(),
-      });
-      
-      setState(prev => ({ ...prev, scheduledTime }));
-      console.log('[Notifications] Scheduled for:', scheduledTime.toLocaleString());
-    } catch (error) {
-      console.error('[Notifications] Failed to schedule:', error);
-    }
-  }, [state.isSupported, getScheduledTime]);
-
-  // Cancel scheduled notification
-  const cancelNotification = useCallback(async () => {
-    if (!state.isSupported) return;
-    
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      registration.active?.postMessage({ type: 'CANCEL_NOTIFICATION' });
-      setState(prev => ({ ...prev, scheduledTime: null }));
-      console.log('[Notifications] Cancelled');
-    } catch (error) {
-      console.error('[Notifications] Failed to cancel:', error);
-    }
-  }, [state.isSupported]);
-
-  // Request permission and enable notifications
-  const enableNotifications = useCallback(async (): Promise<boolean> => {
-    if (!state.isSupported) return false;
-    
-    try {
+      // Request permission
       const permission = await Notification.requestPermission();
       setState(prev => ({ ...prev, permission }));
       
-      if (permission === 'granted') {
-        localStorage.setItem(NOTIFICATION_ENABLED_KEY, 'true');
-        setState(prev => ({ ...prev, isEnabled: true }));
-        await scheduleNotification();
-        return true;
+      if (permission !== 'granted') {
+        return false;
       }
       
-      return false;
+      // Get VAPID key
+      const vapidKey = await api.getVapidPublicKey();
+      if (!vapidKey) {
+        console.error('[Notifications] No VAPID key configured');
+        return false;
+      }
+      
+      // Subscribe with service worker
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+      
+      // Send subscription to backend
+      await api.subscribeToNotifications(token, subscription);
+      
+      // Load scheduled time
+      const scheduledTime = await api.getScheduledNotificationTime(token);
+      
+      setState(prev => ({
+        ...prev,
+        isEnabled: true,
+        scheduledTime,
+      }));
+      
+      console.log('[Notifications] Subscribed to push');
+      return true;
     } catch (error) {
-      console.error('[Notifications] Permission request failed:', error);
+      console.error('[Notifications] Subscribe failed:', error);
       return false;
     }
-  }, [state.isSupported, scheduleNotification]);
+  }, [token, state.isSupported]);
 
-  // Disable notifications
-  const disableNotifications = useCallback(async () => {
-    localStorage.setItem(NOTIFICATION_ENABLED_KEY, 'false');
-    localStorage.removeItem(SCHEDULED_TIME_KEY);
-    setState(prev => ({ ...prev, isEnabled: false, scheduledTime: null }));
-    await cancelNotification();
-  }, [cancelNotification]);
+  // Unsubscribe from push notifications
+  const unsubscribeFromPush = useCallback(async (): Promise<void> => {
+    if (!token || !state.isSupported) return;
+    
+    try {
+      // Unsubscribe from browser
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+      }
+      
+      // Unsubscribe from backend
+      await api.unsubscribeFromNotifications(token);
+      
+      setState(prev => ({
+        ...prev,
+        isEnabled: false,
+        scheduledTime: null,
+      }));
+      
+      console.log('[Notifications] Unsubscribed from push');
+    } catch (error) {
+      console.error('[Notifications] Unsubscribe failed:', error);
+    }
+  }, [token, state.isSupported]);
 
-  // Toggle notifications
+  // Toggle notifications on/off
   const toggleNotifications = useCallback(async (): Promise<boolean> => {
     if (state.isEnabled) {
-      await disableNotifications();
+      await unsubscribeFromPush();
       return false;
     } else {
-      return await enableNotifications();
+      return await subscribeToPush();
     }
-  }, [state.isEnabled, enableNotifications, disableNotifications]);
+  }, [state.isEnabled, subscribeToPush, unsubscribeFromPush]);
 
-  // Schedule next day's notification
-  const scheduleNextDay = useCallback(async () => {
-    const newTime = generateRandomTime(true);
-    localStorage.setItem(SCHEDULED_TIME_KEY, newTime.toISOString());
-    await scheduleNotification();
-  }, [generateRandomTime, scheduleNotification]);
+  // Update daily reminder preference
+  const setDailyReminder = useCallback(async (enabled: boolean): Promise<void> => {
+    if (!token) return;
+    
+    try {
+      const prefs = await api.updateNotificationPreferences(token, { dailyReminder: enabled });
+      setState(prev => ({ ...prev, dailyReminder: prefs.dailyReminder }));
+    } catch (error) {
+      console.error('[Notifications] Failed to update daily reminder:', error);
+    }
+  }, [token]);
 
-  // Test notification immediately (dev only)
+  // Update friend posts preference
+  const setFriendPosts = useCallback(async (enabled: boolean): Promise<void> => {
+    if (!token) return;
+    
+    try {
+      const prefs = await api.updateNotificationPreferences(token, { friendPosts: enabled });
+      setState(prev => ({ ...prev, friendPosts: prefs.friendPosts }));
+    } catch (error) {
+      console.error('[Notifications] Failed to update friend posts:', error);
+    }
+  }, [token]);
+
+  // Test notification (dev only)
   const testNotification = useCallback(async () => {
     if (!state.isSupported || state.permission !== 'granted') {
       console.warn('[Notifications] Cannot test: permission not granted');
       return;
     }
     
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      registration.active?.postMessage({ type: 'TEST_NOTIFICATION' });
-      console.log('[Notifications] Test notification triggered');
-    } catch (error) {
-      console.error('[Notifications] Test failed:', error);
-    }
+    const registration = await navigator.serviceWorker.ready;
+    registration.showNotification('(◕‿◕) Test Notification!', {
+      body: 'If you see this, notifications are working!',
+      icon: '/icon.svg',
+      badge: '/icon.svg',
+      tag: 'test',
+    });
   }, [state.isSupported, state.permission]);
-
-  // Listen for messages from service worker
-  useEffect(() => {
-    if (!state.isSupported) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'NOTIFICATION_SHOWN') {
-        // Schedule next day's notification
-        scheduleNextDay();
-      }
-    };
-
-    navigator.serviceWorker.addEventListener('message', handleMessage);
-    return () => {
-      navigator.serviceWorker.removeEventListener('message', handleMessage);
-    };
-  }, [state.isSupported, scheduleNextDay]);
-
-  // Initialize scheduled time on mount
-  useEffect(() => {
-    if (state.isEnabled && state.permission === 'granted') {
-      const scheduled = getScheduledTime();
-      setState(prev => ({ ...prev, scheduledTime: scheduled }));
-      scheduleNotification();
-    }
-  }, []); // Only on mount
 
   return {
     isEnabled: state.isEnabled,
     isSupported: state.isSupported,
+    isLoading: state.isLoading,
     permission: state.permission,
+    dailyReminder: state.dailyReminder,
+    friendPosts: state.friendPosts,
     scheduledTime: state.scheduledTime,
-    enableNotifications,
-    disableNotifications,
     toggleNotifications,
-    scheduleNextDay,
+    setDailyReminder,
+    setFriendPosts,
     testNotification,
   };
 }
-

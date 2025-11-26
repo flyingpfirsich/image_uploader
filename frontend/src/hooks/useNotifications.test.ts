@@ -1,142 +1,111 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useNotifications } from './useNotifications';
 
+// Mock the API module
+vi.mock('../services/api', () => ({
+  getNotificationPreferences: vi.fn().mockResolvedValue({
+    userId: 'test-user',
+    dailyReminder: true,
+    friendPosts: true,
+  }),
+  getScheduledNotificationTime: vi.fn().mockResolvedValue(new Date('2025-11-25T15:30:00')),
+  getVapidPublicKey: vi.fn().mockResolvedValue('test-vapid-key'),
+  subscribeToNotifications: vi.fn().mockResolvedValue(undefined),
+  unsubscribeFromNotifications: vi.fn().mockResolvedValue(undefined),
+  updateNotificationPreferences: vi.fn().mockImplementation(async (_, updates) => ({
+    userId: 'test-user',
+    dailyReminder: updates.dailyReminder ?? true,
+    friendPosts: updates.friendPosts ?? true,
+  })),
+}));
+
 describe('useNotifications', () => {
+  const mockToken = 'test-token';
+
   beforeEach(() => {
     vi.useFakeTimers();
-    // Set a fixed date for consistent testing
     vi.setSystemTime(new Date('2025-11-25T14:00:00'));
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    localStorage.clear();
+    vi.clearAllMocks();
   });
 
   describe('initialization', () => {
     it('should detect notification support', () => {
-      const { result } = renderHook(() => useNotifications());
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      // PushManager is mocked in setup.ts
       expect(result.current.isSupported).toBe(true);
     });
 
-    it('should start with notifications disabled', () => {
-      const { result } = renderHook(() => useNotifications());
+    it('should start with isLoading true', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('should expose toggleNotifications function', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(typeof result.current.toggleNotifications).toBe('function');
+    });
+
+    it('should expose setDailyReminder function', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(typeof result.current.setDailyReminder).toBe('function');
+    });
+
+    it('should expose setFriendPosts function', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(typeof result.current.setFriendPosts).toBe('function');
+    });
+
+    it('should expose testNotification function', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(typeof result.current.testNotification).toBe('function');
+    });
+
+    it('should handle null token gracefully', () => {
+      const { result } = renderHook(() => useNotifications({ token: null }));
+      // With null token, hook should still be usable
+      expect(result.current.isEnabled).toBe(false);
+      expect(typeof result.current.toggleNotifications).toBe('function');
+    });
+  });
+
+  describe('default state', () => {
+    it('should default dailyReminder to true', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(result.current.dailyReminder).toBe(true);
+    });
+
+    it('should default friendPosts to true', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(result.current.friendPosts).toBe(true);
+    });
+
+    it('should start with isEnabled false', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
       expect(result.current.isEnabled).toBe(false);
     });
 
-    it('should read enabled state from localStorage', () => {
-      localStorage.setItem('notifications_enabled', 'true');
-      const { result } = renderHook(() => useNotifications());
-      expect(result.current.isEnabled).toBe(true);
-    });
-  });
-
-  describe('enableNotifications', () => {
-    it('should request permission and enable notifications', async () => {
-      const { result } = renderHook(() => useNotifications());
-      
-      await act(async () => {
-        const success = await result.current.enableNotifications();
-        expect(success).toBe(true);
-      });
-      
-      expect(result.current.isEnabled).toBe(true);
-      expect(result.current.permission).toBe('granted');
-      expect(localStorage.getItem('notifications_enabled')).toBe('true');
-    });
-  });
-
-  describe('disableNotifications', () => {
-    it('should disable notifications and clear storage', async () => {
-      // First enable
-      localStorage.setItem('notifications_enabled', 'true');
-      const { result } = renderHook(() => useNotifications());
-      
-      await act(async () => {
-        await result.current.disableNotifications();
-      });
-      
-      expect(result.current.isEnabled).toBe(false);
-      expect(localStorage.getItem('notifications_enabled')).toBe('false');
-      expect(localStorage.getItem('notification_scheduled_time')).toBe(null);
-    });
-  });
-
-  describe('toggleNotifications', () => {
-    it('should toggle from disabled to enabled', async () => {
-      const { result } = renderHook(() => useNotifications());
-      
-      await act(async () => {
-        await result.current.toggleNotifications();
-      });
-      
-      expect(result.current.isEnabled).toBe(true);
-    });
-
-    it('should toggle from enabled to disabled', async () => {
-      localStorage.setItem('notifications_enabled', 'true');
-      const { result } = renderHook(() => useNotifications());
-      
-      await act(async () => {
-        await result.current.toggleNotifications();
-      });
-      
-      expect(result.current.isEnabled).toBe(false);
-    });
-  });
-
-  describe('scheduling', () => {
-    it('should schedule notification for a time within the window (9am-10pm)', async () => {
-      const { result } = renderHook(() => useNotifications());
-      
-      await act(async () => {
-        await result.current.enableNotifications();
-      });
-      
-      const scheduledTime = result.current.scheduledTime;
-      expect(scheduledTime).not.toBe(null);
-      
-      if (scheduledTime) {
-        const hour = scheduledTime.getHours();
-        expect(hour).toBeGreaterThanOrEqual(9);
-        expect(hour).toBeLessThan(22);
-      }
-    });
-
-    it('should schedule for tomorrow if past 10pm', async () => {
-      // Set time to 11pm
-      vi.setSystemTime(new Date('2025-11-25T23:00:00'));
-      
-      const { result } = renderHook(() => useNotifications());
-      
-      await act(async () => {
-        await result.current.enableNotifications();
-      });
-      
-      const scheduledTime = result.current.scheduledTime;
-      expect(scheduledTime).not.toBe(null);
-      
-      if (scheduledTime) {
-        // Should be scheduled for tomorrow
-        expect(scheduledTime.getDate()).toBe(26);
-      }
+    it('should start with scheduledTime null', () => {
+      const { result } = renderHook(() => useNotifications({ token: mockToken }));
+      expect(result.current.scheduledTime).toBe(null);
     });
   });
 });
 
-describe('Notification scheduling logic', () => {
-  it('generates random times within the expected range', () => {
+describe('Notification time generation', () => {
+  it('generates random times within the expected range (9am-11pm)', () => {
     const START_HOUR = 9;
-    const END_HOUR = 22;
-    
+    const END_HOUR = 23; // 11pm
+
     // Test 100 random generations
     for (let i = 0; i < 100; i++) {
-      const randomHour = Math.floor(Math.random() * (END_HOUR - START_HOUR)) + START_HOUR;
+      const randomHour = START_HOUR + Math.floor(Math.random() * (END_HOUR - START_HOUR));
       expect(randomHour).toBeGreaterThanOrEqual(START_HOUR);
       expect(randomHour).toBeLessThan(END_HOUR);
     }
   });
 });
-
-

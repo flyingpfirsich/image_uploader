@@ -73,4 +73,31 @@ export const TEXT = {
     loading: 'Uploading...',
     submit: 'Upload',
   },
+  notifications: {
+    title: 'Notifications',
+    subtitle: 'stay in the loop (◕‿◕)',
+    unsupported: 'Notifications are not supported in this browser.',
+    denied: 'Notifications blocked. Enable them in your browser settings.',
+    enableButton: 'Enable Notifications',
+    disableButton: 'Disable Notifications',
+    dailyReminder: {
+      label: 'Daily Reminder',
+      description: 'Get nudged once a day to share a moment',
+      nextAt: 'Next reminder at',
+    },
+    friendPosts: {
+      label: 'Friend Posts',
+      description: 'Know when your friends share something',
+    },
+    testButton: '[TEST] Send Now',
+    loading: '...',
+  },
+  hilfe: {
+    title: 'About',
+    items: [
+      'druzi is a private space for friends',
+      'Share moments, react with kaomoji',
+      'Built with (◠‿◠)',
+    ],
+  },
 };

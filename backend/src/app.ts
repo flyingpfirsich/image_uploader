@@ -8,6 +8,14 @@ import authRoutes from './routes/auth.js';
 import postsRoutes from './routes/posts.js';
 import feedRoutes from './routes/feed.js';
 import usersRoutes from './routes/users.js';
+import notificationsRoutes from './routes/notifications.js';
+
+// Services
+import { initializeWebPush, initializeScheduler } from './services/notification.service.js';
+
+// Initialize notification system
+initializeWebPush();
+initializeScheduler();
 
 const app = express();
 
@@ -23,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -47,6 +56,12 @@ app.get('/', (_req, res) => {
       'GET  /api/users',
       'GET  /api/users/:id',
       'PATCH /api/users/me',
+      'GET  /api/notifications/vapid-public-key',
+      'POST /api/notifications/subscribe',
+      'DELETE /api/notifications/subscribe',
+      'GET  /api/notifications/preferences',
+      'PATCH /api/notifications/preferences',
+      'GET  /api/notifications/scheduled-time',
     ],
   });
 });

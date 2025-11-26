@@ -1,27 +1,42 @@
 import { useState } from 'react';
 import { useNotifications } from '../../hooks/useNotifications';
+import { useAuth } from '../../contexts/AuthContext';
 import { TEXT } from '../../constants/text';
 
 export function NotificationSettings() {
+  const { token } = useAuth();
   const {
     isEnabled,
     isSupported,
+    isLoading,
     permission,
+    dailyReminder,
+    friendPosts,
     scheduledTime,
     toggleNotifications,
+    setDailyReminder,
+    setFriendPosts,
     testNotification,
-  } = useNotifications();
+  } = useNotifications({ token });
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
 
-  const handleToggle = async () => {
-    setIsLoading(true);
+  const handleMainToggle = async () => {
+    setIsToggling(true);
     try {
       await toggleNotifications();
     } finally {
-      setIsLoading(false);
+      setIsToggling(false);
     }
+  };
+
+  const handleDailyToggle = async () => {
+    await setDailyReminder(!dailyReminder);
+  };
+
+  const handleFriendToggle = async () => {
+    await setFriendPosts(!friendPosts);
   };
 
   const handleTest = async () => {
@@ -35,16 +50,29 @@ export function NotificationSettings() {
 
   // Format scheduled time nicely
   const formatScheduledTime = (date: Date): string => {
-    return date.toLocaleTimeString('de-DE', {
+    return date.toLocaleTimeString(undefined, {
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="notification-settings">
+        <div className="notification-header">
+          <span className="notification-icon">(◕‿◕)</span>
+          <span className="notification-title">{TEXT.notifications.title}</span>
+        </div>
+        <p className="notification-loading">{TEXT.notifications.loading}</p>
+      </div>
+    );
+  }
+
   if (!isSupported) {
     return (
       <div className="notification-settings">
         <div className="notification-header">
+          <span className="notification-icon">(◕︵◕)</span>
           <span className="notification-title">{TEXT.notifications.title}</span>
         </div>
         <p className="notification-unsupported">{TEXT.notifications.unsupported}</p>
@@ -55,58 +83,96 @@ export function NotificationSettings() {
   return (
     <div className="notification-settings">
       <div className="notification-header">
-        <span className="notification-title">{TEXT.notifications.title}</span>
+        <div className="notification-header-left">
+          <span className="notification-icon">{isEnabled ? '(◕‿◕)' : '(◕_◕)'}</span>
+          <div className="notification-header-text">
+            <span className="notification-title">{TEXT.notifications.title}</span>
+            <span className="notification-subtitle">{TEXT.notifications.subtitle}</span>
+          </div>
+        </div>
         <button
-          className={`notification-toggle ${isEnabled ? 'active' : ''}`}
-          onClick={handleToggle}
-          disabled={isLoading}
+          className={`notification-main-toggle ${isEnabled ? 'active' : ''}`}
+          onClick={handleMainToggle}
+          disabled={isToggling}
           aria-label={isEnabled ? 'Disable notifications' : 'Enable notifications'}
         >
-          <span className="toggle-track" />
-          <span className="toggle-label">
-            {isLoading 
-              ? '...' 
-              : isEnabled 
-                ? TEXT.notifications.on 
-                : TEXT.notifications.off
-            }
+          <span className="toggle-track">
+            <span className="toggle-thumb" />
           </span>
         </button>
       </div>
-      
-      <p className="notification-description">{TEXT.notifications.description}</p>
       
       {permission === 'denied' && (
         <p className="notification-warning">{TEXT.notifications.denied}</p>
       )}
       
-      {isEnabled && scheduledTime && (
-        <div className="notification-schedule">
-          <span className="schedule-label">{TEXT.notifications.nextReminder}</span>
-          <span className="schedule-time">
-            {scheduledTime.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' })}
-            {' • '}
-            {formatScheduledTime(scheduledTime)}
-          </span>
+      {isEnabled && (
+        <div className="notification-options">
+          {/* Daily Reminder Toggle */}
+          <div className="notification-option">
+            <div className="notification-option-info">
+              <span className="notification-option-label">
+                {TEXT.notifications.dailyReminder.label}
+              </span>
+              <span className="notification-option-description">
+                {TEXT.notifications.dailyReminder.description}
+              </span>
+              {dailyReminder && scheduledTime && (
+                <span className="notification-option-time">
+                  {TEXT.notifications.dailyReminder.nextAt} {formatScheduledTime(scheduledTime)}
+                </span>
+              )}
+            </div>
+            <button
+              className={`notification-toggle ${dailyReminder ? 'active' : ''}`}
+              onClick={handleDailyToggle}
+              aria-label={dailyReminder ? 'Disable daily reminder' : 'Enable daily reminder'}
+            >
+              <span className="toggle-track">
+                <span className="toggle-thumb" />
+              </span>
+            </button>
+          </div>
+          
+          {/* Friend Posts Toggle */}
+          <div className="notification-option">
+            <div className="notification-option-info">
+              <span className="notification-option-label">
+                {TEXT.notifications.friendPosts.label}
+              </span>
+              <span className="notification-option-description">
+                {TEXT.notifications.friendPosts.description}
+              </span>
+            </div>
+            <button
+              className={`notification-toggle ${friendPosts ? 'active' : ''}`}
+              onClick={handleFriendToggle}
+              aria-label={friendPosts ? 'Disable friend post notifications' : 'Enable friend post notifications'}
+            >
+              <span className="toggle-track">
+                <span className="toggle-thumb" />
+              </span>
+            </button>
+          </div>
         </div>
       )}
       
-      <p className="notification-hint">{TEXT.notifications.timeWindow}</p>
-      
       {/* Debug/Test Section */}
-      {import.meta.env.DEV && (
+      {import.meta.env.DEV && isEnabled && (
         <div className="notification-debug">
           <button 
             className="btn btn--test"
             onClick={handleTest}
             disabled={isTesting || permission !== 'granted'}
           >
-            {isTesting ? '[SYS] SENDING...' : TEXT.notifications.testButton}
+            {isTesting ? '[SENDING...]' : TEXT.notifications.testButton}
           </button>
           <div className="debug-info">
             <code>
               [DEBUG] permission: {permission}<br />
               [DEBUG] enabled: {isEnabled ? 'true' : 'false'}<br />
+              [DEBUG] daily: {dailyReminder ? 'on' : 'off'}<br />
+              [DEBUG] friends: {friendPosts ? 'on' : 'off'}<br />
               [DEBUG] scheduled: {scheduledTime?.toISOString() || 'null'}
             </code>
           </div>
@@ -115,4 +181,3 @@ export function NotificationSettings() {
     </div>
   );
 }
-

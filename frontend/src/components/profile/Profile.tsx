@@ -4,6 +4,7 @@ import * as api from '../../services/api';
 import { getAvatarUrl } from '../../services/api';
 import { PostCard } from '../feed/PostCard';
 import { EditProfile } from './EditProfile';
+import { NotificationSettings } from '../settings/NotificationSettings';
 import { formatDate } from '../../utils/date';
 import { getKaomojiForUser } from '../../utils/kaomoji';
 
@@ -181,6 +182,12 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
             )}
             <p className="invite-hint">Code expires in 7 days</p>
           </div>
+        </section>
+      )}
+
+      {isOwnProfile && (
+        <section className="profile-notifications">
+          <NotificationSettings />
         </section>
       )}
 

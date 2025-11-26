@@ -45,6 +45,32 @@ Object.defineProperty(window, 'Notification', {
   writable: true,
 });
 
+// Mock PushManager
+class MockPushManager {
+  async getSubscription() {
+    return null;
+  }
+  
+  async subscribe() {
+    return {
+      endpoint: 'https://push.example.com/test',
+      toJSON: () => ({
+        endpoint: 'https://push.example.com/test',
+        keys: {
+          p256dh: 'test-p256dh',
+          auth: 'test-auth',
+        },
+      }),
+      unsubscribe: async () => true,
+    };
+  }
+}
+
+Object.defineProperty(window, 'PushManager', {
+  value: MockPushManager,
+  writable: true,
+});
+
 // Mock ServiceWorker
 const mockServiceWorker = {
   register: () => Promise.resolve({
@@ -52,12 +78,14 @@ const mockServiceWorker = {
     active: {
       postMessage: () => {},
     },
+    pushManager: new MockPushManager(),
   }),
   ready: Promise.resolve({
     active: {
       postMessage: () => {},
     },
     showNotification: () => Promise.resolve(),
+    pushManager: new MockPushManager(),
   }),
   addEventListener: () => {},
   removeEventListener: () => {},

@@ -247,3 +247,92 @@ export function getAvatarUrl(filename: string | null): string | null {
   if (!filename) return null;
   return `${API_URL}/uploads/avatars/${filename}`;
 }
+
+// Notification types
+export interface NotificationPreferences {
+  userId: string;
+  dailyReminder: boolean;
+  friendPosts: boolean;
+}
+
+// Notification endpoints
+export async function getVapidPublicKey(): Promise<string> {
+  const res = await fetch(`${API_URL}/api/notifications/vapid-public-key`);
+  
+  if (!res.ok) {
+    throw new Error('Failed to get VAPID key');
+  }
+  
+  const data = await res.json();
+  return data.key;
+}
+
+export async function subscribeToNotifications(
+  token: string,
+  subscription: PushSubscription
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/notifications/subscribe`, {
+    method: 'POST',
+    headers: jsonHeaders(token),
+    body: JSON.stringify({ subscription: subscription.toJSON() }),
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to subscribe');
+  }
+}
+
+export async function unsubscribeFromNotifications(token: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/notifications/subscribe`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to unsubscribe');
+  }
+}
+
+export async function getNotificationPreferences(
+  token: string
+): Promise<NotificationPreferences> {
+  const res = await fetch(`${API_URL}/api/notifications/preferences`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to get preferences');
+  }
+  
+  return res.json();
+}
+
+export async function updateNotificationPreferences(
+  token: string,
+  updates: { dailyReminder?: boolean; friendPosts?: boolean }
+): Promise<NotificationPreferences> {
+  const res = await fetch(`${API_URL}/api/notifications/preferences`, {
+    method: 'PATCH',
+    headers: jsonHeaders(token),
+    body: JSON.stringify(updates),
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to update preferences');
+  }
+  
+  return res.json();
+}
+
+export async function getScheduledNotificationTime(token: string): Promise<Date | null> {
+  const res = await fetch(`${API_URL}/api/notifications/scheduled-time`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to get scheduled time');
+  }
+  
+  const data = await res.json();
+  return data.scheduledTime ? new Date(data.scheduledTime) : null;
+}
