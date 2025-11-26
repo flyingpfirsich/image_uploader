@@ -10,9 +10,11 @@ import { Footer } from './components/layout/Footer';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { Feed } from './components/feed/Feed';
 import { Profile } from './components/profile/Profile';
+import { AdminPanel } from './components/admin/AdminPanel';
 
 // Types
 import type { NavMode } from './types';
+import { ADMIN_USERNAME } from './types';
 
 function AppContent() {
   const { user, token, isLoading, isAuthenticated, logout, updateUser } = useAuth();
@@ -51,10 +53,11 @@ function AppContent() {
   };
 
   const profileUserId = selectedUserId || user.id;
+  const isAdmin = user.username === ADMIN_USERNAME;
 
   return (
     <div className="container">
-      <Header activeNav={activeNav} onNavChange={handleNavChange} />
+      <Header activeNav={activeNav} onNavChange={handleNavChange} isAdmin={isAdmin} />
 
       <main className="main">
         {activeNav === 'feed' && (
@@ -68,6 +71,9 @@ function AppContent() {
             onUserUpdate={updateUser}
             onSelectUser={handleSelectUser}
           />
+        )}
+        {activeNav === 'admin' && isAdmin && (
+          <AdminPanel token={token} />
         )}
       </main>
 

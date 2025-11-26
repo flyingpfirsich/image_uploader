@@ -4,9 +4,10 @@ import type { NavMode } from '../../types';
 interface HeaderProps {
   activeNav: NavMode;
   onNavChange: (nav: NavMode) => void;
+  isAdmin?: boolean;
 }
 
-export function Header({ activeNav, onNavChange }: HeaderProps) {
+export function Header({ activeNav, onNavChange, isAdmin }: HeaderProps) {
   return (
     <header className="header">
       <KaomojiLogo />
@@ -26,6 +27,18 @@ export function Header({ activeNav, onNavChange }: HeaderProps) {
         >
           PROFILE
         </button>
+        {isAdmin && (
+          <>
+            <span className="nav-sep">/</span>
+            <button
+              className={`nav-link nav-link--admin ${activeNav === 'admin' ? 'active' : ''}`}
+              onClick={() => onNavChange('admin')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+            >
+              ADMIN
+            </button>
+          </>
+        )}
       </nav>
     </header>
   );

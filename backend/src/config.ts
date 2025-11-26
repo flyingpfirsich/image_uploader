@@ -34,6 +34,9 @@ export const config = {
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || '',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || '',
   vapidSubject: process.env.VAPID_SUBJECT || 'mailto:druzi@example.com',
+  
+  // Admin username (hardcoded for simplicity)
+  adminUsername: process.env.ADMIN_USERNAME || 'admin',
 };
 
 

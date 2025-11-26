@@ -336,3 +336,273 @@ export async function getScheduledNotificationTime(token: string): Promise<Date 
   const data = await res.json();
   return data.scheduledTime ? new Date(data.scheduledTime) : null;
 }
+
+// ============================================
+// ADMIN API TYPES
+// ============================================
+
+export interface AdminStats {
+  totalUsers: number;
+  totalPosts: number;
+  totalReactions: number;
+  totalMedia: number;
+  pushSubscriptions: number;
+  postsToday: number;
+  activeUsersThisWeek: number;
+}
+
+export interface ActivityDay {
+  date: string;
+  posts: number;
+  signups: number;
+}
+
+export interface TopPoster {
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  } | null;
+  postCount: number;
+}
+
+export interface EngagementStats {
+  topEngagedPosts: {
+    post: { id: string; text: string | null; createdAt: Date } | null;
+    user: { id: string; username: string; displayName: string } | null;
+    reactionCount: number;
+  }[];
+  avgReactionsPerPost: number;
+  topKaomoji: { kaomoji: string; count: number }[];
+}
+
+export interface AdminUser extends User {
+  postCount: number;
+  reactionCount: number;
+  hasPushSubscription: boolean;
+}
+
+export interface AdminInviteCode {
+  code: string;
+  createdBy: string | null;
+  usedBy: string | null;
+  usedAt: Date | null;
+  expiresAt: Date | null;
+  createdAt: Date;
+  createdByUser: { id: string; username: string; displayName: string } | null;
+  usedByUser: { id: string; username: string; displayName: string } | null;
+  status: 'active' | 'used' | 'expired';
+}
+
+export interface SystemInfo {
+  vapidConfigured: boolean;
+  scheduledNotificationTime: string | null;
+  nodeVersion: string;
+  uptime: number;
+}
+
+// ============================================
+// ADMIN API FUNCTIONS
+// ============================================
+
+// Analytics
+export async function getAdminStats(token: string): Promise<AdminStats> {
+  const res = await fetch(`${API_URL}/api/admin/stats`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch stats');
+  }
+  
+  return res.json();
+}
+
+export async function getAdminActivity(token: string): Promise<{ activity: ActivityDay[] }> {
+  const res = await fetch(`${API_URL}/api/admin/activity`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch activity');
+  }
+  
+  return res.json();
+}
+
+export async function getAdminTopPosters(token: string): Promise<{ topPosters: TopPoster[] }> {
+  const res = await fetch(`${API_URL}/api/admin/top-posters`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch top posters');
+  }
+  
+  return res.json();
+}
+
+export async function getAdminEngagement(token: string): Promise<EngagementStats> {
+  const res = await fetch(`${API_URL}/api/admin/engagement`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch engagement');
+  }
+  
+  return res.json();
+}
+
+// User Management
+export async function getAdminUsers(token: string): Promise<{ users: AdminUser[] }> {
+  const res = await fetch(`${API_URL}/api/admin/users`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch users');
+  }
+  
+  return res.json();
+}
+
+export async function deleteAdminUser(token: string, userId: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to delete user');
+  }
+  
+  return res.json();
+}
+
+export async function resetUserPassword(token: string, userId: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/users/${userId}/reset-password`, {
+    method: 'POST',
+    headers: jsonHeaders(token),
+    body: JSON.stringify({ newPassword }),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to reset password');
+  }
+  
+  return res.json();
+}
+
+// Invite Codes
+export async function getAdminInviteCodes(token: string): Promise<{ inviteCodes: AdminInviteCode[] }> {
+  const res = await fetch(`${API_URL}/api/admin/invite-codes`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch invite codes');
+  }
+  
+  return res.json();
+}
+
+export async function createAdminInviteCode(token: string, expiresInDays?: number): Promise<{ code: string; expiresAt: string; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/invite-codes`, {
+    method: 'POST',
+    headers: jsonHeaders(token),
+    body: JSON.stringify({ expiresInDays }),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to create invite code');
+  }
+  
+  return res.json();
+}
+
+export async function deleteAdminInviteCode(token: string, code: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/invite-codes/${code}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to delete invite code');
+  }
+  
+  return res.json();
+}
+
+// Testing
+export async function sendTestNotification(token: string, type: 'daily' | 'friend_post'): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/test-notification`, {
+    method: 'POST',
+    headers: jsonHeaders(token),
+    body: JSON.stringify({ type }),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to send test notification');
+  }
+  
+  return res.json();
+}
+
+export async function sendDailyReminders(token: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/test-daily-reminder`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to send daily reminders');
+  }
+  
+  return res.json();
+}
+
+export async function createTestPost(
+  token: string,
+  data: { text?: string; location?: string; linkUrl?: string; linkTitle?: string }
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/test-post`, {
+    method: 'POST',
+    headers: jsonHeaders(token),
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to create test post');
+  }
+  
+  return res.json();
+}
+
+// System
+export async function getSystemInfo(token: string): Promise<SystemInfo> {
+  const res = await fetch(`${API_URL}/api/admin/system`, {
+    headers: authHeaders(token),
+  });
+  
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || 'Failed to fetch system info');
+  }
+  
+  return res.json();
+}
