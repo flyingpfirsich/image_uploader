@@ -36,6 +36,7 @@ COPY --from=frontend-builder /app/frontend/dist ./public
 RUN mkdir -p uploads/avatars uploads/media data
 
 ENV PORT=80
+ENV NODE_ENV=production
 EXPOSE 80
 
 CMD ["node", "dist/index.js"]

@@ -40,8 +40,8 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// Root
-app.get('/', (_req, res) => {
+// API info endpoint
+app.get('/api', (_req, res) => {
   res.json({
     name: 'druzi API',
     version: '1.0.0',
@@ -82,9 +82,9 @@ app.get('/', (_req, res) => {
   });
 });
 
-// Serve frontend in production
+// Serve frontend in production (from ./public directory)
 if (process.env.NODE_ENV === 'production') {
-  const frontendPath = join(config.uploadsDir, '..', '..', 'frontend', 'dist');
+  const frontendPath = join(process.cwd(), 'public');
   app.use(express.static(frontendPath));
   app.get('*', (_req, res) => {
     res.sendFile(join(frontendPath, 'index.html'));
