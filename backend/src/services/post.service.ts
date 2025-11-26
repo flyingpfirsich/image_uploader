@@ -158,6 +158,30 @@ export async function getUserPosts(userId: string): Promise<PostWithDetails[]> {
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
 
+export async function getUserTodaysPosts(userId: string): Promise<PostWithDetails[]> {
+  // Get start of today (local time)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const userTodaysPosts = await db.query.posts.findMany({
+    where: and(
+      eq(posts.userId, userId),
+      gte(posts.createdAt, today),
+      lt(posts.createdAt, tomorrow)
+    ),
+    orderBy: [desc(posts.createdAt)],
+  });
+  
+  const postsWithDetails = await Promise.all(
+    userTodaysPosts.map((p) => getPostById(p.id))
+  );
+  
+  return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
+}
+
 export async function deletePost(postId: string, userId: string): Promise<boolean> {
   const post = await db.query.posts.findFirst({
     where: eq(posts.id, postId),
@@ -219,5 +243,9 @@ export async function removeReaction(
   
   return result.changes > 0;
 }
+
+
+
+
 
 

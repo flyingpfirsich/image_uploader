@@ -130,3 +130,7 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
   );
 }
 
+
+
+
+

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, type DragEvent } from 'react';
-import { uploadFile } from '../services/api';
+import { createPost } from '../services/api';
 import { TEXT } from '../constants/text';
 import type { Status } from '../types';
 
@@ -42,19 +42,14 @@ export function useFileUpload(token: string | null) {
     setStatus({ type: '', message: TEXT.upload.loading });
 
     try {
-      const data = await uploadFile(file, token);
-      
-      if (data.success) {
-        setStatus({ type: 'success', message: TEXT.upload.success });
-        setFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        return true;
-      } else {
-        setStatus({ type: 'error', message: `${TEXT.upload.error}: ${data.error || 'Upload failed'}` });
-        return false;
-      }
-    } catch {
-      setStatus({ type: 'error', message: `${TEXT.upload.error}: Verbindungsfehler` });
+      await createPost(token, {}, [file]);
+      setStatus({ type: 'success', message: TEXT.upload.success });
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      setStatus({ type: 'error', message: `${TEXT.upload.error}: ${message}` });
       return false;
     } finally {
       setIsLoading(false);
@@ -86,5 +81,9 @@ export function useFileUpload(token: string | null) {
     clearStatus,
   };
 }
+
+
+
+
 
 

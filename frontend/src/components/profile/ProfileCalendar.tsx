@@ -209,7 +209,7 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
     today.setHours(0, 0, 0, 0);
     
     let streak = 0;
-    let checkDate = new Date(today);
+    const checkDate = new Date(today);
     
     // Check if there's a post today first
     const todayKey = formatDateKey(today);

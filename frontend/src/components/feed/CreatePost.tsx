@@ -213,6 +213,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
       clearBeRealPhotos();
       previews.forEach((p) => URL.revokeObjectURL(p));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

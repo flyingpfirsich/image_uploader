@@ -3,6 +3,7 @@ import * as authService from '../services/auth.service.js';
 import * as userService from '../services/user.service.js';
 import * as postService from '../services/post.service.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { isAdmin } from '../middleware/admin.js';
 import { uploadAvatar } from '../middleware/upload.js';
 
 const router = Router();
@@ -17,7 +18,9 @@ router.get('/', authMiddleware, async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/users/:id - profile with archive
+// GET /api/users/:id - profile with posts
+// Own profile or admin: see all archived posts
+// Friend's profile: only see today's posts
 router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const user = await userService.getUserProfile(req.params.id);
@@ -27,7 +30,13 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
       return;
     }
     
-    const posts = await postService.getUserPosts(req.params.id);
+    const isOwnProfile = req.user!.userId === req.params.id;
+    const isAdminUser = isAdmin(req.user!.username);
+    
+    // Show all posts for own profile or admin, otherwise only today's posts
+    const posts = isOwnProfile || isAdminUser
+      ? await postService.getUserPosts(req.params.id)
+      : await postService.getUserTodaysPosts(req.params.id);
     
     res.json({ user, posts });
   } catch (error) {
@@ -64,5 +73,9 @@ router.patch(
 );
 
 export default router;
+
+
+
+
 
 

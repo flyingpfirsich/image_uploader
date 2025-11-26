@@ -128,6 +128,7 @@ export function CaptureScreen({ onFileReady, onSwitchToUpload }: CaptureScreenPr
       }
       clearBeRealPhotos();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

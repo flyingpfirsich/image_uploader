@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import * as api from '../../services/api';
 import type { AdminUser } from '../../services/api';
 
@@ -25,11 +25,7 @@ export function UserManagement({ token }: UserManagementProps) {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    loadUsers();
-  }, [token]);
-
-  async function loadUsers() {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -40,11 +36,15 @@ export function UserManagement({ token }: UserManagementProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   // Filter and sort users
   const filteredUsers = useMemo(() => {
-    let result = users.filter(user => {
+    const result = users.filter(user => {
       const query = searchQuery.toLowerCase();
       return (
         user.username.toLowerCase().includes(query) ||
@@ -331,4 +331,8 @@ export function UserManagement({ token }: UserManagementProps) {
     </div>
   );
 }
+
+
+
+
 

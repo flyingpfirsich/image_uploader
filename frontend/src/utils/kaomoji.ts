@@ -45,3 +45,7 @@ export function getKaomojiForUser(userId: string): string {
   return AVATAR_KAOMOJIS[index];
 }
 
+
+
+
+

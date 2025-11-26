@@ -72,6 +72,11 @@ export const TEXT = {
     subtitle: 'Share a file',
     loading: 'Uploading...',
     submit: 'Upload',
+    success: 'Upload successful!',
+    error: 'Upload failed',
+    selected: 'Selected:',
+    dropText: 'Drop file here',
+    dropHint: 'or click to browse',
   },
   notifications: {
     title: 'Notifications',

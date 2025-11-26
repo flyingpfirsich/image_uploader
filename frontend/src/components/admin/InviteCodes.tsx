@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as api from '../../services/api';
 import type { AdminInviteCode } from '../../services/api';
 
@@ -16,11 +16,7 @@ export function InviteCodes({ token }: InviteCodesProps) {
   // Create new code form
   const [expiresInDays, setExpiresInDays] = useState(7);
 
-  useEffect(() => {
-    loadCodes();
-  }, [token]);
-
-  async function loadCodes() {
+  const loadCodes = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -31,7 +27,11 @@ export function InviteCodes({ token }: InviteCodesProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    loadCodes();
+  }, [loadCodes]);
 
   async function handleCreateCode() {
     setActionLoading('create');
@@ -243,4 +243,8 @@ export function InviteCodes({ token }: InviteCodesProps) {
     </div>
   );
 }
+
+
+
+
 

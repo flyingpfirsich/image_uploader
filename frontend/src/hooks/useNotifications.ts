@@ -45,8 +45,11 @@ export function useNotifications({ token }: UseNotificationsOptions) {
   // Load preferences from backend
   useEffect(() => {
     if (!token || !state.isSupported) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      return;
+      // Use setTimeout to avoid synchronous setState in effect body
+      const timer = setTimeout(() => {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const loadPreferences = async () => {
