@@ -13,7 +13,7 @@ export function useVideoRecording({ streamRef, onRecordingComplete, onStopCamera
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
-  // Start video recording (lower quality for smaller files)
+  // Start video recording (high quality 720p, optimized for 5s avg videos within 10MB)
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
     
@@ -23,11 +23,11 @@ export function useVideoRecording({ streamRef, onRecordingComplete, onStopCamera
       ? 'video/mp4;codecs=avc1' 
       : 'video/mp4';
     
-    // Lower bitrate for smaller file sizes (500 kbps video @ 480p)
+    // High quality 720p video (~2.5MB per 5 seconds, fits well within 10MB limit)
     const mediaRecorder = new MediaRecorder(streamRef.current, { 
       mimeType,
-      videoBitsPerSecond: 500000,  // 500 kbps
-      audioBitsPerSecond: 32000,   // 32 kbps
+      videoBitsPerSecond: 4000000,  // 4 Mbps for crisp 720p
+      audioBitsPerSecond: 128000,   // 128 kbps for clear audio
     });
     
     mediaRecorder.ondataavailable = (event) => {

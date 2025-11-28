@@ -19,8 +19,8 @@ export const config = {
   
   // File storage
   uploadsDir: process.env.UPLOADS_DIR || join(rootDir, 'uploads'),
-  maxFileSize: 50 * 1024 * 1024, // 50MB
-  maxVideoLength: 10_000, // 10 seconds in ms
+  maxFileSize: 10 * 1024 * 1024, // 10MB
+  maxVideoLength: 10_000, // 10 seconds in ms (optimized for ~5s avg)
   
   // App settings
   inviteCodeLength: 8,

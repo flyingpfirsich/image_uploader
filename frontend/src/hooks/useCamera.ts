@@ -18,13 +18,13 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
     onError?.(status);
   }, [onError]);
 
-  // Start camera stream (reduced resolution for smaller files)
+  // Start camera stream (720p for good quality within 10MB limit)
   const startCamera = useCallback(async (overrideFacingMode?: FacingMode, overrideCaptureMode?: CaptureMode) => {
     try {
       const useFacingMode = overrideFacingMode || facingMode;
       const useCaptureMode = overrideCaptureMode || captureMode;
       const constraints: MediaStreamConstraints = {
-        video: { facingMode: useFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+        video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: useCaptureMode === 'video',
       };
       

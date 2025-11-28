@@ -54,7 +54,7 @@ export function useBeRealCapture({
         } else {
           resolve(null);
         }
-      }, 'image/jpeg', 0.8);
+      }, 'image/jpeg', 0.92);
     });
   }, [videoRef, facingMode]);
 
@@ -88,7 +88,7 @@ export function useBeRealCapture({
     setTimeout(async () => {
       try {
         const constraints: MediaStreamConstraints = {
-          video: { facingMode: secondFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+          video: { facingMode: secondFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false,
         };
         
@@ -202,7 +202,7 @@ export function useBeRealCapture({
           } else {
             resolve(null);
           }
-        }, 'image/jpeg', 0.9);
+        }, 'image/jpeg', 0.92);
       });
     } catch (error) {
       console.error('Error compositing BeReal photos:', error);
