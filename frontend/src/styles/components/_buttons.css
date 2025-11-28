@@ -1,0 +1,130 @@
+/* ===========================================
+   Button Styles
+   =========================================== */
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--fg-dim);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--secondary {
+  border-color: var(--border);
+  color: var(--fg-dim);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--fg-dim);
+  color: var(--bg);
+  border-color: var(--fg-dim);
+}
+
+.btn--text {
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.btn--text:hover:not(:disabled) {
+  background: transparent;
+  color: var(--accent);
+}
+
+.btn--danger {
+  color: var(--error);
+}
+
+.btn--danger:hover {
+  color: var(--error-light);
+}
+
+/* Icon Buttons */
+.btn-icon {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover:not(:disabled) {
+  border-color: var(--fg);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon--danger:hover:not(:disabled) {
+  border-color: var(--error);
+  color: var(--error-light);
+}
+
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Camera-specific buttons */
+.btn--capture {
+  min-width: 120px;
+  border-color: var(--fg);
+  letter-spacing: 0.1em;
+}
+
+.btn--capture:hover:not(:disabled) {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.btn--record {
+  border-color: var(--error);
+  color: var(--error-light);
+}
+
+.btn--record:hover:not(:disabled) {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+}
+
+.btn--stop {
+  border-color: var(--error);
+  background: var(--error);
+  color: #fff;
+}
+
+.btn--stop:hover:not(:disabled) {
+  background: var(--error-light);
+  border-color: var(--error-light);
+}
+

@@ -1,0 +1,230 @@
+/* ===========================================
+   Notification Settings Styles
+   =========================================== */
+
+.notification-settings {
+  border: 1px solid var(--border);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.notification-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.notification-icon {
+  font-size: var(--font-size-xl);
+  color: var(--fg);
+  flex-shrink: 0;
+}
+
+.notification-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.notification-title {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.notification-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--fg-dim);
+}
+
+.notification-loading,
+.notification-unsupported {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-md);
+}
+
+.notification-warning {
+  color: var(--error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-md);
+  padding: 0.75rem;
+  border: 1px solid var(--error);
+  background: rgba(170, 85, 68, 0.1);
+}
+
+/* Main Toggle Button */
+.notification-main-toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.notification-main-toggle .toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border: 1px solid var(--fg-dim);
+  transition: all var(--transition-normal) ease;
+}
+
+.notification-main-toggle .toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: var(--fg-dim);
+  transition: all var(--transition-normal) ease;
+}
+
+.notification-main-toggle.active .toggle-track {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+.notification-main-toggle.active .toggle-thumb {
+  left: 27px;
+  background: var(--bg);
+}
+
+.notification-main-toggle:hover .toggle-track {
+  border-color: var(--fg);
+}
+
+.notification-main-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Notification Options */
+.notification-options {
+  margin-top: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.notification-option {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+}
+
+.notification-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.notification-option-label {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.notification-option-description {
+  font-size: var(--font-size-sm);
+  color: var(--fg-dim);
+}
+
+.notification-option-time {
+  font-size: var(--font-size-xs);
+  color: var(--accent);
+  margin-top: var(--space-xs);
+}
+
+/* Small Toggle Button */
+.notification-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.notification-toggle .toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border: 1px solid var(--fg-dim);
+  transition: all var(--transition-normal) ease;
+}
+
+.notification-toggle .toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: var(--fg-dim);
+  transition: all var(--transition-normal) ease;
+}
+
+.notification-toggle.active .toggle-track {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+.notification-toggle.active .toggle-thumb {
+  left: 23px;
+  background: var(--bg);
+}
+
+.notification-toggle:hover .toggle-track {
+  border-color: var(--fg);
+}
+
+/* Debug Section */
+.notification-debug {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px dashed var(--border);
+}
+
+.notification-debug .btn--test {
+  font-size: var(--font-size-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-color: var(--fg-dim);
+  color: var(--fg-dim);
+}
+
+.notification-debug .btn--test:hover:not(:disabled) {
+  border-color: var(--fg);
+  color: var(--fg);
+  background: transparent;
+}
+
+.notification-debug .debug-info {
+  margin-top: var(--space-md);
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: var(--font-size-xs);
+  color: var(--fg-dim);
+}
+
+.notification-debug .debug-info code {
+  font-family: inherit;
+}
+

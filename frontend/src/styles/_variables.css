@@ -1,0 +1,62 @@
+/* ===========================================
+   CSS Custom Properties (Design Tokens)
+   =========================================== */
+
+:root {
+  /* Colors */
+  --bg: #0d0d0d;
+  --fg: #c8c8c8;
+  --fg-dim: #5a5a5a;
+  --accent: #f0f0f0;
+  --border: #2a2a2a;
+
+  /* Status Colors */
+  --success: #4a9;
+  --error: #a54;
+  --error-light: #c66;
+  --warning: #a54;
+  --admin-accent: #bb9af7;
+  --admin-accent-dim: #9d7cd8;
+  --info: #7dcfff;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* Typography */
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.8rem;
+  --font-size-base: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.2rem;
+  --font-size-xl: 1.4rem;
+  --font-size-2xl: 2rem;
+
+  /* Borders */
+  --border-width: 1px;
+  --border-radius-sm: 2px;
+  --border-radius-md: 8px;
+  --border-radius-full: 50%;
+
+  /* Transitions */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.2s;
+
+  /* Shadows */
+  --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  /* Layout */
+  --max-width-content: 720px;
+  --max-width-feed: 560px;
+  --max-width-form: 380px;
+  --max-width-friends: 400px;
+  --max-width-modal: 480px;
+  --max-width-admin: 800px;
+}
+

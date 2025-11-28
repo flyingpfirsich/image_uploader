@@ -1,7 +1,7 @@
 import webpush from 'web-push';
 import cron from 'node-cron';
 import { eq, ne, and } from 'drizzle-orm';
-import { db, pushSubscriptions, notificationPreferences, dailyNotificationTime, users } from '../db/index.js';
+import { db, pushSubscriptions, notificationPreferences, dailyNotificationTime } from '../db/index.js';
 import { generateId } from '../utils/nanoid.js';
 import { config } from '../config.js';
 

@@ -1,0 +1,73 @@
+/* ===========================================
+   Header & Navigation
+   =========================================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-kaomoji {
+  font-size: var(--font-size-xl);
+  color: var(--fg);
+  letter-spacing: 0.05em;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.logo-kaomoji:hover {
+  color: var(--accent);
+}
+
+.logo-text {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--fg);
+  text-transform: lowercase;
+  letter-spacing: 0.1em;
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-sm);
+  text-transform: uppercase;
+  font-size: var(--font-size-base);
+}
+
+.nav-sep {
+  color: var(--fg-dim);
+}
+
+.nav-link {
+  color: var(--fg);
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--accent);
+}
+
+.nav-link.active {
+  color: var(--accent);
+}
+
+/* Admin Nav Link */
+.nav-link--admin {
+  color: var(--admin-accent-dim);
+}
+
+.nav-link--admin:hover,
+.nav-link--admin.active {
+  color: var(--admin-accent);
+}
+

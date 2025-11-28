@@ -1,12 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* ===========================================
+   Base Styles & Reset
+   =========================================== */
 
-:root {
-  --bg: #0d0d0d;
-  --fg: #c8c8c8;
-  --fg-dim: #5a5a5a;
-  --accent: #f0f0f0;
-  --border: #2a2a2a;
-}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 * {
   margin: 0;
@@ -19,7 +15,7 @@ html {
 }
 
 body {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-family: var(--font-mono);
   background-color: var(--bg);
   color: var(--fg);
   min-height: 100vh;
@@ -28,9 +24,9 @@ body {
 }
 
 #root {
-  max-width: 720px;
+  max-width: var(--max-width-content);
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--space-xl);
 }
 
 ::selection {
@@ -63,3 +59,4 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--fg-dim);
 }
+

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { eq, desc, and, gte, lt, sql, count } from 'drizzle-orm';
+import { eq, desc, gte, count } from 'drizzle-orm';
 import { db, users, posts, media, reactions, inviteCodes, pushSubscriptions } from '../db/index.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { adminMiddleware } from '../middleware/admin.js';

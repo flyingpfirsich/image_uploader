@@ -1,0 +1,95 @@
+/* ===========================================
+   Reactions Styles
+   =========================================== */
+
+.reactions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  position: relative;
+}
+
+.reaction-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.reaction-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+.reaction-badge:hover {
+  border-color: var(--fg-dim);
+}
+
+.reaction-badge--own {
+  background: var(--border);
+  border-color: var(--fg-dim);
+}
+
+.reaction-count {
+  font-size: var(--font-size-xs);
+  color: var(--fg-dim);
+}
+
+.reaction-add {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  transition: all var(--transition-fast);
+}
+
+.reaction-add:hover {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.reaction-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: var(--space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  max-width: 200px;
+  z-index: 10;
+}
+
+.reaction-option {
+  padding: var(--space-xs);
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  transition: transform var(--transition-fast);
+}
+
+.reaction-option:hover {
+  transform: scale(1.2);
+}
+

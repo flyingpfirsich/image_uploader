@@ -1,0 +1,51 @@
+/* ===========================================
+   Responsive Styles
+   =========================================== */
+
+@media (max-width: 600px) {
+  html {
+    font-size: 13px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .nav {
+    flex-wrap: wrap;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-actions {
+    width: 100%;
+  }
+
+  .profile-actions .btn {
+    width: 100%;
+  }
+
+  .create-post-actions {
+    flex-direction: column;
+  }
+
+  .form-input--small {
+    width: 100%;
+  }
+
+  /* Admin responsive */
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .testing-actions {
+    grid-template-columns: 1fr;
+  }
+}
+

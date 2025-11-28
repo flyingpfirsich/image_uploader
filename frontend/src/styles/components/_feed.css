@@ -1,0 +1,37 @@
+/* ===========================================
+   Feed Styles
+   =========================================== */
+
+.feed {
+  max-width: var(--max-width-feed);
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+.feed-loading,
+.feed-empty {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+}
+
+.feed-empty-text {
+  color: var(--fg);
+  margin-bottom: var(--space-sm);
+}
+
+.feed-empty-hint {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+

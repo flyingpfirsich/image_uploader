@@ -11,9 +11,9 @@ const router = Router();
 // GET /api/users - all friends
 router.get('/', authMiddleware, async (_req: Request, res: Response) => {
   try {
-    const users = await authService.getAllUsers();
-    res.json({ users });
-  } catch (error) {
+    const allUsers = await authService.getAllUsers();
+    res.json({ users: allUsers });
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
@@ -39,7 +39,7 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
       : await postService.getUserTodaysPosts(req.params.id);
     
     res.json({ user, posts });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
@@ -66,7 +66,7 @@ router.patch(
       }
       
       res.json({ user });
-    } catch (error) {
+    } catch (_error) {
       res.status(500).json({ error: 'Failed to update profile' });
     }
   }

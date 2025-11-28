@@ -1,0 +1,213 @@
+/* ===========================================
+   Profile Styles
+   =========================================== */
+
+.profile {
+  max-width: var(--max-width-feed);
+}
+
+.profile-loading,
+.profile-error {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+}
+
+.profile-header {
+  display: flex;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-xl);
+  margin-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--border-radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.profile-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border);
+  color: var(--fg);
+  font-size: var(--font-size-2xl);
+  font-weight: 500;
+}
+
+.profile-avatar--kaomoji {
+  font-size: var(--font-size-md);
+  letter-spacing: -0.05em;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--fg);
+  margin-bottom: var(--space-xs);
+}
+
+.profile-username {
+  color: var(--fg-dim);
+  margin-bottom: var(--space-sm);
+}
+
+.profile-birthday,
+.profile-joined {
+  font-size: var(--font-size-sm);
+  color: var(--fg-dim);
+}
+
+.profile-actions {
+  flex-shrink: 0;
+}
+
+/* Friends Section */
+.profile-friends {
+  padding: var(--space-lg);
+  border: 1px solid var(--border);
+  margin-bottom: var(--space-xl);
+}
+
+.friends {
+  max-width: var(--max-width-friends);
+}
+
+.friends-loading,
+.friends-empty {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+}
+
+.friends-empty-text {
+  color: var(--fg);
+  margin-bottom: var(--space-sm);
+}
+
+.friends-empty-hint {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+}
+
+.friends-list {
+  list-style: none;
+}
+
+.friend-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.friend-item:last-child {
+  border-bottom: none;
+}
+
+.friend-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md) 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.friend-btn:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.friend-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius-full);
+  object-fit: cover;
+}
+
+.friend-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border);
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.friend-avatar--kaomoji {
+  font-size: var(--font-size-xs);
+  letter-spacing: -0.05em;
+}
+
+.friend-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.friend-name {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.friend-username {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+}
+
+/* Invite Section */
+.profile-invite {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.invite-code-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.invite-code {
+  font-size: var(--font-size-lg);
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.invite-hint {
+  font-size: var(--font-size-xs);
+  color: var(--fg-dim);
+  margin-top: var(--space-sm);
+}
+
+/* Calendar Section */
+.profile-calendar-section {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--border);
+}
+
+/* Archive Section */
+.profile-archive {
+  margin-top: var(--space-xl);
+}
+
+.archive-empty {
+  color: var(--fg-dim);
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+

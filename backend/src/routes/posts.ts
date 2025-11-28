@@ -68,7 +68,7 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
     }
     
     res.json(post);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to fetch post' });
   }
 });
@@ -84,7 +84,7 @@ router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
     }
     
     res.json({ success: true });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to delete post' });
   }
 });
@@ -106,7 +106,7 @@ router.post('/:id/react', authMiddleware, async (req: Request, res: Response) =>
     );
     
     res.json(reaction);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to add reaction' });
   }
 });
@@ -123,7 +123,7 @@ router.delete('/:id/react', authMiddleware, async (req: Request, res: Response) 
     
     await postService.removeReaction(req.params.id, req.user!.userId, kaomoji);
     res.json({ success: true });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to remove reaction' });
   }
 });

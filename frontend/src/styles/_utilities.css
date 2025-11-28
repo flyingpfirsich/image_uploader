@@ -1,0 +1,108 @@
+/* ===========================================
+   Utility Classes
+   =========================================== */
+
+/* Container */
+.container {
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+}
+
+/* Section Titles */
+.section-title {
+  font-size: var(--font-size-sm);
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-lg);
+}
+
+/* Loading Screen */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: var(--space-md);
+}
+
+/* Status List */
+.status-list {
+  list-style: none;
+  margin-top: var(--space-lg);
+}
+
+.status-item {
+  padding: var(--space-sm) 0;
+  font-size: var(--font-size-base);
+}
+
+.status-item::before {
+  content: '>';
+  margin-right: 0.75rem;
+  color: var(--fg-dim);
+}
+
+.status-item--success {
+  color: var(--fg);
+}
+
+.status-item--success::before {
+  color: var(--success);
+}
+
+.status-item--error {
+  color: var(--fg);
+}
+
+.status-item--error::before {
+  color: var(--error);
+}
+
+/* Empty States */
+.empty-text {
+  color: var(--fg-dim);
+  font-style: italic;
+}
+
+/* Animations */
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink::after {
+  content: '█';
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+

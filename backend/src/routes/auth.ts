@@ -73,7 +73,7 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
     }
     
     res.json({ user });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
@@ -83,7 +83,7 @@ router.post('/invite', authMiddleware, async (req: Request, res: Response) => {
   try {
     const code = await authService.createInviteCode(req.user!.userId);
     res.json({ code });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to create invite code' });
   }
 });
