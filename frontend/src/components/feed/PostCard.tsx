@@ -11,9 +11,10 @@ interface PostCardProps {
   token: string;
   onDelete?: (postId: string) => void;
   onReactionChange?: () => void;
+  onUserClick?: (userId: string) => void;
 }
 
-export function PostCard({ post, currentUserId, token, onDelete, onReactionChange }: PostCardProps) {
+export function PostCard({ post, currentUserId, token, onDelete, onReactionChange, onUserClick }: PostCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const isOwner = post.userId === currentUserId;
@@ -43,7 +44,11 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
   return (
     <article className="post-card">
       <header className="post-header">
-        <div className="post-user">
+        <button 
+          className="post-user post-user--clickable" 
+          onClick={() => onUserClick?.(post.user.id)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+        >
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="post-avatar" />
           ) : (
@@ -55,7 +60,7 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
             <span className="post-display-name">{post.user.displayName}</span>
             <span className="post-username">@{post.user.username}</span>
           </div>
-        </div>
+        </button>
         <div className="post-meta">
           <span className="post-time">{formatDistanceToNow(new Date(post.createdAt))}</span>
           {post.location && <span className="post-location">@ {post.location}</span>}

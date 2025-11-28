@@ -7,9 +7,10 @@ import { CreatePost } from './CreatePost';
 interface FeedProps {
   token: string;
   userId: string;
+  onUserClick?: (userId: string) => void;
 }
 
-export function Feed({ token, userId }: FeedProps) {
+export function Feed({ token, userId, onUserClick }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -78,6 +79,7 @@ export function Feed({ token, userId }: FeedProps) {
               token={token}
               onDelete={handleDelete}
               onReactionChange={fetchFeed}
+              onUserClick={onUserClick}
             />
           ))}
         </div>

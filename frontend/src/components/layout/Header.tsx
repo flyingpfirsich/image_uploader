@@ -10,7 +10,7 @@ interface HeaderProps {
 export function Header({ activeNav, onNavChange, isAdmin }: HeaderProps) {
   return (
     <header className="header">
-      <KaomojiLogo />
+      <KaomojiLogo onClick={() => onNavChange('feed')} />
       <nav className="nav">
         <button
           className={`nav-link ${activeNav === 'feed' ? 'active' : ''}`}

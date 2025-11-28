@@ -61,7 +61,7 @@ function AppContent() {
 
       <main className="main">
         {activeNav === 'feed' && (
-          <Feed token={token} userId={user.id} />
+          <Feed token={token} userId={user.id} onUserClick={handleSelectUser} />
         )}
         {activeNav === 'profile' && (
           <Profile

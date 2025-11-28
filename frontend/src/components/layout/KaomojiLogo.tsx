@@ -1,8 +1,16 @@
-export function KaomojiLogo() {
+interface KaomojiLogoProps {
+  onClick?: () => void;
+}
+
+export function KaomojiLogo({ onClick }: KaomojiLogoProps) {
   return (
-    <div className="logo">
+    <button 
+      className="logo" 
+      onClick={onClick}
+      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+    >
       <span className="logo-kaomoji">(◕‿◕)</span>
       <span className="logo-text">druzi</span>
-    </div>
+    </button>
   );
 }
