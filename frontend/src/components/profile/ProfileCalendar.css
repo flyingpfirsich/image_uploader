@@ -478,6 +478,15 @@
   background: var(--border);
 }
 
+.day-modal-music {
+  margin-bottom: 1rem;
+}
+
+.day-modal-music .music-share {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+}
+
 .day-modal-text {
   color: var(--fg);
   font-size: 0.9rem;

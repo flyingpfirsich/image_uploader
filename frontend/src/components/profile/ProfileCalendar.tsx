@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { User, Post } from '../../types';
 import { getMediaUrl } from '../../services/api';
+import { MusicShare } from '../music';
 import './ProfileCalendar.css';
 
 // ============================================
@@ -550,6 +551,15 @@ function DayDetailModal({ day, onClose }: DayDetailModalProps) {
                         />
                       );
                     })}
+                  </div>
+                )}
+                {post.musicShare && (
+                  <div className="day-modal-music">
+                    <MusicShare
+                      track={post.musicShare}
+                      mood={post.musicShare.moodKaomoji}
+                      compact
+                    />
                   </div>
                 )}
                 {post.text && (
