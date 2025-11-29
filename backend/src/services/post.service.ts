@@ -1,5 +1,5 @@
 import { eq, desc, and, gte, lt } from 'drizzle-orm';
-import { db, posts, media, reactions, users, Post, Media, Reaction } from '../db/index.js';
+import { db, posts, media, reactions, users, musicShares, Post, Media, Reaction, MusicShare } from '../db/index.js';
 import { generateId } from '../utils/nanoid.js';
 
 interface CreatePostInput {
@@ -34,6 +34,7 @@ export interface PostWithDetails extends Post {
       displayName: string;
     };
   })[];
+  musicShare: MusicShare | null;
 }
 
 export async function createPost(
@@ -41,7 +42,7 @@ export async function createPost(
   mediaFiles: MediaInput[]
 ): Promise<PostWithDetails> {
   const postId = generateId();
-  
+
   // Insert post
   await db.insert(posts).values({
     id: postId,
@@ -51,7 +52,7 @@ export async function createPost(
     linkUrl: input.linkUrl || null,
     linkTitle: input.linkTitle || null,
   });
-  
+
   // Insert media
   if (mediaFiles.length > 0) {
     await db.insert(media).values(
@@ -67,7 +68,7 @@ export async function createPost(
       }))
     );
   }
-  
+
   return getPostById(postId) as Promise<PostWithDetails>;
 }
 
@@ -75,24 +76,24 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
   const post = await db.query.posts.findFirst({
     where: eq(posts.id, postId),
   });
-  
+
   if (!post) return null;
-  
+
   const user = await db.query.users.findFirst({
     where: eq(users.id, post.userId),
   });
-  
+
   if (!user) return null;
-  
+
   const postMedia = await db.query.media.findMany({
     where: eq(media.postId, postId),
     orderBy: (media, { asc }) => [asc(media.order)],
   });
-  
+
   const postReactions = await db.query.reactions.findMany({
     where: eq(reactions.postId, postId),
   });
-  
+
   const reactionsWithUsers = await Promise.all(
     postReactions.map(async (r) => {
       const reactUser = await db.query.users.findFirst({
@@ -108,7 +109,12 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
       };
     })
   );
-  
+
+  // Fetch music share for this post
+  const postMusicShare = await db.query.musicShares.findFirst({
+    where: eq(musicShares.postId, postId),
+  });
+
   return {
     ...post,
     user: {
@@ -119,6 +125,7 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
     },
     media: postMedia,
     reactions: reactionsWithUsers,
+    musicShare: postMusicShare || null,
   };
 }
 
@@ -126,10 +133,10 @@ export async function getTodaysFeed(): Promise<PostWithDetails[]> {
   // Get start of today (local time)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
+
   const todaysPosts = await db.query.posts.findMany({
     where: and(
       gte(posts.createdAt, today),
@@ -137,11 +144,11 @@ export async function getTodaysFeed(): Promise<PostWithDetails[]> {
     ),
     orderBy: [desc(posts.createdAt)],
   });
-  
+
   const postsWithDetails = await Promise.all(
     todaysPosts.map((p) => getPostById(p.id))
   );
-  
+
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
 
@@ -150,11 +157,11 @@ export async function getUserPosts(userId: string): Promise<PostWithDetails[]> {
     where: eq(posts.userId, userId),
     orderBy: [desc(posts.createdAt)],
   });
-  
+
   const postsWithDetails = await Promise.all(
     userPosts.map((p) => getPostById(p.id))
   );
-  
+
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
 
@@ -162,10 +169,10 @@ export async function getUserTodaysPosts(userId: string): Promise<PostWithDetail
   // Get start of today (local time)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
+
   const userTodaysPosts = await db.query.posts.findMany({
     where: and(
       eq(posts.userId, userId),
@@ -174,11 +181,11 @@ export async function getUserTodaysPosts(userId: string): Promise<PostWithDetail
     ),
     orderBy: [desc(posts.createdAt)],
   });
-  
+
   const postsWithDetails = await Promise.all(
     userTodaysPosts.map((p) => getPostById(p.id))
   );
-  
+
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
 
@@ -186,14 +193,14 @@ export async function deletePost(postId: string, userId: string): Promise<boolea
   const post = await db.query.posts.findFirst({
     where: eq(posts.id, postId),
   });
-  
+
   if (!post || post.userId !== userId) {
     return false;
   }
-  
+
   // Media and reactions will be cascade deleted
   await db.delete(posts).where(eq(posts.id, postId));
-  
+
   return true;
 }
 
@@ -210,11 +217,11 @@ export async function addReaction(
       eq(reactions.kaomoji, kaomoji)
     ),
   });
-  
+
   if (existing) {
     return existing;
   }
-  
+
   const id = generateId();
   await db.insert(reactions).values({
     id,
@@ -222,7 +229,7 @@ export async function addReaction(
     userId,
     kaomoji,
   });
-  
+
   return db.query.reactions.findFirst({
     where: eq(reactions.id, id),
   }) as Promise<Reaction>;
@@ -240,12 +247,6 @@ export async function removeReaction(
       eq(reactions.kaomoji, kaomoji)
     )
   );
-  
+
   return result.changes > 0;
 }
-
-
-
-
-
-

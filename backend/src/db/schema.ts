@@ -79,6 +79,22 @@ export const dailyNotificationTime = sqliteTable('daily_notification_time', {
   generatedAt: integer('generated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
+// Music shares table
+export const musicShares = sqliteTable('music_shares', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  postId: text('post_id').references(() => posts.id, { onDelete: 'cascade' }),
+  spotifyTrackId: text('spotify_track_id'),
+  trackName: text('track_name').notNull(),
+  artistName: text('artist_name').notNull(),
+  albumName: text('album_name'),
+  albumArtUrl: text('album_art_url'),
+  previewUrl: text('preview_url'),
+  externalUrl: text('external_url'),
+  moodKaomoji: text('mood_kaomoji'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
 // TypeScript types derived from schema
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -95,5 +111,7 @@ export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
 export type NewNotificationPreferences = typeof notificationPreferences.$inferInsert;
 export type DailyNotificationTime = typeof dailyNotificationTime.$inferSelect;
+export type MusicShare = typeof musicShares.$inferSelect;
+export type NewMusicShare = typeof musicShares.$inferInsert;
 
 

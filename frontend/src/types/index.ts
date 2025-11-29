@@ -56,6 +56,7 @@ export interface Post {
   };
   media: Media[];
   reactions: Reaction[];
+  musicShare: MusicShare | null;
 }
 
 // Auth types
@@ -103,4 +104,45 @@ export const KAOMOJI_REACTIONS = [
   '(◠‿◠)',
   'ヽ(>∀<☆)☆',
   '(¬‿¬)',
+] as const;
+
+// Music types
+export interface SpotifyTrack {
+  spotifyTrackId: string;
+  trackName: string;
+  artistName: string;
+  albumName: string;
+  albumArtUrl: string | null;
+  previewUrl: string | null;
+  externalUrl: string;
+}
+
+export interface MusicShare {
+  id: string;
+  userId: string;
+  postId: string | null;
+  spotifyTrackId: string | null;
+  trackName: string;
+  artistName: string;
+  albumName: string | null;
+  albumArtUrl: string | null;
+  previewUrl: string | null;
+  externalUrl: string | null;
+  moodKaomoji: string | null;
+  createdAt: Date;
+  user?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+}
+
+export const MUSIC_MOOD_KAOMOJIS = [
+  { kaomoji: '(ノ◕ヮ◕)ノ♪', label: 'Energized' },
+  { kaomoji: '(︶｡︶✽)', label: 'Chill' },
+  { kaomoji: '(；へ；)', label: 'In my feels' },
+  { kaomoji: '(◕‿◕)♡', label: 'Romantic' },
+  { kaomoji: '(⌐■_■)', label: 'Cool' },
+  { kaomoji: '(╯°□°)╯', label: 'Intense' },
 ] as const;

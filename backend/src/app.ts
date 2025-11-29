@@ -10,6 +10,7 @@ import feedRoutes from './routes/feed.js';
 import usersRoutes from './routes/users.js';
 import notificationsRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
+import musicRoutes from './routes/music.js';
 
 // Services
 import { initializeWebPush, initializeScheduler } from './services/notification.service.js';
@@ -34,6 +35,7 @@ app.use('/api/feed', feedRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/music', musicRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -78,6 +80,12 @@ app.get('/api', (_req, res) => {
       'POST /api/admin/test-daily-reminder',
       'POST /api/admin/test-post',
       'GET  /api/admin/system',
+      'GET  /api/music/spotify/status',
+      'GET  /api/music/search',
+      'GET  /api/music/recent',
+      'POST /api/music',
+      'GET  /api/music/:id',
+      'DELETE /api/music/:id',
     ],
   });
 });

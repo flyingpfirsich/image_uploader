@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Post } from '../../types';
 import { getMediaUrl, getAvatarUrl } from '../../services/api';
 import { Reactions } from './Reactions';
+import { MusicShare } from '../music';
 import { formatDistanceToNow } from '../../utils/date';
 import { getKaomojiForUser } from '../../utils/kaomoji';
 
@@ -44,8 +45,8 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
   return (
     <article className="post-card">
       <header className="post-header">
-        <button 
-          className="post-user post-user--clickable" 
+        <button
+          className="post-user post-user--clickable"
           onClick={() => onUserClick?.(post.user.id)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
         >
@@ -108,6 +109,15 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
         </div>
       )}
 
+      {post.musicShare && (
+        <div className="post-music">
+          <MusicShare
+            track={post.musicShare}
+            mood={post.musicShare.moodKaomoji}
+          />
+        </div>
+      )}
+
       {post.text && <p className="post-text">{post.text}</p>}
 
       {post.linkUrl && (
@@ -147,4 +157,3 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
     </article>
   );
 }
-

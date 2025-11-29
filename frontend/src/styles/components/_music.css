@@ -1,0 +1,392 @@
+/* ===========================================
+   Music Styles
+   =========================================== */
+
+/* Music Picker Modal */
+.music-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: var(--space-md);
+}
+
+.music-picker {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.music-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.music-picker-header h3 {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--fg);
+  text-transform: uppercase;
+}
+
+.music-picker-search {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.music-picker-search .form-input {
+  width: 100%;
+}
+
+.music-picker-error {
+  padding: var(--space-sm) var(--space-lg);
+  color: var(--error-light);
+  font-size: var(--font-size-sm);
+}
+
+.music-picker-results {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.music-picker-loading {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--fg-dim);
+}
+
+.music-picker-empty {
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+}
+
+.music-picker-empty-kaomoji {
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
+  opacity: 0.6;
+}
+
+.music-picker-empty-text {
+  color: var(--fg);
+  margin-bottom: var(--space-xs);
+}
+
+.music-picker-empty-hint {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+}
+
+.music-picker-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.music-picker-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border-bottom: 1px solid var(--border);
+}
+
+.music-picker-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.music-picker-item:last-child {
+  border-bottom: none;
+}
+
+.music-picker-item-art {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.music-picker-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.music-picker-item-name {
+  color: var(--fg);
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-picker-item-artist {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Selected Track Preview in Picker */
+.music-picker-selected {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.music-picker-selected-track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.music-picker-selected-art {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.music-picker-selected-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.music-picker-selected-name {
+  color: var(--fg);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+}
+
+.music-picker-selected-artist {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+}
+
+.music-picker-selected-remove {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+}
+
+.music-picker-selected-remove:hover {
+  color: var(--fg);
+  border-color: var(--fg);
+}
+
+/* Mood Selection */
+.music-picker-mood {
+  margin-bottom: var(--space-md);
+}
+
+.music-picker-mood-label {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.music-picker-mood-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.music-picker-mood-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  color: var(--fg-dim);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+.music-picker-mood-btn:hover {
+  border-color: var(--fg-dim);
+  color: var(--fg);
+}
+
+.music-picker-mood-btn.selected {
+  border-color: var(--accent);
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.music-picker-confirm {
+  width: 100%;
+}
+
+/* Music Share Card */
+.music-share {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.music-share:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--fg-dim);
+}
+
+.music-share--compact {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.music-share-art-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.music-share-art {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+
+.music-share--compact .music-share-art {
+  width: 40px;
+  height: 40px;
+}
+
+.music-share-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: var(--fg);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.music-share-art-wrapper:hover .music-share-play {
+  opacity: 1;
+}
+
+.music-share-play.playing {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.music-share-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.music-share-track {
+  color: var(--fg);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-share--compact .music-share-track {
+  font-size: var(--font-size-sm);
+}
+
+.music-share-artist {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-share--compact .music-share-artist {
+  font-size: var(--font-size-xs);
+}
+
+.music-share-album {
+  color: var(--fg-dim);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.music-share-mood {
+  font-size: var(--font-size-base);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.music-share--compact .music-share-mood {
+  font-size: var(--font-size-sm);
+}
+
+.music-share-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.music-share-remove:hover {
+  border-color: var(--fg);
+}
+
+.music-share-spotify-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  color: var(--fg-dim);
+  opacity: 0.5;
+}
+
+.music-share-spotify-badge svg {
+  display: block;
+}
+
+/* Create Post Music Section */
+.create-post-music {
+  margin-bottom: var(--space-md);
+}
+
+/* Post Card Music Section */
+.post-music {
+  margin: var(--space-md) 0;
+}

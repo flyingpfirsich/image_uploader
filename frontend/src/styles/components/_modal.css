@@ -207,6 +207,10 @@
   margin-left: auto;
 }
 
+.media-btn--music {
+  border: 1px solid var(--border);
+}
+
 .media-btn--secondary:hover {
   color: var(--fg);
   background: rgba(255, 255, 255, 0.05);
@@ -308,4 +312,3 @@
   gap: var(--space-md);
   margin-top: var(--space-xl);
 }
-

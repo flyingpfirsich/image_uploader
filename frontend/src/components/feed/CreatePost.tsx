@@ -5,7 +5,8 @@ import { CameraPreview } from '../camera/CameraPreview';
 import { useCamera } from '../../hooks/useCamera';
 import { useBeRealCapture } from '../../hooks/useBeRealCapture';
 import { useVideoRecording } from '../../hooks/useVideoRecording';
-import type { CapturedMedia, CaptureMode, Status } from '../../types';
+import { MusicPicker, MusicShare } from '../music';
+import type { CapturedMedia, CaptureMode, Status, SpotifyTrack } from '../../types';
 
 type PostMode = 'camera' | 'compose';
 
@@ -32,10 +33,27 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   const [placeholder, setPlaceholder] = useState(TEXT.createPost.placeholders[0]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Music state
+  const [showMusicPicker, setShowMusicPicker] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<SpotifyTrack | null>(null);
+  const [selectedMood, setSelectedMood] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     const randomPlaceholder =
       TEXT.createPost.placeholders[Math.floor(Math.random() * TEXT.createPost.placeholders.length)];
     setPlaceholder(randomPlaceholder);
+  }, []);
+
+  // Handle music selection
+  const handleMusicSelect = useCallback((track: SpotifyTrack, mood?: string) => {
+    setSelectedTrack(track);
+    setSelectedMood(mood);
+    setShowMusicPicker(false);
+  }, []);
+
+  const handleMusicRemove = useCallback(() => {
+    setSelectedTrack(null);
+    setSelectedMood(undefined);
   }, []);
 
   // Camera hooks
@@ -179,8 +197,8 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   // Submit post
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim() && files.length === 0) {
-      setError('Add some text or media');
+    if (!text.trim() && files.length === 0 && !selectedTrack) {
+      setError('Add some text, media, or music');
       return;
     }
 
@@ -188,15 +206,31 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     setError('');
 
     try {
-      await api.createPost(
+      const post = await api.createPost(
         token,
         {
           text: text.trim() || undefined,
           location: location.trim() || undefined,
           linkUrl: linkUrl.trim() || undefined,
+          hasMusic: !!selectedTrack,
         },
         files.length > 0 ? files : undefined
       );
+
+      // If a track was selected, create a music share linked to the post
+      if (selectedTrack) {
+        await api.createMusicShare(token, {
+          postId: post.id,
+          spotifyTrackId: selectedTrack.spotifyTrackId,
+          trackName: selectedTrack.trackName,
+          artistName: selectedTrack.artistName,
+          albumName: selectedTrack.albumName,
+          albumArtUrl: selectedTrack.albumArtUrl || undefined,
+          previewUrl: selectedTrack.previewUrl || undefined,
+          externalUrl: selectedTrack.externalUrl,
+          moodKaomoji: selectedMood,
+        });
+      }
 
       previews.forEach((p) => URL.revokeObjectURL(p));
 
@@ -398,6 +432,19 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
               style={{ display: 'none' }}
             />
 
+            {/* Selected Music Preview */}
+            {selectedTrack && (
+              <div className="create-post-music">
+                <MusicShare
+                  track={selectedTrack}
+                  mood={selectedMood}
+                  compact
+                  showRemove
+                  onRemove={handleMusicRemove}
+                />
+              </div>
+            )}
+
             <div className="create-post-actions">
               <input
                 type="text"
@@ -414,6 +461,15 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
               />
+
+              <button
+                type="button"
+                className="media-btn media-btn--secondary media-btn--music"
+                onClick={() => setShowMusicPicker(true)}
+                title="Add music"
+              >
+                <span className="media-btn-icon">{'>>'}</span>
+              </button>
 
               <button
                 type="button"
@@ -437,6 +493,15 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
               </button>
             </div>
           </form>
+        )}
+
+        {/* Music Picker Modal */}
+        {showMusicPicker && (
+          <MusicPicker
+            token={token}
+            onSelect={handleMusicSelect}
+            onClose={() => setShowMusicPicker(false)}
+          />
         )}
       </div>
     </div>

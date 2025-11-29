@@ -2,10 +2,11 @@ import { config as loadEnv } from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-loadEnv();
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
+
+// Load .env from the backend root directory
+loadEnv({ path: join(rootDir, '.env') });
 
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
@@ -37,6 +38,10 @@ export const config = {
   
   // Admin username (hardcoded for simplicity)
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
+  
+  // Spotify API (for music moments)
+  spotifyClientId: process.env.SPOTIFY_CLIENT_ID || '',
+  spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
 };
 
 
