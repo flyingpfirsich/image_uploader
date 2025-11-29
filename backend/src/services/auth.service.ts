@@ -1,4 +1,4 @@
-import { eq, and, isNull, gt } from 'drizzle-orm';
+import { eq, and, isNull, gt, ne } from 'drizzle-orm';
 import { db, users, inviteCodes, User, NewUser } from '../db/index.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { generateId, generateInviteCode } from '../utils/nanoid.js';
@@ -137,12 +137,16 @@ export async function createInviteCode(createdBy: string): Promise<string> {
 }
 
 export async function getAllUsers(): Promise<Omit<User, 'passwordHash'>[]> {
+  // Filter out admin user from the list - admin should not be visible to regular users
   const allUsers = await db.query.users.findMany({
+    where: ne(users.username, config.adminUsername),
     orderBy: (users, { asc }) => [asc(users.displayName)],
   });
   
   return allUsers.map(({ passwordHash: _, ...user }) => user);
 }
+
+
 
 
 
