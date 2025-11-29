@@ -27,6 +27,21 @@ export const TEXT = {
     emptyHint: 'Be the first to share a moment!',
     newPost: '+ New Post',
   },
+  createPost: {
+    title: 'New Post',
+    captureTitle: 'Capture',
+    takePhoto: 'Take Photo',
+    upload: 'Upload',
+    placeholders: [
+      "What's on your mind?",
+      'Share a moment...',
+      'Found something cool?',
+      'How is your day going?',
+      'Seen anything interesting?',
+      'Time to share!',
+      'Say something nice...',
+    ],
+  },
   post: {
     placeholder: "What's happening?",
     addMedia: '+ Media',
