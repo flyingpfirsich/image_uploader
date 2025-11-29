@@ -87,45 +87,31 @@
     grid-template-columns: 1fr;
   }
 
-  /* Modal responsive - full screen on mobile */
+  /* Modal responsive - floating modal on mobile with reduced padding */
   .modal-overlay,
   .create-post-overlay,
   .edit-profile-overlay {
-    padding: 0;
-    align-items: stretch;
+    padding: var(--space-md);
   }
 
   .modal,
   .create-post-modal,
   .edit-profile-modal {
-    max-width: none;
-    max-height: none;
-    height: 100%;
-    border: none;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .create-post-modal form {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .create-post-submit {
-    margin-top: auto;
-    padding-top: var(--space-md);
+    max-width: calc(100vw - var(--space-lg));
+    max-height: 85vh;
+    padding: var(--space-md);
   }
 
   .media-input-section {
-    flex: 1;
-    justify-content: center;
+    margin: var(--space-md) 0;
   }
 
-  .create-post-camera {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+  .media-btn--primary {
+    padding: var(--space-md);
+  }
+
+  .media-btn--primary .media-btn-icon {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-xs);
   }
 }
