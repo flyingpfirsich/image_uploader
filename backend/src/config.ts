@@ -36,8 +36,9 @@ export const config = {
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || '',
   vapidSubject: process.env.VAPID_SUBJECT || 'mailto:druzi@example.com',
   
-  // Admin username (hardcoded for simplicity)
+  // Admin credentials
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
+  adminPassword: process.env.ADMIN_PASSWORD || 'DRUZI2025',
   
   // Spotify API (for music moments)
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID || '',
