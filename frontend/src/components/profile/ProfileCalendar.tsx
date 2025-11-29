@@ -65,13 +65,13 @@ const CAKE_KAOMOJI = '(ノ´ヮ`)ノ✧';
 function generateMockPosts(): Post[] {
   const posts: Post[] = [];
   const today = new Date();
-  
+
   // Generate a good streak (last 12 days)
   for (let i = 0; i < 12; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     date.setHours(12, 0, 0, 0);
-    
+
     // Add 1-3 posts per day
     const postsToday = Math.floor(Math.random() * 3) + 1;
     for (let j = 0; j < postsToday; j++) {
@@ -91,17 +91,18 @@ function generateMockPosts(): Post[] {
         },
         media: [],
         reactions: [],
+        musicShare: null,
       });
     }
   }
-  
+
   // Add some scattered posts in the past
   for (let i = 20; i < 90; i++) {
     if (Math.random() < 0.25) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       date.setHours(14, 0, 0, 0);
-      
+
       posts.push({
         id: `mock-old-${i}`,
         userId: 'mock-user',
@@ -118,10 +119,11 @@ function generateMockPosts(): Post[] {
         },
         media: [],
         reactions: [],
+        musicShare: null,
       });
     }
   }
-  
+
   return posts;
 }
 
@@ -208,19 +210,19 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
   const currentStreak = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     let streak = 0;
     const checkDate = new Date(today);
-    
+
     // Check if there's a post today first
     const todayKey = formatDateKey(today);
     const hasPostToday = postsByDate.has(todayKey);
-    
+
     // If no post today, check yesterday as the start
     if (!hasPostToday) {
       checkDate.setDate(checkDate.getDate() - 1);
     }
-    
+
     // Count consecutive days with posts
     while (true) {
       const dateKey = formatDateKey(checkDate);
@@ -231,28 +233,28 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
         break;
       }
     }
-    
+
     return streak;
   }, [postsByDate]);
 
   // Calculate longest streak
   const longestStreak = useMemo(() => {
     if (posts.length === 0) return 0;
-    
+
     // Get all unique dates with posts, sorted
     const dates = Array.from(postsByDate.keys()).sort();
     if (dates.length === 0) return 0;
-    
+
     let longest = 1;
     let current = 1;
-    
+
     for (let i = 1; i < dates.length; i++) {
       const prevDate = new Date(dates[i - 1]);
       const currDate = new Date(dates[i]);
-      
+
       // Check if consecutive days
       const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays === 1) {
         current++;
         longest = Math.max(longest, current);
@@ -260,7 +262,7 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
         current = 1;
       }
     }
-    
+
     return longest;
   }, [posts, postsByDate]);
 
@@ -316,8 +318,8 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
       {/* Calendar */}
       <div className="calendar-section">
         <div className="calendar-nav">
-          <button 
-            className="calendar-nav-btn" 
+          <button
+            className="calendar-nav-btn"
             onClick={goToPreviousMonth}
             aria-label="Previous month"
           >
@@ -326,8 +328,8 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
           <h3 className="calendar-month-title">
             {MONTH_NAMES[currentMonth.month]} {currentMonth.year}
           </h3>
-          <button 
-            className="calendar-nav-btn" 
+          <button
+            className="calendar-nav-btn"
             onClick={goToNextMonth}
             disabled={currentMonthOffset === 0}
             aria-label="Next month"
@@ -352,15 +354,15 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
           {currentMonth.days.map((day, idx) => {
             const hasUploads = day.uploads.length > 0;
             const hasBirthday = day.birthdays.length > 0;
-            
+
             return (
               <button
                 key={idx}
                 type="button"
                 className={`
-                  calendar-day 
-                  ${!day.isCurrentMonth ? 'other-month' : ''} 
-                  ${hasUploads ? 'has-uploads' : ''} 
+                  calendar-day
+                  ${!day.isCurrentMonth ? 'other-month' : ''}
+                  ${hasUploads ? 'has-uploads' : ''}
                   ${hasBirthday ? 'has-birthday' : ''}
                   ${day.isToday ? 'is-today' : ''}
                 `}
@@ -369,11 +371,11 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
                 disabled={!hasUploads}
               >
                 <span className="day-number">{day.dayOfMonth}</span>
-                
+
                 {hasUploads && (
                   <span className="day-upload-dot" />
                 )}
-                
+
                 {hasBirthday && (
                   <span className="day-birthday-indicator" title={day.birthdays.map(u => u.displayName).join(', ')}>
                     {CAKE_KAOMOJI}
@@ -453,7 +455,7 @@ function generateMonthDays(
     const date = new Date(year, month, -i);
     const dateKey = formatDateKey(date);
     const monthDay = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    
+
     days.push({
       date,
       dayOfMonth: date.getDate(),
@@ -469,7 +471,7 @@ function generateMonthDays(
     const date = new Date(year, month, d);
     const dateKey = formatDateKey(date);
     const monthDay = `${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    
+
     days.push({
       date,
       dayOfMonth: d,
@@ -487,7 +489,7 @@ function generateMonthDays(
       const date = new Date(year, month + 1, i);
       const dateKey = formatDateKey(date);
       const monthDay = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      
+
       days.push({
         date,
         dayOfMonth: i,
@@ -592,20 +594,20 @@ function UpcomingBirthdays({ friends }: UpcomingBirthdaysProps) {
   const upcomingBirthdays = useMemo(() => {
     const today = new Date();
     const currentYear = today.getFullYear();
-    
+
     const friendsWithBirthdays = friends
       .filter(f => f.birthday)
       .map(friend => {
         const [, month, day] = friend.birthday!.split('-').map(Number);
         let birthdayThisYear = new Date(currentYear, month - 1, day);
-        
+
         // If birthday already passed this year, use next year
         if (birthdayThisYear < today) {
           birthdayThisYear = new Date(currentYear + 1, month - 1, day);
         }
-        
+
         const daysUntil = Math.ceil((birthdayThisYear.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         return {
           friend,
           birthdayThisYear,
@@ -614,7 +616,7 @@ function UpcomingBirthdays({ friends }: UpcomingBirthdaysProps) {
       })
       .sort((a, b) => a.daysUntil - b.daysUntil)
       .slice(0, 3); // Show next 3 birthdays
-    
+
     return friendsWithBirthdays;
   }, [friends]);
 
@@ -639,4 +641,3 @@ function UpcomingBirthdays({ friends }: UpcomingBirthdaysProps) {
     </div>
   );
 }
-
