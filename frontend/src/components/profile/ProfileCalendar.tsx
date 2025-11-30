@@ -27,8 +27,18 @@ interface DayData {
 const DAYS_OF_WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 // Streak kaomoji based on length
@@ -48,7 +58,9 @@ const STREAK_KAOMOJI: Record<number, string> = {
 };
 
 function getStreakKaomoji(streak: number): string {
-  const thresholds = Object.keys(STREAK_KAOMOJI).map(Number).sort((a, b) => b - a);
+  const thresholds = Object.keys(STREAK_KAOMOJI)
+    .map(Number)
+    .sort((a, b) => b - a);
   for (const threshold of thresholds) {
     if (streak >= threshold) {
       return STREAK_KAOMOJI[threshold];
@@ -184,7 +196,7 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
   // Group posts by date
   const postsByDate = useMemo(() => {
     const map = new Map<string, Post[]>();
-    posts.forEach(post => {
+    posts.forEach((post) => {
       const date = new Date(post.createdAt);
       const dateKey = formatDateKey(date);
       const existing = map.get(dateKey) || [];
@@ -196,7 +208,7 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
   // Group friends by birthday (MM-DD for annual matching)
   const birthdaysByMonthDay = useMemo(() => {
     const map = new Map<string, User[]>();
-    friends.forEach(friend => {
+    friends.forEach((friend) => {
       if (friend.birthday) {
         const monthDay = formatMonthDay(friend.birthday);
         const existing = map.get(monthDay) || [];
@@ -253,7 +265,9 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
       const currDate = new Date(dates[i]);
 
       // Check if consecutive days
-      const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round(
+        (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       if (diffDays === 1) {
         current++;
@@ -278,11 +292,11 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
 
   // Navigation handlers
   const goToPreviousMonth = useCallback(() => {
-    setCurrentMonthOffset(prev => prev + 1);
+    setCurrentMonthOffset((prev) => prev + 1);
   }, []);
 
   const goToNextMonth = useCallback(() => {
-    setCurrentMonthOffset(prev => Math.max(0, prev - 1));
+    setCurrentMonthOffset((prev) => Math.max(0, prev - 1));
   }, []);
 
   const goToToday = useCallback(() => {
@@ -345,8 +359,10 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
         )}
 
         <div className="calendar-weekdays">
-          {DAYS_OF_WEEK.map(day => (
-            <div key={day} className="calendar-weekday">{day}</div>
+          {DAYS_OF_WEEK.map((day) => (
+            <div key={day} className="calendar-weekday">
+              {day}
+            </div>
           ))}
         </div>
 
@@ -366,18 +382,23 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
                   ${hasBirthday ? 'has-birthday' : ''}
                   ${day.isToday ? 'is-today' : ''}
                 `}
-                title={hasBirthday ? `${BIRTHDAY_KAOMOJI} ${day.birthdays.map(u => u.displayName).join(', ')}` : undefined}
+                title={
+                  hasBirthday
+                    ? `${BIRTHDAY_KAOMOJI} ${day.birthdays.map((u) => u.displayName).join(', ')}`
+                    : undefined
+                }
                 onClick={() => hasUploads && setSelectedDay(day)}
                 disabled={!hasUploads}
               >
                 <span className="day-number">{day.dayOfMonth}</span>
 
-                {hasUploads && (
-                  <span className="day-upload-dot" />
-                )}
+                {hasUploads && <span className="day-upload-dot" />}
 
                 {hasBirthday && (
-                  <span className="day-birthday-indicator" title={day.birthdays.map(u => u.displayName).join(', ')}>
+                  <span
+                    className="day-birthday-indicator"
+                    title={day.birthdays.map((u) => u.displayName).join(', ')}
+                  >
                     {CAKE_KAOMOJI}
                   </span>
                 )}
@@ -400,17 +421,10 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
       </div>
 
       {/* Upcoming Birthdays */}
-      {friends.some(f => f.birthday) && (
-        <UpcomingBirthdays friends={friends} />
-      )}
+      {friends.some((f) => f.birthday) && <UpcomingBirthdays friends={friends} />}
 
       {/* Day Detail Modal */}
-      {selectedDay && (
-        <DayDetailModal
-          day={selectedDay}
-          onClose={() => setSelectedDay(null)}
-        />
-      )}
+      {selectedDay && <DayDetailModal day={selectedDay} onClose={() => setSelectedDay(null)} />}
 
       {/* Debug Panel - only visible in dev mode */}
       {DEBUG_MODE && (
@@ -522,20 +536,22 @@ function DayDetailModal({ day, onClose }: DayDetailModalProps) {
 
   return (
     <div className="day-modal-overlay" onClick={onClose}>
-      <div className="day-modal" onClick={e => e.stopPropagation()}>
+      <div className="day-modal" onClick={(e) => e.stopPropagation()}>
         <div className="day-modal-header">
-          <button className="day-modal-close" onClick={onClose}>✕</button>
+          <button className="day-modal-close" onClick={onClose}>
+            ✕
+          </button>
           <h3 className="day-modal-title">{formatDateTitle(day.date)}</h3>
           <div className="day-modal-spacer" />
         </div>
 
         <div className="day-modal-content">
           <div className="day-modal-posts">
-            {day.uploads.map(post => (
+            {day.uploads.map((post) => (
               <div key={post.id} className="day-modal-post">
                 {post.media && post.media.length > 0 && (
                   <div className="day-modal-media-grid">
-                    {post.media.map(media => {
+                    {post.media.map((media) => {
                       const isVideo = media.mimeType.startsWith('video/');
                       return isVideo ? (
                         <video
@@ -564,12 +580,8 @@ function DayDetailModal({ day, onClose }: DayDetailModalProps) {
                     />
                   </div>
                 )}
-                {post.text && (
-                  <p className="day-modal-text">{post.text}</p>
-                )}
-                {post.location && (
-                  <p className="day-modal-location">@ {post.location}</p>
-                )}
+                {post.text && <p className="day-modal-text">{post.text}</p>}
+                {post.location && <p className="day-modal-location">@ {post.location}</p>}
                 <p className="day-modal-time">
                   {new Date(post.createdAt).toLocaleTimeString('en-US', {
                     hour: '2-digit',
@@ -596,8 +608,8 @@ function UpcomingBirthdays({ friends }: UpcomingBirthdaysProps) {
     const currentYear = today.getFullYear();
 
     const friendsWithBirthdays = friends
-      .filter(f => f.birthday)
-      .map(friend => {
+      .filter((f) => f.birthday)
+      .map((friend) => {
         const [, month, day] = friend.birthday!.split('-').map(Number);
         let birthdayThisYear = new Date(currentYear, month - 1, day);
 
@@ -606,7 +618,9 @@ function UpcomingBirthdays({ friends }: UpcomingBirthdaysProps) {
           birthdayThisYear = new Date(currentYear + 1, month - 1, day);
         }
 
-        const daysUntil = Math.ceil((birthdayThisYear.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const daysUntil = Math.ceil(
+          (birthdayThisYear.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
 
         return {
           friend,
@@ -633,7 +647,9 @@ function UpcomingBirthdays({ friends }: UpcomingBirthdaysProps) {
               {birthdayThisYear.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               {daysUntil === 0 && <span className="upcoming-today"> — TODAY! {CAKE_KAOMOJI}</span>}
               {daysUntil === 1 && <span className="upcoming-soon"> — tomorrow!</span>}
-              {daysUntil > 1 && daysUntil <= 7 && <span className="upcoming-soon"> — in {daysUntil} days</span>}
+              {daysUntil > 1 && daysUntil <= 7 && (
+                <span className="upcoming-soon"> — in {daysUntil} days</span>
+              )}
             </span>
           </li>
         ))}

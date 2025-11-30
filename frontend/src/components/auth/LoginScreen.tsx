@@ -46,7 +46,13 @@ export function LoginScreen() {
           <button
             className={`nav-link ${mode === 'login' ? 'active' : ''}`}
             onClick={() => setMode('login')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 'inherit',
+            }}
           >
             LOGIN
           </button>
@@ -54,7 +60,13 @@ export function LoginScreen() {
           <button
             className={`nav-link ${mode === 'register' ? 'active' : ''}`}
             onClick={() => setMode('register')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 'inherit',
+            }}
           >
             REGISTER
           </button>
@@ -63,9 +75,7 @@ export function LoginScreen() {
 
       <main className="main">
         <div className="login-container">
-          <h1 className="login-title">
-            {mode === 'login' ? 'Welcome Back' : 'Join Your Friends'}
-          </h1>
+          <h1 className="login-title">{mode === 'login' ? 'Welcome Back' : 'Join Your Friends'}</h1>
 
           <form onSubmit={handleSubmit}>
             {mode === 'register' && (
@@ -150,7 +160,14 @@ export function LoginScreen() {
             <button
               className="btn--text"
               onClick={toggleMode}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'var(--fg)' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                color: 'var(--fg)',
+              }}
             >
               {mode === 'login' ? 'Register' : 'Login'}
             </button>

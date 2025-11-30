@@ -17,7 +17,13 @@ interface ProfileProps {
   onSelectUser?: (userId: string) => void;
 }
 
-export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUser }: ProfileProps) {
+export function Profile({
+  userId,
+  currentUserId,
+  token,
+  onUserUpdate,
+  onSelectUser,
+}: ProfileProps) {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [friends, setFriends] = useState<User[]>([]);
@@ -135,9 +141,7 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
           {friends.length === 0 ? (
             <div className="friends-empty">
               <p className="friends-empty-text">No friends yet!</p>
-              <p className="friends-empty-hint">
-                Invite your friends to join druzi
-              </p>
+              <p className="friends-empty-hint">Invite your friends to join druzi</p>
             </div>
           ) : (
             <ul className="friends-list">
@@ -145,10 +149,7 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
                 const friendAvatarUrl = getAvatarUrl(friend.avatar);
                 return (
                   <li key={friend.id} className="friend-item">
-                    <button
-                      className="friend-btn"
-                      onClick={() => onSelectUser?.(friend.id)}
-                    >
+                    <button className="friend-btn" onClick={() => onSelectUser?.(friend.id)}>
                       {friendAvatarUrl ? (
                         <img src={friendAvatarUrl} alt="" className="friend-avatar" />
                       ) : (
@@ -168,7 +169,9 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
           )}
 
           <div className="profile-invite">
-            <h4 className="section-title" style={{ marginTop: '1.5rem' }}>Invite a Friend</h4>
+            <h4 className="section-title" style={{ marginTop: '1.5rem' }}>
+              Invite a Friend
+            </h4>
             {inviteCode ? (
               <div className="invite-code-display">
                 <code className="invite-code">{inviteCode}</code>
@@ -229,4 +232,3 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
     </div>
   );
 }
-

@@ -35,10 +35,15 @@ const avatarStorage = multer.diskStorage({
 // File filter for images and videos
 const mediaFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   const allowedMimes = [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'video/mp4', 'video/webm', 'video/quicktime',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
   ];
-  
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -49,7 +54,7 @@ const mediaFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
 // File filter for images only (avatars)
 const imageFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -68,9 +73,3 @@ export const uploadAvatar = multer({
   fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB for avatars
 });
-
-
-
-
-
-

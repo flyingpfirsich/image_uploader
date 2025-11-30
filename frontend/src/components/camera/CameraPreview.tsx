@@ -1,6 +1,12 @@
 import type { RefObject } from 'react';
 import { TEXT } from '../../constants/text';
-import type { CapturedMedia, BeRealPhotos, FacingMode, MainPhotoPosition, CaptureMode } from '../../types';
+import type {
+  CapturedMedia,
+  BeRealPhotos,
+  FacingMode,
+  MainPhotoPosition,
+  CaptureMode,
+} from '../../types';
 import { BeRealPreview } from './BeRealPreview';
 
 interface CameraPreviewProps {
@@ -79,9 +85,12 @@ export function CameraPreview({
           )}
           {/* Camera switch button */}
           {cameraActive && !isRecording && !isCapturingSecond && captureMode === 'photo' && (
-            <button 
-              className="camera-switch-btn" 
-              onClick={(e) => { e.stopPropagation(); onSwitchCamera(); }}
+            <button
+              className="camera-switch-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSwitchCamera();
+              }}
               title="Switch Camera"
             >
               {TEXT.camera.switchCamera}
@@ -99,9 +108,3 @@ export function CameraPreview({
     </div>
   );
 }
-
-
-
-
-
-

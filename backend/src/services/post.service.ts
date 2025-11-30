@@ -1,5 +1,16 @@
 import { eq, desc, and, gte, lt } from 'drizzle-orm';
-import { db, posts, media, reactions, users, musicShares, Post, Media, Reaction, MusicShare } from '../db/index.js';
+import {
+  db,
+  posts,
+  media,
+  reactions,
+  users,
+  musicShares,
+  Post,
+  Media,
+  Reaction,
+  MusicShare,
+} from '../db/index.js';
 import { generateId } from '../utils/nanoid.js';
 
 interface CreatePostInput {
@@ -138,16 +149,11 @@ export async function getTodaysFeed(): Promise<PostWithDetails[]> {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   const todaysPosts = await db.query.posts.findMany({
-    where: and(
-      gte(posts.createdAt, today),
-      lt(posts.createdAt, tomorrow)
-    ),
+    where: and(gte(posts.createdAt, today), lt(posts.createdAt, tomorrow)),
     orderBy: [desc(posts.createdAt)],
   });
 
-  const postsWithDetails = await Promise.all(
-    todaysPosts.map((p) => getPostById(p.id))
-  );
+  const postsWithDetails = await Promise.all(todaysPosts.map((p) => getPostById(p.id)));
 
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
@@ -158,9 +164,7 @@ export async function getUserPosts(userId: string): Promise<PostWithDetails[]> {
     orderBy: [desc(posts.createdAt)],
   });
 
-  const postsWithDetails = await Promise.all(
-    userPosts.map((p) => getPostById(p.id))
-  );
+  const postsWithDetails = await Promise.all(userPosts.map((p) => getPostById(p.id)));
 
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
@@ -182,9 +186,7 @@ export async function getUserTodaysPosts(userId: string): Promise<PostWithDetail
     orderBy: [desc(posts.createdAt)],
   });
 
-  const postsWithDetails = await Promise.all(
-    userTodaysPosts.map((p) => getPostById(p.id))
-  );
+  const postsWithDetails = await Promise.all(userTodaysPosts.map((p) => getPostById(p.id)));
 
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
@@ -240,13 +242,15 @@ export async function removeReaction(
   userId: string,
   kaomoji: string
 ): Promise<boolean> {
-  const result = await db.delete(reactions).where(
-    and(
-      eq(reactions.postId, postId),
-      eq(reactions.userId, userId),
-      eq(reactions.kaomoji, kaomoji)
-    )
-  );
+  const result = await db
+    .delete(reactions)
+    .where(
+      and(
+        eq(reactions.postId, postId),
+        eq(reactions.userId, userId),
+        eq(reactions.kaomoji, kaomoji)
+      )
+    );
 
   return result.changes > 0;
 }

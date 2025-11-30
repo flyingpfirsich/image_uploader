@@ -9,7 +9,14 @@ export function Footer({ onLogout }: FooterProps) {
       <button
         className="btn--text"
         onClick={onLogout}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'var(--fg-dim)' }}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          fontSize: 'inherit',
+          color: 'var(--fg-dim)',
+        }}
       >
         Logout
       </button>

@@ -41,13 +41,16 @@ router.post(
       );
 
       // Send notification to friends (async, don't wait)
-      authService.getUserById(req.user!.userId).then((user) => {
-        if (user) {
-          notificationService.notifyFriendPosted(req.user!.userId, user.displayName);
-        }
-      }).catch((err) => {
-        console.error('Failed to send friend notification:', err);
-      });
+      authService
+        .getUserById(req.user!.userId)
+        .then((user) => {
+          if (user) {
+            notificationService.notifyFriendPosted(req.user!.userId, user.displayName);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to send friend notification:', err);
+        });
 
       res.json(post);
     } catch (error) {
@@ -99,11 +102,7 @@ router.post('/:id/react', authMiddleware, async (req: Request, res: Response) =>
       return;
     }
 
-    const reaction = await postService.addReaction(
-      req.params.id,
-      req.user!.userId,
-      kaomoji
-    );
+    const reaction = await postService.addReaction(req.params.id, req.user!.userId, kaomoji);
 
     res.json(reaction);
   } catch (_error) {

@@ -82,7 +82,7 @@ async function getAccessToken(): Promise<string> {
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
-      'Authorization': `Basic ${credentials}`,
+      Authorization: `Basic ${credentials}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: 'grant_type=client_credentials',
@@ -92,7 +92,7 @@ async function getAccessToken(): Promise<string> {
     throw new Error('Failed to get Spotify access token');
   }
 
-  const data = await response.json() as SpotifyTokenResponse;
+  const data = (await response.json()) as SpotifyTokenResponse;
   cachedToken = data.access_token;
   // Set expiry 5 minutes before actual expiry to be safe
   tokenExpiry = Date.now() + (data.expires_in - 300) * 1000;
@@ -112,20 +112,17 @@ export async function searchTracks(query: string, limit: number = 10): Promise<S
     limit: limit.toString(),
   });
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/search?${searchParams}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`https://api.spotify.com/v1/search?${searchParams}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error('Failed to search Spotify');
   }
 
-  const data = await response.json() as SpotifySearchResponse;
+  const data = (await response.json()) as SpotifySearchResponse;
 
   return data.tracks.items.map((track) => ({
     spotifyTrackId: track.id,
@@ -144,14 +141,11 @@ export async function searchTracks(query: string, limit: number = 10): Promise<S
 export async function getTrack(trackId: string): Promise<SpotifyTrack | null> {
   const token = await getAccessToken();
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/tracks/${trackId}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -160,7 +154,7 @@ export async function getTrack(trackId: string): Promise<SpotifyTrack | null> {
     throw new Error('Failed to get track from Spotify');
   }
 
-  const track = await response.json() as SpotifyTrackResponse;
+  const track = (await response.json()) as SpotifyTrackResponse;
 
   return {
     spotifyTrackId: track.id,

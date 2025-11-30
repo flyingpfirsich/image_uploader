@@ -14,12 +14,12 @@ router.get('/vapid-public-key', (_req: Request, res: Response) => {
 router.post('/subscribe', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { subscription } = req.body;
-    
+
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       res.status(400).json({ error: 'Invalid subscription object' });
       return;
     }
-    
+
     await notificationService.subscribeToPush(req.user!.userId, subscription);
     res.json({ success: true });
   } catch (error) {
@@ -54,12 +54,12 @@ router.get('/preferences', authMiddleware, async (req: Request, res: Response) =
 router.patch('/preferences', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { dailyReminder, friendPosts } = req.body;
-    
+
     await notificationService.updatePreferences(req.user!.userId, {
       dailyReminder,
       friendPosts,
     });
-    
+
     const prefs = await notificationService.getPreferences(req.user!.userId);
     res.json(prefs);
   } catch (error) {
@@ -80,8 +80,3 @@ router.get('/scheduled-time', authMiddleware, async (_req: Request, res: Respons
 });
 
 export default router;
-
-
-
-
-

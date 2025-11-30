@@ -60,8 +60,3 @@ export function AdminPanel({ token }: AdminPanelProps) {
     </div>
   );
 }
-
-
-
-
-

@@ -1,6 +1,6 @@
 import type { User, Post, SpotifyTrack, MusicShare } from '../types';
 
-const API_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
+const API_URL = import.meta.env.PROD ? '' : import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Auth API responses
 interface AuthResponse {
@@ -32,7 +32,7 @@ interface InviteResponse {
 // Helper to get auth headers
 function authHeaders(token: string): HeadersInit {
   return {
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
   };
 }
 
@@ -124,7 +124,13 @@ export async function getFeed(token: string): Promise<FeedResponse> {
 // Posts endpoints
 export async function createPost(
   token: string,
-  data: { text?: string; location?: string; linkUrl?: string; linkTitle?: string; hasMusic?: boolean },
+  data: {
+    text?: string;
+    location?: string;
+    linkUrl?: string;
+    linkTitle?: string;
+    hasMusic?: boolean;
+  },
   mediaFiles?: File[]
 ): Promise<Post> {
   const formData = new FormData();
@@ -178,7 +184,11 @@ export async function addReaction(token: string, postId: string, kaomoji: string
   }
 }
 
-export async function removeReaction(token: string, postId: string, kaomoji: string): Promise<void> {
+export async function removeReaction(
+  token: string,
+  postId: string,
+  kaomoji: string
+): Promise<void> {
   const res = await fetch(`${API_URL}/api/posts/${postId}/react`, {
     method: 'DELETE',
     headers: jsonHeaders(token),
@@ -294,9 +304,7 @@ export async function unsubscribeFromNotifications(token: string): Promise<void>
   }
 }
 
-export async function getNotificationPreferences(
-  token: string
-): Promise<NotificationPreferences> {
+export async function getNotificationPreferences(token: string): Promise<NotificationPreferences> {
   const res = await fetch(`${API_URL}/api/notifications/preferences`, {
     headers: authHeaders(token),
   });
@@ -474,7 +482,10 @@ export async function getAdminUsers(token: string): Promise<{ users: AdminUser[]
   return res.json();
 }
 
-export async function deleteAdminUser(token: string, userId: string): Promise<{ success: boolean; message: string }> {
+export async function deleteAdminUser(
+  token: string,
+  userId: string
+): Promise<{ success: boolean; message: string }> {
   const res = await fetch(`${API_URL}/api/admin/users/${userId}`, {
     method: 'DELETE',
     headers: authHeaders(token),
@@ -488,7 +499,11 @@ export async function deleteAdminUser(token: string, userId: string): Promise<{ 
   return res.json();
 }
 
-export async function resetUserPassword(token: string, userId: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+export async function resetUserPassword(
+  token: string,
+  userId: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> {
   const res = await fetch(`${API_URL}/api/admin/users/${userId}/reset-password`, {
     method: 'POST',
     headers: jsonHeaders(token),
@@ -504,7 +519,9 @@ export async function resetUserPassword(token: string, userId: string, newPasswo
 }
 
 // Invite Codes
-export async function getAdminInviteCodes(token: string): Promise<{ inviteCodes: AdminInviteCode[] }> {
+export async function getAdminInviteCodes(
+  token: string
+): Promise<{ inviteCodes: AdminInviteCode[] }> {
   const res = await fetch(`${API_URL}/api/admin/invite-codes`, {
     headers: authHeaders(token),
   });
@@ -517,7 +534,10 @@ export async function getAdminInviteCodes(token: string): Promise<{ inviteCodes:
   return res.json();
 }
 
-export async function createAdminInviteCode(token: string, expiresInDays?: number): Promise<{ code: string; expiresAt: string; message: string }> {
+export async function createAdminInviteCode(
+  token: string,
+  expiresInDays?: number
+): Promise<{ code: string; expiresAt: string; message: string }> {
   const res = await fetch(`${API_URL}/api/admin/invite-codes`, {
     method: 'POST',
     headers: jsonHeaders(token),
@@ -532,7 +552,10 @@ export async function createAdminInviteCode(token: string, expiresInDays?: numbe
   return res.json();
 }
 
-export async function deleteAdminInviteCode(token: string, code: string): Promise<{ success: boolean; message: string }> {
+export async function deleteAdminInviteCode(
+  token: string,
+  code: string
+): Promise<{ success: boolean; message: string }> {
   const res = await fetch(`${API_URL}/api/admin/invite-codes/${code}`, {
     method: 'DELETE',
     headers: authHeaders(token),
@@ -547,7 +570,10 @@ export async function deleteAdminInviteCode(token: string, code: string): Promis
 }
 
 // Testing
-export async function sendTestNotification(token: string, type: 'daily' | 'friend_post'): Promise<{ success: boolean; message: string }> {
+export async function sendTestNotification(
+  token: string,
+  type: 'daily' | 'friend_post'
+): Promise<{ success: boolean; message: string }> {
   const res = await fetch(`${API_URL}/api/admin/test-notification`, {
     method: 'POST',
     headers: jsonHeaders(token),
@@ -562,7 +588,9 @@ export async function sendTestNotification(token: string, type: 'daily' | 'frien
   return res.json();
 }
 
-export async function sendDailyReminders(token: string): Promise<{ success: boolean; message: string }> {
+export async function sendDailyReminders(
+  token: string
+): Promise<{ success: boolean; message: string }> {
   const res = await fetch(`${API_URL}/api/admin/test-daily-reminder`, {
     method: 'POST',
     headers: authHeaders(token),
@@ -622,7 +650,10 @@ export async function getSpotifyStatus(): Promise<{ configured: boolean }> {
   return res.json();
 }
 
-export async function searchMusic(token: string, query: string): Promise<{ tracks: SpotifyTrack[] }> {
+export async function searchMusic(
+  token: string,
+  query: string
+): Promise<{ tracks: SpotifyTrack[] }> {
   const res = await fetch(`${API_URL}/api/music/search?q=${encodeURIComponent(query)}`, {
     headers: authHeaders(token),
   });

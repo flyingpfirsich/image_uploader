@@ -15,7 +15,14 @@ interface PostCardProps {
   onUserClick?: (userId: string) => void;
 }
 
-export function PostCard({ post, currentUserId, token, onDelete, onReactionChange, onUserClick }: PostCardProps) {
+export function PostCard({
+  post,
+  currentUserId,
+  token,
+  onDelete,
+  onReactionChange,
+  onUserClick,
+}: PostCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const isOwner = post.userId === currentUserId;
@@ -111,10 +118,7 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
 
       {post.musicShare && (
         <div className="post-music">
-          <MusicShare
-            track={post.musicShare}
-            mood={post.musicShare.moodKaomoji}
-          />
+          <MusicShare track={post.musicShare} mood={post.musicShare.moodKaomoji} />
         </div>
       )}
 

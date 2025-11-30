@@ -15,7 +15,13 @@ export function Header({ activeNav, onNavChange, isAdmin }: HeaderProps) {
         <button
           className={`nav-link ${activeNav === 'feed' ? 'active' : ''}`}
           onClick={() => onNavChange('feed')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontSize: 'inherit',
+          }}
         >
           FEED
         </button>
@@ -23,7 +29,13 @@ export function Header({ activeNav, onNavChange, isAdmin }: HeaderProps) {
         <button
           className={`nav-link ${activeNav === 'profile' ? 'active' : ''}`}
           onClick={() => onNavChange('profile')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontSize: 'inherit',
+          }}
         >
           PROFILE
         </button>
@@ -33,7 +45,13 @@ export function Header({ activeNav, onNavChange, isAdmin }: HeaderProps) {
             <button
               className={`nav-link nav-link--admin ${activeNav === 'admin' ? 'active' : ''}`}
               onClick={() => onNavChange('admin')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+              }}
             >
               ADMIN
             </button>

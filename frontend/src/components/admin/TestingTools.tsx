@@ -14,7 +14,7 @@ interface TestResult {
 export function TestingTools({ token }: TestingToolsProps) {
   const [results, setResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
-  
+
   // Test post form
   const [postText, setPostText] = useState('');
   const [postLocation, setPostLocation] = useState('');
@@ -22,9 +22,9 @@ export function TestingTools({ token }: TestingToolsProps) {
   const [postLinkTitle, setPostLinkTitle] = useState('');
 
   function addResult(type: 'success' | 'error', message: string) {
-    setResults(prev => [
+    setResults((prev) => [
       { type, message, timestamp: new Date() },
-      ...prev.slice(0, 9) // Keep last 10 results
+      ...prev.slice(0, 9), // Keep last 10 results
     ]);
   }
 
@@ -85,11 +85,13 @@ export function TestingTools({ token }: TestingToolsProps) {
         <p className="section-description">
           Test push notifications. Make sure you have notifications enabled in your profile.
         </p>
-        
+
         <div className="testing-actions">
           <div className="testing-action">
             <h3 className="action-title">test daily reminder</h3>
-            <p className="action-description">Send a test daily reminder notification to yourself</p>
+            <p className="action-description">
+              Send a test daily reminder notification to yourself
+            </p>
             <button
               className="btn"
               onClick={() => handleTestNotification('daily')}
@@ -101,7 +103,9 @@ export function TestingTools({ token }: TestingToolsProps) {
 
           <div className="testing-action">
             <h3 className="action-title">test friend post</h3>
-            <p className="action-description">Send a test "friend posted" notification to yourself</p>
+            <p className="action-description">
+              Send a test "friend posted" notification to yourself
+            </p>
             <button
               className="btn"
               onClick={() => handleTestNotification('friend_post')}
@@ -113,7 +117,9 @@ export function TestingTools({ token }: TestingToolsProps) {
 
           <div className="testing-action testing-action--wide">
             <h3 className="action-title">trigger daily reminders</h3>
-            <p className="action-description">Send daily reminder to ALL subscribed users (use with caution)</p>
+            <p className="action-description">
+              Send daily reminder to ALL subscribed users (use with caution)
+            </p>
             <button
               className="btn btn--secondary"
               onClick={handleSendDailyReminders}
@@ -181,11 +187,7 @@ export function TestingTools({ token }: TestingToolsProps) {
             </div>
           </div>
 
-          <button
-            className="btn"
-            onClick={handleCreateTestPost}
-            disabled={loading === 'test-post'}
-          >
+          <button className="btn" onClick={handleCreateTestPost} disabled={loading === 'test-post'}>
             {loading === 'test-post' ? 'creating...' : 'create test post'}
           </button>
         </div>
@@ -197,19 +199,15 @@ export function TestingTools({ token }: TestingToolsProps) {
           <span className="section-icon">&gt;_</span>
           results log
         </h2>
-        
+
         {results.length === 0 ? (
           <p className="empty-text">no test results yet</p>
         ) : (
           <ul className="results-log">
             {results.map((result, i) => (
               <li key={i} className={`result-item result-item--${result.type}`}>
-                <span className="result-time">
-                  [{result.timestamp.toLocaleTimeString()}]
-                </span>
-                <span className="result-indicator">
-                  {result.type === 'success' ? '✓' : '✗'}
-                </span>
+                <span className="result-time">[{result.timestamp.toLocaleTimeString()}]</span>
+                <span className="result-indicator">{result.type === 'success' ? '✓' : '✗'}</span>
                 <span className="result-message">{result.message}</span>
               </li>
             ))}
@@ -219,8 +217,3 @@ export function TestingTools({ token }: TestingToolsProps) {
     </div>
   );
 }
-
-
-
-
-

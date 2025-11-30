@@ -33,9 +33,3 @@ if (existsSync(migrationsFolder)) {
 
 // Re-export schema for convenience
 export * from './schema.js';
-
-
-
-
-
-

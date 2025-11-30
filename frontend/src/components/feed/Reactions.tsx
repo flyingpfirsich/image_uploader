@@ -11,22 +11,31 @@ interface ReactionsProps {
   onReactionChange?: () => void;
 }
 
-export function Reactions({ postId, reactions, currentUserId, token, onReactionChange }: ReactionsProps) {
+export function Reactions({
+  postId,
+  reactions,
+  currentUserId,
+  token,
+  onReactionChange,
+}: ReactionsProps) {
   const [showPicker, setShowPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Group reactions by kaomoji
-  const grouped = reactions.reduce((acc, r) => {
-    if (!acc[r.kaomoji]) {
-      acc[r.kaomoji] = { count: 0, users: [], hasOwn: false };
-    }
-    acc[r.kaomoji].count++;
-    acc[r.kaomoji].users.push(r.user.displayName);
-    if (r.userId === currentUserId) {
-      acc[r.kaomoji].hasOwn = true;
-    }
-    return acc;
-  }, {} as Record<string, { count: number; users: string[]; hasOwn: boolean }>);
+  const grouped = reactions.reduce(
+    (acc, r) => {
+      if (!acc[r.kaomoji]) {
+        acc[r.kaomoji] = { count: 0, users: [], hasOwn: false };
+      }
+      acc[r.kaomoji].count++;
+      acc[r.kaomoji].users.push(r.user.displayName);
+      if (r.userId === currentUserId) {
+        acc[r.kaomoji].hasOwn = true;
+      }
+      return acc;
+    },
+    {} as Record<string, { count: number; users: string[]; hasOwn: boolean }>
+  );
 
   const handleToggleReaction = async (kaomoji: string) => {
     setIsLoading(true);
@@ -87,8 +96,3 @@ export function Reactions({ postId, reactions, currentUserId, token, onReactionC
     </div>
   );
 }
-
-
-
-
-

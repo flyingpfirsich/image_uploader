@@ -95,8 +95,3 @@ export function Feed({ token, userId, onUserClick }: FeedProps) {
     </div>
   );
 }
-
-
-
-
-

@@ -24,20 +24,21 @@ router.get('/', authMiddleware, async (_req: Request, res: Response) => {
 router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const user = await userService.getUserProfile(req.params.id);
-    
+
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
-    
+
     const isOwnProfile = req.user!.userId === req.params.id;
     const isAdminUser = isAdmin(req.user!.username);
-    
+
     // Show all posts for own profile or admin, otherwise only today's posts
-    const posts = isOwnProfile || isAdminUser
-      ? await postService.getUserPosts(req.params.id)
-      : await postService.getUserTodaysPosts(req.params.id);
-    
+    const posts =
+      isOwnProfile || isAdminUser
+        ? await postService.getUserPosts(req.params.id)
+        : await postService.getUserTodaysPosts(req.params.id);
+
     res.json({ user, posts });
   } catch (_error) {
     res.status(500).json({ error: 'Failed to fetch profile' });
@@ -53,18 +54,18 @@ router.patch(
     try {
       const { displayName, birthday } = req.body;
       const avatarFile = req.file;
-      
+
       const user = await userService.updateProfile(req.user!.userId, {
         displayName,
         birthday,
         avatar: avatarFile?.filename,
       });
-      
+
       if (!user) {
         res.status(404).json({ error: 'User not found' });
         return;
       }
-      
+
       res.json({ user });
     } catch (_error) {
       res.status(500).json({ error: 'Failed to update profile' });
@@ -73,9 +74,3 @@ router.patch(
 );
 
 export default router;
-
-
-
-
-
-

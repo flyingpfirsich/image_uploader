@@ -25,15 +25,15 @@ Object.defineProperty(window, 'localStorage', {
 // Mock Notification API
 class MockNotification {
   static permission: NotificationPermission = 'default';
-  
+
   static requestPermission(): Promise<NotificationPermission> {
     MockNotification.permission = 'granted';
     return Promise.resolve('granted');
   }
-  
+
   title: string;
   options?: NotificationOptions;
-  
+
   constructor(title: string, options?: NotificationOptions) {
     this.title = title;
     this.options = options;
@@ -50,7 +50,7 @@ class MockPushManager {
   async getSubscription() {
     return null;
   }
-  
+
   async subscribe() {
     return {
       endpoint: 'https://push.example.com/test',
@@ -73,13 +73,14 @@ Object.defineProperty(window, 'PushManager', {
 
 // Mock ServiceWorker
 const mockServiceWorker = {
-  register: () => Promise.resolve({
-    scope: '/',
-    active: {
-      postMessage: () => {},
-    },
-    pushManager: new MockPushManager(),
-  }),
+  register: () =>
+    Promise.resolve({
+      scope: '/',
+      active: {
+        postMessage: () => {},
+      },
+      pushManager: new MockPushManager(),
+    }),
   ready: Promise.resolve({
     active: {
       postMessage: () => {},
@@ -101,4 +102,3 @@ beforeEach(() => {
   localStorageMock.clear();
   MockNotification.permission = 'default';
 });
-

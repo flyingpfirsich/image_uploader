@@ -12,7 +12,7 @@ export function InviteCodes({ token }: InviteCodesProps) {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+
   // Create new code form
   const [expiresInDays, setExpiresInDays] = useState(7);
 
@@ -41,7 +41,10 @@ export function InviteCodes({ token }: InviteCodesProps) {
       setMessage({ type: 'success', text: `Code ${result.code} created` });
       loadCodes();
     } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to create code' });
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to create code',
+      });
     } finally {
       setActionLoading(null);
     }
@@ -53,9 +56,12 @@ export function InviteCodes({ token }: InviteCodesProps) {
     try {
       await api.deleteAdminInviteCode(token, code);
       setMessage({ type: 'success', text: `Code ${code} deleted` });
-      setCodes(codes.filter(c => c.code !== code));
+      setCodes(codes.filter((c) => c.code !== code));
     } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete code' });
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to delete code',
+      });
     } finally {
       setActionLoading(null);
     }
@@ -68,9 +74,9 @@ export function InviteCodes({ token }: InviteCodesProps) {
   }
 
   // Group codes by status
-  const activeCodes = codes.filter(c => c.status === 'active');
-  const usedCodes = codes.filter(c => c.status === 'used');
-  const expiredCodes = codes.filter(c => c.status === 'expired');
+  const activeCodes = codes.filter((c) => c.status === 'active');
+  const usedCodes = codes.filter((c) => c.status === 'used');
+  const expiredCodes = codes.filter((c) => c.status === 'expired');
 
   if (loading) {
     return (
@@ -85,7 +91,9 @@ export function InviteCodes({ token }: InviteCodesProps) {
       <div className="admin-error">
         <span className="error-icon">(╯°□°)╯</span>
         <span>{error}</span>
-        <button className="btn btn--secondary" onClick={loadCodes}>retry</button>
+        <button className="btn btn--secondary" onClick={loadCodes}>
+          retry
+        </button>
       </div>
     );
   }
@@ -118,11 +126,9 @@ export function InviteCodes({ token }: InviteCodesProps) {
             </button>
           </div>
         </div>
-        
+
         {message && (
-          <p className={`invite-message invite-message--${message.type}`}>
-            {message.text}
-          </p>
+          <p className={`invite-message invite-message--${message.type}`}>{message.text}</p>
         )}
       </div>
 
@@ -136,7 +142,7 @@ export function InviteCodes({ token }: InviteCodesProps) {
           <p className="empty-text">no active codes</p>
         ) : (
           <ul className="invite-list">
-            {activeCodes.map(code => (
+            {activeCodes.map((code) => (
               <li key={code.code} className="invite-item invite-item--active">
                 <div className="invite-code-main">
                   <span className="invite-code-value">{code.code}</span>
@@ -153,9 +159,8 @@ export function InviteCodes({ token }: InviteCodesProps) {
                     by @{code.createdByUser?.username || 'unknown'}
                   </span>
                   <span className="invite-expires">
-                    expires: {code.expiresAt 
-                      ? new Date(code.expiresAt).toLocaleDateString() 
-                      : 'never'}
+                    expires:{' '}
+                    {code.expiresAt ? new Date(code.expiresAt).toLocaleDateString() : 'never'}
                   </span>
                 </div>
                 <button
@@ -182,7 +187,7 @@ export function InviteCodes({ token }: InviteCodesProps) {
           <p className="empty-text">no used codes</p>
         ) : (
           <ul className="invite-list">
-            {usedCodes.map(code => (
+            {usedCodes.map((code) => (
               <li key={code.code} className="invite-item invite-item--used">
                 <div className="invite-code-main">
                   <span className="invite-code-value invite-code-value--used">{code.code}</span>
@@ -213,7 +218,7 @@ export function InviteCodes({ token }: InviteCodesProps) {
             <span className="section-count">({expiredCodes.length})</span>
           </h2>
           <ul className="invite-list">
-            {expiredCodes.map(code => (
+            {expiredCodes.map((code) => (
               <li key={code.code} className="invite-item invite-item--expired">
                 <div className="invite-code-main">
                   <span className="invite-code-value invite-code-value--expired">{code.code}</span>
@@ -243,8 +248,3 @@ export function InviteCodes({ token }: InviteCodesProps) {
     </div>
   );
 }
-
-
-
-
-
