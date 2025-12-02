@@ -143,35 +143,6 @@ export async function getRecentMusicShares(limit: number = 20): Promise<MusicSha
 }
 
 /**
- * Get user's recent music shares (On Repeat)
- */
-export async function getUserOnRepeat(
-  userId: string,
-  limit: number = 3
-): Promise<MusicShareWithUser[]> {
-  const result = await db
-    .select({
-      share: musicShares,
-      user: {
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-        avatar: users.avatar,
-      },
-    })
-    .from(musicShares)
-    .leftJoin(users, eq(musicShares.userId, users.id))
-    .where(eq(musicShares.userId, userId))
-    .orderBy(desc(musicShares.createdAt))
-    .limit(limit);
-
-  return result.map(({ share, user }) => ({
-    ...share,
-    user: user || undefined,
-  }));
-}
-
-/**
  * Delete a music share (owner only)
  */
 export async function deleteMusicShare(id: string, userId: string): Promise<boolean> {
