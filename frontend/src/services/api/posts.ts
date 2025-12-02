@@ -1,7 +1,7 @@
 /**
  * Posts API functions
  */
-import type { Post } from '../../types';
+import type { Post, Comment } from '../../types';
 import { apiGet, apiPostForm, apiPost, apiDelete, authHeaders, jsonHeaders } from './client';
 import type { FeedResponse } from './types';
 
@@ -68,5 +68,24 @@ export async function removeReaction(
     headers: jsonHeaders(token),
     body: { kaomoji },
     errorMessage: 'Failed to remove reaction',
+  });
+}
+
+export async function addComment(token: string, postId: string, text: string): Promise<Comment> {
+  return apiPost<Comment>('/api/posts/' + postId + '/comments', {
+    headers: jsonHeaders(token),
+    body: { text },
+    errorMessage: 'Failed to add comment',
+  });
+}
+
+export async function deleteComment(
+  token: string,
+  postId: string,
+  commentId: string
+): Promise<void> {
+  return apiDelete('/api/posts/' + postId + '/comments/' + commentId, {
+    headers: authHeaders(token),
+    errorMessage: 'Failed to delete comment',
   });
 }

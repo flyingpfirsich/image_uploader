@@ -40,6 +40,20 @@ export interface Reaction {
   };
 }
 
+export interface Comment {
+  id: string;
+  postId: string;
+  userId: string;
+  text: string;
+  createdAt: Date;
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+}
+
 export interface Post {
   id: string;
   userId: string;
@@ -56,6 +70,7 @@ export interface Post {
   };
   media: Media[];
   reactions: Reaction[];
+  comments: Comment[];
   musicShare: MusicShare | null;
 }
 

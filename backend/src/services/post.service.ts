@@ -1,14 +1,16 @@
-import { eq, desc, and, gte, lt } from 'drizzle-orm';
+import { eq, desc, and, gte, lt, asc } from 'drizzle-orm';
 import {
   db,
   posts,
   media,
   reactions,
+  comments,
   users,
   musicShares,
   Post,
   Media,
   Reaction,
+  Comment,
   MusicShare,
 } from '../db/index.js';
 import { generateId } from '../utils/nanoid.js';
@@ -30,6 +32,15 @@ interface MediaInput {
   order: number;
 }
 
+export interface CommentWithUser extends Comment {
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+}
+
 export interface PostWithDetails extends Post {
   user: {
     id: string;
@@ -45,6 +56,7 @@ export interface PostWithDetails extends Post {
       displayName: string;
     };
   })[];
+  comments: CommentWithUser[];
   musicShare: MusicShare | null;
 }
 
@@ -121,6 +133,29 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
     })
   );
 
+  // Fetch comments for this post
+  const postComments = await db.query.comments.findMany({
+    where: eq(comments.postId, postId),
+    orderBy: [asc(comments.createdAt)],
+  });
+
+  const commentsWithUsers = await Promise.all(
+    postComments.map(async (c) => {
+      const commentUser = await db.query.users.findFirst({
+        where: eq(users.id, c.userId),
+      });
+      return {
+        ...c,
+        user: {
+          id: commentUser!.id,
+          username: commentUser!.username,
+          displayName: commentUser!.displayName,
+          avatar: commentUser!.avatar,
+        },
+      };
+    })
+  );
+
   // Fetch music share for this post
   const postMusicShare = await db.query.musicShares.findFirst({
     where: eq(musicShares.postId, postId),
@@ -136,6 +171,7 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
     },
     media: postMedia,
     reactions: reactionsWithUsers,
+    comments: commentsWithUsers,
     musicShare: postMusicShare || null,
   };
 }
@@ -252,5 +288,50 @@ export async function removeReaction(
       )
     );
 
+  return result.changes > 0;
+}
+
+export async function addComment(
+  postId: string,
+  userId: string,
+  text: string
+): Promise<CommentWithUser> {
+  const id = generateId();
+  await db.insert(comments).values({
+    id,
+    postId,
+    userId,
+    text,
+  });
+
+  const comment = await db.query.comments.findFirst({
+    where: eq(comments.id, id),
+  });
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  return {
+    ...comment!,
+    user: {
+      id: user!.id,
+      username: user!.username,
+      displayName: user!.displayName,
+      avatar: user!.avatar,
+    },
+  };
+}
+
+export async function deleteComment(commentId: string, userId: string): Promise<boolean> {
+  const comment = await db.query.comments.findFirst({
+    where: eq(comments.id, commentId),
+  });
+
+  if (!comment || comment.userId !== userId) {
+    return false;
+  }
+
+  const result = await db.delete(comments).where(eq(comments.id, commentId));
   return result.changes > 0;
 }

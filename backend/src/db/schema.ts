@@ -72,6 +72,21 @@ export const reactions = sqliteTable('reactions', {
     .$defaultFn(() => new Date()),
 });
 
+// Comments table
+export const comments = sqliteTable('comments', {
+  id: text('id').primaryKey(),
+  postId: text('post_id')
+    .notNull()
+    .references(() => posts.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  text: text('text').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // Push subscriptions table
 export const pushSubscriptions = sqliteTable('push_subscriptions', {
   id: text('id').primaryKey(),
@@ -145,3 +160,5 @@ export type NewNotificationPreferences = typeof notificationPreferences.$inferIn
 export type DailyNotificationTime = typeof dailyNotificationTime.$inferSelect;
 export type MusicShare = typeof musicShares.$inferSelect;
 export type NewMusicShare = typeof musicShares.$inferInsert;
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;

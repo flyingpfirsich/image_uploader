@@ -21,6 +21,7 @@
 @import './components/_feed.css';
 @import './components/_post-card.css';
 @import './components/_reactions.css';
+@import './components/_comments.css';
 @import './components/_camera.css';
 @import './components/_profile.css';
 @import './components/_notifications.css';

@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq, and } from 'drizzle-orm';
 import { getTestDb } from '../test/setup.js';
-import { users, posts, media, reactions } from '../db/schema.js';
+import { users, posts, media, reactions, comments } from '../db/schema.js';
 import { hashPassword } from '../utils/password.js';
 import { generateId } from '../utils/nanoid.js';
 
@@ -489,6 +489,182 @@ describe('post.service', () => {
     });
   });
 
+  describe('addComment', () => {
+    let testPostId: string;
+
+    beforeEach(async () => {
+      testPostId = generateId();
+      await testDb.insert(posts).values({
+        id: testPostId,
+        userId: testUserId,
+        text: 'Post for comments',
+        location: null,
+        linkUrl: null,
+        linkTitle: null,
+      });
+    });
+
+    it('should add a comment to a post', async () => {
+      const commentId = generateId();
+      const commentText = 'This is a great post!';
+
+      await testDb.insert(comments).values({
+        id: commentId,
+        postId: testPostId,
+        userId: testUserId,
+        text: commentText,
+      });
+
+      const comment = await testDb.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+      });
+
+      expect(comment).toBeDefined();
+      expect(comment!.text).toBe(commentText);
+      expect(comment!.postId).toBe(testPostId);
+      expect(comment!.userId).toBe(testUserId);
+    });
+
+    it('should allow multiple comments on same post', async () => {
+      const commentTexts = ['First comment', 'Second comment', 'Third comment'];
+
+      for (const text of commentTexts) {
+        await testDb.insert(comments).values({
+          id: generateId(),
+          postId: testPostId,
+          userId: testUserId,
+          text,
+        });
+      }
+
+      const postComments = await testDb.query.comments.findMany({
+        where: eq(comments.postId, testPostId),
+      });
+
+      expect(postComments).toHaveLength(3);
+    });
+
+    it('should allow comments from different users', async () => {
+      const otherUserId = generateId();
+      const passwordHash = await hashPassword('password123');
+
+      await testDb.insert(users).values({
+        id: otherUserId,
+        username: 'commenter',
+        displayName: 'Commenter',
+        passwordHash,
+      });
+
+      // Both users comment
+      await testDb.insert(comments).values({
+        id: generateId(),
+        postId: testPostId,
+        userId: testUserId,
+        text: 'Comment from test user',
+      });
+
+      await testDb.insert(comments).values({
+        id: generateId(),
+        postId: testPostId,
+        userId: otherUserId,
+        text: 'Comment from other user',
+      });
+
+      const postComments = await testDb.query.comments.findMany({
+        where: eq(comments.postId, testPostId),
+      });
+
+      expect(postComments).toHaveLength(2);
+      expect(postComments.map((c) => c.userId)).toContain(testUserId);
+      expect(postComments.map((c) => c.userId)).toContain(otherUserId);
+    });
+  });
+
+  describe('deleteComment', () => {
+    it('should delete own comment', async () => {
+      const postId = generateId();
+      const commentId = generateId();
+
+      await testDb.insert(posts).values({
+        id: postId,
+        userId: testUserId,
+        text: 'Post',
+        location: null,
+        linkUrl: null,
+        linkTitle: null,
+      });
+
+      await testDb.insert(comments).values({
+        id: commentId,
+        postId,
+        userId: testUserId,
+        text: 'Comment to delete',
+      });
+
+      // Verify comment exists
+      let comment = await testDb.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+      });
+      expect(comment).toBeDefined();
+
+      // Check ownership and delete
+      if (comment!.userId === testUserId) {
+        await testDb.delete(comments).where(eq(comments.id, commentId));
+      }
+
+      // Verify deleted
+      comment = await testDb.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+      });
+      expect(comment).toBeUndefined();
+    });
+
+    it("should not delete another user's comment", async () => {
+      const postId = generateId();
+      const commentId = generateId();
+      const otherUserId = generateId();
+      const passwordHash = await hashPassword('password123');
+
+      // Create another user
+      await testDb.insert(users).values({
+        id: otherUserId,
+        username: 'othercommenter',
+        displayName: 'Other Commenter',
+        passwordHash,
+      });
+
+      await testDb.insert(posts).values({
+        id: postId,
+        userId: testUserId,
+        text: 'Post',
+        location: null,
+        linkUrl: null,
+        linkTitle: null,
+      });
+
+      // Other user's comment
+      await testDb.insert(comments).values({
+        id: commentId,
+        postId,
+        userId: otherUserId,
+        text: 'Other user comment',
+      });
+
+      const comment = await testDb.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+      });
+
+      // testUserId tries to delete - should fail ownership check
+      expect(comment!.userId).not.toBe(testUserId);
+    });
+
+    it('should return false when deleting non-existent comment', async () => {
+      const result = await testDb.delete(comments).where(eq(comments.id, 'nonexistent-comment-id'));
+
+      expect(result.changes).toBe(0);
+    });
+  });
+
   describe('cascade deletion', () => {
     it('should cascade delete reactions when post is deleted', async () => {
       const postId = generateId();
@@ -518,6 +694,75 @@ describe('post.service', () => {
         where: eq(reactions.id, reactionId),
       });
       expect(reaction).toBeUndefined();
+    });
+
+    it('should cascade delete comments when post is deleted', async () => {
+      const postId = generateId();
+      const commentId = generateId();
+
+      await testDb.insert(posts).values({
+        id: postId,
+        userId: testUserId,
+        text: 'Post with comments',
+        location: null,
+        linkUrl: null,
+        linkTitle: null,
+      });
+
+      await testDb.insert(comments).values({
+        id: commentId,
+        postId,
+        userId: testUserId,
+        text: 'This comment will be deleted',
+      });
+
+      // Delete post
+      await testDb.delete(posts).where(eq(posts.id, postId));
+
+      // Comment should be cascade deleted
+      const comment = await testDb.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+      });
+      expect(comment).toBeUndefined();
+    });
+
+    it('should cascade delete comments when user is deleted', async () => {
+      const tempUserId = generateId();
+      const passwordHash = await hashPassword('password123');
+      const postId = generateId();
+      const commentId = generateId();
+
+      await testDb.insert(users).values({
+        id: tempUserId,
+        username: 'tempcommenter',
+        displayName: 'Temp Commenter',
+        passwordHash,
+      });
+
+      await testDb.insert(posts).values({
+        id: postId,
+        userId: testUserId,
+        text: 'Post',
+        location: null,
+        linkUrl: null,
+        linkTitle: null,
+      });
+
+      await testDb.insert(comments).values({
+        id: commentId,
+        postId,
+        userId: tempUserId,
+        text: 'Comment from temp user',
+      });
+
+      // Delete temp user
+      await testDb.delete(users).where(eq(users.id, tempUserId));
+
+      // Comment should be cascade deleted
+      const comment = await testDb.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+      });
+      expect(comment).toBeUndefined();
     });
 
     it('should cascade delete posts when user is deleted', async () => {

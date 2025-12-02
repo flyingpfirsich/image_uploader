@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Post } from '../../types';
 import { Reactions } from './Reactions';
+import { Comments } from './Comments';
 import { MusicShare } from '../music';
 import { formatDistanceToNow } from '../../utils/date';
 import { getKaomojiForUser } from '../../utils/kaomoji';
@@ -135,32 +136,43 @@ export function PostCard({
       )}
 
       <footer className="post-footer">
-        <Reactions
+        <div className="post-footer-row">
+          <Reactions
+            postId={post.id}
+            reactions={post.reactions}
+            currentUserId={currentUserId}
+            token={token}
+            onReactionChange={onReactionChange}
+          />
+
+          {isOwner && (
+            <div className="post-actions">
+              {showDeleteConfirm ? (
+                <>
+                  <button className="btn--text btn--danger" onClick={handleDelete}>
+                    Confirm
+                  </button>
+                  <button className="btn--text" onClick={() => setShowDeleteConfirm(false)}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button className="btn--text btn--danger" onClick={handleDelete}>
+                  Delete
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <Comments
           postId={post.id}
-          reactions={post.reactions}
+          comments={post.comments}
           currentUserId={currentUserId}
           token={token}
-          onReactionChange={onReactionChange}
+          onCommentChange={onReactionChange}
+          onUserClick={onUserClick}
         />
-
-        {isOwner && (
-          <div className="post-actions">
-            {showDeleteConfirm ? (
-              <>
-                <button className="btn--text btn--danger" onClick={handleDelete}>
-                  Confirm
-                </button>
-                <button className="btn--text" onClick={() => setShowDeleteConfirm(false)}>
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button className="btn--text btn--danger" onClick={handleDelete}>
-                Delete
-              </button>
-            )}
-          </div>
-        )}
       </footer>
     </article>
   );

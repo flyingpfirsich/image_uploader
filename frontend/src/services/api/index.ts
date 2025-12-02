@@ -11,7 +11,15 @@
 export { register, login, getMe, createInvite } from './auth';
 
 // Posts
-export { getFeed, createPost, deletePost, addReaction, removeReaction } from './posts';
+export {
+  getFeed,
+  createPost,
+  deletePost,
+  addReaction,
+  removeReaction,
+  addComment,
+  deleteComment,
+} from './posts';
 
 // Users
 export { getUsers, getUserProfile, updateProfile } from './users';
