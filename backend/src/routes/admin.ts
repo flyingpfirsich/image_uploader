@@ -533,4 +533,226 @@ router.get('/system', async (_req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// BULK TESTING ENDPOINTS
+// ============================================
+
+const TEST_POST_PREFIX = '[Test]';
+const TEST_USER_PREFIX = 'testuser';
+
+const TEST_TEXTS = [
+  `${TEST_POST_PREFIX} Just vibing today (◕‿◕)`,
+  `${TEST_POST_PREFIX} Coffee time! ☕`,
+  `${TEST_POST_PREFIX} Working on something cool`,
+  `${TEST_POST_PREFIX} Beautiful day outside`,
+  `${TEST_POST_PREFIX} Late night coding session`,
+  `${TEST_POST_PREFIX} Found this amazing spot`,
+  `${TEST_POST_PREFIX} Food looks incredible`,
+  `${TEST_POST_PREFIX} Just chilling`,
+  `${TEST_POST_PREFIX} Weekend mode activated`,
+  `${TEST_POST_PREFIX} Monday motivation`,
+];
+
+const TEST_LOCATIONS = [
+  'Tokyo, Japan',
+  'New York, USA',
+  'Paris, France',
+  'Berlin, Germany',
+  'Sydney, Australia',
+  'London, UK',
+  null,
+  null,
+];
+
+const KAOMOJI_OPTIONS = [
+  '(◕‿◕)',
+  '(╯°□°)╯',
+  '(ಥ﹏ಥ)',
+  '(づ｡◕‿‿◕｡)づ',
+  '(⌐■_■)',
+  '(◠‿◠)',
+  'ヽ(>∀<☆)☆',
+  '(¬‿¬)',
+];
+
+// POST /api/admin/test-bulk-posts - Create multiple test posts
+router.post('/test-bulk-posts', async (req: Request, res: Response) => {
+  try {
+    const { count: postCount = 5 } = req.body;
+    const numPosts = Math.min(Math.max(1, postCount), 20); // 1-20 posts
+
+    const createdPosts = [];
+
+    for (let i = 0; i < numPosts; i++) {
+      const postId = generateId();
+      const text = TEST_TEXTS[Math.floor(Math.random() * TEST_TEXTS.length)];
+      const location = TEST_LOCATIONS[Math.floor(Math.random() * TEST_LOCATIONS.length)];
+
+      await db.insert(posts).values({
+        id: postId,
+        userId: req.user!.userId,
+        text,
+        location,
+        linkUrl: null,
+        linkTitle: null,
+      });
+
+      createdPosts.push(postId);
+    }
+
+    res.json({
+      success: true,
+      created: createdPosts.length,
+      postIds: createdPosts,
+      message: `Created ${createdPosts.length} test posts`,
+    });
+  } catch (error) {
+    console.error('Bulk posts error:', error);
+    res.status(500).json({ error: 'Failed to create bulk posts' });
+  }
+});
+
+// POST /api/admin/test-reactions - Add random reactions to recent posts
+router.post('/test-reactions', async (req: Request, res: Response) => {
+  try {
+    const { count: reactionCount = 10 } = req.body;
+    const numReactions = Math.min(Math.max(1, reactionCount), 50); // 1-50 reactions
+
+    // Get recent posts
+    const recentPosts = await db.query.posts.findMany({
+      orderBy: [desc(posts.createdAt)],
+      limit: 20,
+    });
+
+    if (recentPosts.length === 0) {
+      res.status(400).json({ error: 'No posts found to add reactions to' });
+      return;
+    }
+
+    // Get all users for variety
+    const allUsers = await db.query.users.findMany();
+
+    let created = 0;
+    for (let i = 0; i < numReactions; i++) {
+      const post = recentPosts[Math.floor(Math.random() * recentPosts.length)];
+      const user = allUsers[Math.floor(Math.random() * allUsers.length)];
+      const kaomoji = KAOMOJI_OPTIONS[Math.floor(Math.random() * KAOMOJI_OPTIONS.length)];
+
+      // Check if reaction already exists
+      const existing = await db.query.reactions.findFirst({
+        where: (r, { and, eq }) =>
+          and(eq(r.postId, post.id), eq(r.userId, user.id), eq(r.kaomoji, kaomoji)),
+      });
+
+      if (!existing) {
+        await db.insert(reactions).values({
+          id: generateId(),
+          postId: post.id,
+          userId: user.id,
+          kaomoji,
+        });
+        created++;
+      }
+    }
+
+    res.json({
+      success: true,
+      created,
+      message: `Added ${created} reactions to recent posts`,
+    });
+  } catch (error) {
+    console.error('Test reactions error:', error);
+    res.status(500).json({ error: 'Failed to create test reactions' });
+  }
+});
+
+// POST /api/admin/test-users - Create test users
+router.post('/test-users', async (req: Request, res: Response) => {
+  try {
+    const { count: userCount = 3, password = 'test123' } = req.body;
+    const numUsers = Math.min(Math.max(1, userCount), 10); // 1-10 users
+
+    const passwordHash = await hashPassword(password);
+    const createdUsers = [];
+
+    for (let i = 0; i < numUsers; i++) {
+      const timestamp = Date.now();
+      const username = `${TEST_USER_PREFIX}${timestamp}${i}`;
+      const userId = generateId();
+
+      // Check if username exists
+      const existing = await db.query.users.findFirst({
+        where: eq(users.username, username),
+      });
+
+      if (!existing) {
+        await db.insert(users).values({
+          id: userId,
+          username,
+          displayName: `Test User ${i + 1}`,
+          passwordHash,
+          birthday: null,
+        });
+
+        createdUsers.push({ id: userId, username });
+      }
+    }
+
+    res.json({
+      success: true,
+      created: createdUsers.length,
+      users: createdUsers,
+      password: password,
+      message: `Created ${createdUsers.length} test users (password: ${password})`,
+    });
+  } catch (error) {
+    console.error('Test users error:', error);
+    res.status(500).json({ error: 'Failed to create test users' });
+  }
+});
+
+// DELETE /api/admin/test-data - Delete all test data
+router.delete('/test-data', async (req: Request, res: Response) => {
+  try {
+    const { includeUsers = false } = req.body;
+
+    // Delete test posts (those starting with [Test])
+    const testPosts = await db.query.posts.findMany({
+      where: (p, { like }) => like(p.text, `${TEST_POST_PREFIX}%`),
+    });
+
+    let deletedPosts = 0;
+    for (const post of testPosts) {
+      await db.delete(posts).where(eq(posts.id, post.id));
+      deletedPosts++;
+    }
+
+    let deletedUsers = 0;
+    if (includeUsers) {
+      // Delete test users (those starting with testuser)
+      const testUsers = await db.query.users.findMany({
+        where: (u, { like }) => like(u.username, `${TEST_USER_PREFIX}%`),
+      });
+
+      for (const user of testUsers) {
+        // Don't delete admin
+        if (user.username === config.adminUsername) continue;
+
+        await db.delete(users).where(eq(users.id, user.id));
+        deletedUsers++;
+      }
+    }
+
+    res.json({
+      success: true,
+      deletedPosts,
+      deletedUsers,
+      message: `Cleaned up ${deletedPosts} test posts${includeUsers ? ` and ${deletedUsers} test users` : ''}`,
+    });
+  } catch (error) {
+    console.error('Delete test data error:', error);
+    res.status(500).json({ error: 'Failed to delete test data' });
+  }
+});
+
 export default router;

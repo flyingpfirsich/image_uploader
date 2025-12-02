@@ -22,7 +22,7 @@ if (existsSync(migrationsFolder)) {
     console.log('[DB] Running migrations...');
     migrate(db, { migrationsFolder });
     console.log('[DB] Migrations complete');
-  } catch (err) {
+  } catch (_err) {
     // If migration fails due to existing tables, it's okay - schema is already up to date
     // This can happen when using drizzle-kit push alongside migrations
     console.log('[DB] Migration skipped (schema already up to date)');

@@ -44,6 +44,10 @@ export {
   sendTestNotification,
   sendDailyReminders,
   createTestPost,
+  createBulkTestPosts,
+  createTestReactions,
+  createTestUsers,
+  deleteTestData,
   getSystemInfo,
 } from './admin';
 

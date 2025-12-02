@@ -137,6 +137,64 @@ export async function createTestPost(
   });
 }
 
+// Bulk Testing
+export async function createBulkTestPosts(
+  token: string,
+  count: number
+): Promise<{ success: boolean; created: number; message: string }> {
+  return apiPost<{ success: boolean; created: number; message: string }>(
+    '/api/admin/test-bulk-posts',
+    {
+      headers: jsonHeaders(token),
+      body: { count },
+      errorMessage: 'Failed to create bulk posts',
+    }
+  );
+}
+
+export async function createTestReactions(
+  token: string,
+  count: number
+): Promise<{ success: boolean; created: number; message: string }> {
+  return apiPost<{ success: boolean; created: number; message: string }>(
+    '/api/admin/test-reactions',
+    {
+      headers: jsonHeaders(token),
+      body: { count },
+      errorMessage: 'Failed to create test reactions',
+    }
+  );
+}
+
+export async function createTestUsers(
+  token: string,
+  count: number,
+  password?: string
+): Promise<{
+  success: boolean;
+  created: number;
+  users: { id: string; username: string }[];
+  password: string;
+  message: string;
+}> {
+  return apiPost('/api/admin/test-users', {
+    headers: jsonHeaders(token),
+    body: { count, password },
+    errorMessage: 'Failed to create test users',
+  });
+}
+
+export async function deleteTestData(
+  token: string,
+  includeUsers: boolean
+): Promise<{ success: boolean; deletedPosts: number; deletedUsers: number; message: string }> {
+  return apiDelete('/api/admin/test-data', {
+    headers: jsonHeaders(token),
+    body: { includeUsers },
+    errorMessage: 'Failed to delete test data',
+  });
+}
+
 // System
 export async function getSystemInfo(token: string): Promise<SystemInfo> {
   return apiGet<SystemInfo>('/api/admin/system', {
