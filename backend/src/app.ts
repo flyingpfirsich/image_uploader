@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { join } from 'path';
-import { config } from './config.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -11,6 +10,7 @@ import usersRoutes from './routes/users.js';
 import notificationsRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
 import musicRoutes from './routes/music.js';
+import uploadsRoutes from './routes/uploads.js';
 
 // Services
 import { initializeWebPush, initializeScheduler } from './services/notification.service.js';
@@ -25,8 +25,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded files
-app.use('/uploads', express.static(config.uploadsDir));
+// Protected uploads routes (requires authentication)
+app.use('/uploads', uploadsRoutes);
 
 // API Routes
 app.use('/api/auth', authRoutes);

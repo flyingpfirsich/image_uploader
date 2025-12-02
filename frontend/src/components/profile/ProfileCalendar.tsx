@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { User, Post } from '../../types';
-import { getMediaUrl } from '../../services/api';
 import { MusicShare } from '../music';
+import { AuthenticatedMedia } from '../common/AuthenticatedMedia';
 import './ProfileCalendar.css';
 
 // ============================================
@@ -13,6 +13,7 @@ const USE_MOCK_DATA = true; // Set to false to use real data in dev
 interface ProfileCalendarProps {
   posts: Post[];
   friends: User[];
+  token: string;
 }
 
 interface DayData {
@@ -184,7 +185,11 @@ function formatMonthDay(dateStr: string): string {
   return dateStr.slice(5);
 }
 
-export function ProfileCalendar({ posts: realPosts, friends: realFriends }: ProfileCalendarProps) {
+export function ProfileCalendar({
+  posts: realPosts,
+  friends: realFriends,
+  token,
+}: ProfileCalendarProps) {
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
   const [useMockData, setUseMockData] = useState(USE_MOCK_DATA);
@@ -424,7 +429,9 @@ export function ProfileCalendar({ posts: realPosts, friends: realFriends }: Prof
       {friends.some((f) => f.birthday) && <UpcomingBirthdays friends={friends} />}
 
       {/* Day Detail Modal */}
-      {selectedDay && <DayDetailModal day={selectedDay} onClose={() => setSelectedDay(null)} />}
+      {selectedDay && (
+        <DayDetailModal day={selectedDay} token={token} onClose={() => setSelectedDay(null)} />
+      )}
 
       {/* Debug Panel - only visible in dev mode */}
       {DEBUG_MODE && (
@@ -521,10 +528,11 @@ function generateMonthDays(
 // Day detail modal component
 interface DayDetailModalProps {
   day: DayData;
+  token: string;
   onClose: () => void;
 }
 
-function DayDetailModal({ day, onClose }: DayDetailModalProps) {
+function DayDetailModal({ day, token, onClose }: DayDetailModalProps) {
   const formatDateTitle = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -551,24 +559,15 @@ function DayDetailModal({ day, onClose }: DayDetailModalProps) {
               <div key={post.id} className="day-modal-post">
                 {post.media && post.media.length > 0 && (
                   <div className="day-modal-media-grid">
-                    {post.media.map((media) => {
-                      const isVideo = media.mimeType.startsWith('video/');
-                      return isVideo ? (
-                        <video
-                          key={media.id}
-                          src={getMediaUrl(media.filename)}
-                          controls
-                          className="day-modal-media"
-                        />
-                      ) : (
-                        <img
-                          key={media.id}
-                          src={getMediaUrl(media.filename)}
-                          alt=""
-                          className="day-modal-media"
-                        />
-                      );
-                    })}
+                    {post.media.map((media) => (
+                      <AuthenticatedMedia
+                        key={media.id}
+                        filename={media.filename}
+                        mimeType={media.mimeType}
+                        token={token}
+                        className="day-modal-media"
+                      />
+                    ))}
                   </div>
                 )}
                 {post.musicShare && (

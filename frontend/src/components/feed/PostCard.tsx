@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { Post } from '../../types';
-import { getMediaUrl, getAvatarUrl } from '../../services/api';
 import { Reactions } from './Reactions';
 import { MusicShare } from '../music';
 import { formatDistanceToNow } from '../../utils/date';
 import { getKaomojiForUser } from '../../utils/kaomoji';
+import { useAuthenticatedMedia, useAuthenticatedAvatar } from '../../hooks/useAuthenticatedMedia';
 
 interface PostCardProps {
   post: Post;
@@ -26,7 +26,17 @@ export function PostCard({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const isOwner = post.userId === currentUserId;
-  const avatarUrl = getAvatarUrl(post.user.avatar);
+
+  // Load avatar using authenticated blob URL
+  const avatarUrl = useAuthenticatedAvatar(post.user.avatar, token);
+
+  // Load current media using authenticated blob URL
+  const currentMedia = post.media[currentMediaIndex];
+  const { url: mediaUrl, isLoading: mediaLoading } = useAuthenticatedMedia(
+    currentMedia?.filename ?? null,
+    token,
+    'media'
+  );
 
   const handleDelete = () => {
     if (showDeleteConfirm) {
@@ -98,21 +108,15 @@ export function PostCard({
               </button>
             </div>
           )}
-          {post.media[currentMediaIndex].mimeType.startsWith('video/') ? (
-            <video
-              src={getMediaUrl(post.media[currentMediaIndex].filename)}
-              className="post-media-content"
-              controls
-              loop
-              playsInline
-            />
-          ) : (
-            <img
-              src={getMediaUrl(post.media[currentMediaIndex].filename)}
-              alt=""
-              className="post-media-content"
-            />
-          )}
+          {mediaLoading ? (
+            <div className="post-media-loading">Loading...</div>
+          ) : mediaUrl ? (
+            currentMedia.mimeType.startsWith('video/') ? (
+              <video src={mediaUrl} className="post-media-content" controls loop playsInline />
+            ) : (
+              <img src={mediaUrl} alt="" className="post-media-content" />
+            )
+          ) : null}
         </div>
       )}
 

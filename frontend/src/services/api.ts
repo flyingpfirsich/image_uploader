@@ -249,14 +249,33 @@ export async function updateProfile(
   return res.json();
 }
 
-// Media URL helper
-export function getMediaUrl(filename: string): string {
-  return `${API_URL}/uploads/media/${filename}`;
+// Media URL helpers - fetch with auth headers and return blob URLs
+// This approach keeps tokens secure (not in URLs, logs, or browser history)
+
+export async function fetchMediaBlob(filename: string, token: string): Promise<string> {
+  const response = await fetch(`${API_URL}/uploads/media/${filename}`, {
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to load media');
+  }
+
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
 
-export function getAvatarUrl(filename: string | null): string | null {
-  if (!filename) return null;
-  return `${API_URL}/uploads/avatars/${filename}`;
+export async function fetchAvatarBlob(filename: string, token: string): Promise<string> {
+  const response = await fetch(`${API_URL}/uploads/avatars/${filename}`, {
+    headers: authHeaders(token),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to load avatar');
+  }
+
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
 
 // Notification types

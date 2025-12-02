@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import type { User } from '../../types';
 import * as api from '../../services/api';
-import { getAvatarUrl } from '../../services/api';
+import { useAuthenticatedAvatar } from '../../hooks/useAuthenticatedMedia';
 
 interface EditProfileProps {
   user: User;
@@ -19,9 +19,16 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Load existing avatar using authenticated blob URL
+  const existingAvatarUrl = useAuthenticatedAvatar(user.avatar, token);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Revoke previous preview URL if any
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
@@ -54,7 +61,8 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
     }
   };
 
-  const currentAvatar = avatarPreview || getAvatarUrl(user.avatar);
+  // Use local preview if user selected a new file, otherwise use the authenticated existing avatar
+  const currentAvatar = avatarPreview || existingAvatarUrl;
 
   return (
     <div className="edit-profile-overlay" onClick={onClose}>
