@@ -19,13 +19,20 @@ export const db = drizzle(sqlite, { schema });
 const migrationsFolder = join(dirname(new URL(import.meta.url).pathname), '..', '..', 'drizzle');
 if (existsSync(migrationsFolder)) {
   try {
-    console.log('[DB] Running migrations...');
+    console.log('[DB] Running migrations from:', migrationsFolder);
     migrate(db, { migrationsFolder });
     console.log('[DB] Migrations complete');
-  } catch (_err) {
-    // If migration fails due to existing tables, it's okay - schema is already up to date
-    // This can happen when using drizzle-kit push alongside migrations
-    console.log('[DB] Migration skipped (schema already up to date)');
+  } catch (err) {
+    const error = err as Error;
+    // Only skip for "table already exists" errors
+    if (error.message?.includes('already exists')) {
+      console.log('[DB] Migration skipped (tables already exist)');
+    } else {
+      // Log the actual error for debugging
+      console.error('[DB] Migration failed:', error.message);
+      console.error('[DB] Full error:', error);
+      throw err; // Re-throw to fail fast on real errors
+    }
   }
 } else {
   console.log('[DB] No migrations folder found at:', migrationsFolder);
