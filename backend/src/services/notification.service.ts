@@ -311,20 +311,48 @@ export async function notifyFriendPosted(
   return sent;
 }
 
+// Helper to safely query dailyNotificationTime (handles missing table)
+async function safeGetTodayNotificationTime(): Promise<Date | null> {
+  try {
+    return await getTodayNotificationTime();
+  } catch (error) {
+    const err = error as Error;
+    if (err.message?.includes('no such table')) {
+      console.warn('[Notifications] daily_notification_time table missing - skipping scheduler');
+      return null;
+    }
+    throw error;
+  }
+}
+
+// Helper to safely schedule next notification (handles missing table)
+async function safeScheduleNextDayNotification(): Promise<void> {
+  try {
+    await scheduleNextDayNotification();
+  } catch (error) {
+    const err = error as Error;
+    if (err.message?.includes('no such table')) {
+      console.warn('[Notifications] daily_notification_time table missing - cannot schedule');
+      return;
+    }
+    throw error;
+  }
+}
+
 // Initialize daily notification scheduler
 export function initializeScheduler(): void {
   // At midnight, generate tomorrow's notification time
   cron.schedule('0 0 * * *', async () => {
     console.log("[Notifications] Midnight: scheduling tomorrow's notification");
-    await scheduleNextDayNotification();
+    await safeScheduleNextDayNotification();
   });
 
   // Check every minute if it's time to send daily notifications
   cron.schedule('* * * * *', async () => {
-    const scheduledTime = await getTodayNotificationTime();
+    const scheduledTime = await safeGetTodayNotificationTime();
     if (!scheduledTime) {
       // No time scheduled yet for today, generate one
-      await scheduleNextDayNotification();
+      await safeScheduleNextDayNotification();
       return;
     }
 
@@ -334,17 +362,24 @@ export function initializeScheduler(): void {
     // If within 30 seconds of scheduled time, send notifications
     if (diff < 30000 && now >= scheduledTime) {
       // Check if we already sent today by comparing with generatedAt
-      const record = await db.query.dailyNotificationTime.findFirst();
-      if (record) {
-        const lastSent = new Date(record.generatedAt);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+      try {
+        const record = await db.query.dailyNotificationTime.findFirst();
+        if (record) {
+          const lastSent = new Date(record.generatedAt);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
 
-        // Only send if we haven't already today
-        if (lastSent.toDateString() === now.toDateString()) {
-          await sendDailyReminders();
-          // Schedule next day immediately after sending
-          await scheduleNextDayNotification();
+          // Only send if we haven't already today
+          if (lastSent.toDateString() === now.toDateString()) {
+            await sendDailyReminders();
+            // Schedule next day immediately after sending
+            await safeScheduleNextDayNotification();
+          }
+        }
+      } catch (error) {
+        const err = error as Error;
+        if (!err.message?.includes('no such table')) {
+          throw error;
         }
       }
     }
@@ -353,9 +388,9 @@ export function initializeScheduler(): void {
   console.log('[Notifications] Scheduler initialized');
 
   // On startup, ensure we have a scheduled time
-  getTodayNotificationTime().then(async (time) => {
+  safeGetTodayNotificationTime().then(async (time) => {
     if (!time) {
-      await scheduleNextDayNotification();
+      await safeScheduleNextDayNotification();
     } else {
       console.log(`[Notifications] Today's notification scheduled for: ${time.toLocaleString()}`);
     }
