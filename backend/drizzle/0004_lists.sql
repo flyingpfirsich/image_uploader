@@ -1,4 +1,3 @@
--- Lists table
 CREATE TABLE `lists` (
   `id` text PRIMARY KEY NOT NULL,
   `creator_id` text NOT NULL,
@@ -8,8 +7,7 @@ CREATE TABLE `lists` (
   `created_at` integer NOT NULL,
   FOREIGN KEY (`creator_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
-
--- List items table
+--> statement-breakpoint
 CREATE TABLE `list_items` (
   `id` text PRIMARY KEY NOT NULL,
   `list_id` text NOT NULL,
@@ -23,7 +21,7 @@ CREATE TABLE `list_items` (
   FOREIGN KEY (`list_id`) REFERENCES `lists`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`added_by_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
-
--- Indexes for performance
+--> statement-breakpoint
 CREATE INDEX `lists_creator_idx` ON `lists` (`creator_id`);
+--> statement-breakpoint
 CREATE INDEX `list_items_list_idx` ON `list_items` (`list_id`);
