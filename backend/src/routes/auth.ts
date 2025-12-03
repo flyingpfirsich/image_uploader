@@ -90,4 +90,32 @@ router.post('/invite', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/refresh - Refresh access token using refresh token
+router.post('/refresh', async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ error: 'Refresh token required' });
+      return;
+    }
+
+    const result = await authService.refreshAccessToken(refreshToken);
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Token refresh failed';
+    res.status(401).json({ error: message });
+  }
+});
+
+// POST /api/auth/logout - Revoke all refresh tokens for user (logout everywhere)
+router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    await authService.revokeAllUserTokens(req.user!.userId);
+    res.json({ success: true });
+  } catch (_error) {
+    res.status(500).json({ error: 'Failed to logout' });
+  }
+});
+
 export default router;

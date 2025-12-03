@@ -1,5 +1,6 @@
 /* ===========================================
    Comments Styles
+   Mobile-First Touch-Friendly
    =========================================== */
 
 .comments {
@@ -18,19 +19,24 @@
 .comment {
   display: flex;
   gap: var(--space-sm);
+  align-items: flex-start;
 }
 
+/* Touch-friendly avatar button */
 .comment-user {
   flex-shrink: 0;
   background: none;
   border: none;
-  padding: 0;
+  padding: var(--space-xs);
   cursor: pointer;
+  /* Ensure touch target */
+  min-width: var(--avatar-sm);
+  min-height: var(--avatar-sm);
 }
 
 .comment-avatar {
-  width: 28px;
-  height: 28px;
+  width: var(--avatar-sm);
+  height: var(--avatar-sm);
   border-radius: var(--border-radius-full);
   object-fit: cover;
 }
@@ -56,18 +62,22 @@
   margin-bottom: var(--space-xs);
 }
 
+/* Touch-friendly author button */
 .comment-author {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--fg);
   background: none;
   border: none;
-  padding: 0;
+  padding: var(--space-xs) 0;
   cursor: pointer;
   font-family: inherit;
+  min-height: var(--touch-target-min);
+  display: flex;
+  align-items: center;
 }
 
-.comment-author:hover {
+.comment-author:active {
   text-decoration: underline;
 }
 
@@ -76,48 +86,52 @@
   color: var(--fg-dim);
 }
 
+/* Always visible delete button on mobile (no hover) */
 .comment-delete {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background: none;
   border: none;
   color: var(--fg-dim);
   cursor: pointer;
   font-size: var(--font-size-md);
-  padding: 0 var(--space-xs);
-  line-height: 1;
-  opacity: 0;
-  transition:
-    opacity var(--transition-fast),
-    color var(--transition-fast);
+  padding: var(--space-sm);
+  /* Always visible on mobile */
+  opacity: 0.6;
 }
 
-.comment:hover .comment-delete {
+.comment-delete:active {
+  color: var(--error);
   opacity: 1;
 }
 
-.comment-delete:hover {
-  color: var(--error);
-}
-
 .comment-text {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--fg);
   margin: 0;
   word-break: break-word;
+  line-height: 1.5;
 }
 
+/* Touch-friendly toggle button */
 .comment-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target-min);
   background: none;
   border: none;
   color: var(--fg-dim);
   cursor: pointer;
   font-family: inherit;
   font-size: var(--font-size-sm);
-  padding: 0;
-  transition: color var(--transition-fast);
+  padding: var(--space-sm) 0;
 }
 
-.comment-toggle:hover {
+.comment-toggle:active {
   color: var(--fg);
 }
 
@@ -127,15 +141,18 @@
   gap: var(--space-sm);
 }
 
+/* Touch-friendly comment input */
 .comment-input {
   width: 100%;
-  padding: var(--space-sm);
+  min-height: var(--touch-target-comfortable);
+  padding: var(--space-md);
   background: transparent;
   border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
   color: var(--fg);
   font-family: inherit;
-  font-size: var(--font-size-sm);
-  transition: border-color var(--transition-fast);
+  /* 16px prevents iOS zoom */
+  font-size: var(--font-size-base);
 }
 
 .comment-input:focus {

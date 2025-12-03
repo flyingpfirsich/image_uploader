@@ -5,12 +5,12 @@
 
 import { beforeEach, afterEach, vi } from 'vitest';
 import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import * as schema from '../db/schema.js';
 
 // Create in-memory database for tests
 let testSqlite: Database.Database;
-let testDb: ReturnType<typeof drizzle>;
+let testDb: BetterSQLite3Database<typeof schema>;
 
 export function getTestDb() {
   return testDb;
@@ -121,6 +121,14 @@ beforeEach(() => {
       mood_kaomoji TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
     );
+
+    CREATE TABLE refresh_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    );
   `);
 
   // Create drizzle instance
@@ -140,7 +148,8 @@ vi.mock('../config.js', () => ({
   config: {
     port: 3000,
     jwtSecret: 'test-secret',
-    jwtExpiresIn: '1h',
+    jwtAccessExpiresIn: '15m',
+    jwtRefreshExpiresIn: '7d',
     dbPath: ':memory:',
     uploadsDir: '/tmp/test-uploads',
     maxFileSize: 10 * 1024 * 1024,

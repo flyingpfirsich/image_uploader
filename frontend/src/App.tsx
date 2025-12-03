@@ -6,9 +6,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Components
 import { Header } from './components/layout/Header';
-import { Footer } from './components/layout/Footer';
+import { BottomNav } from './components/layout/BottomNav';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { Feed } from './components/feed/Feed';
+import { CreatePost } from './components/feed/CreatePost';
 import { Profile } from './components/profile/Profile';
 import { AdminPanel } from './components/admin/AdminPanel';
 
@@ -20,6 +21,8 @@ function AppContent() {
   const { user, token, isLoading, isAuthenticated, logout, updateUser } = useAuth();
   const [activeNav, setActiveNav] = useState<NavMode>('feed');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [feedKey, setFeedKey] = useState(0);
 
   // Loading state
   if (isLoading) {
@@ -52,16 +55,26 @@ function AppContent() {
     setActiveNav(nav);
   };
 
+  // Handle create post
+  const handleCreatePost = () => {
+    setShowCreatePost(true);
+  };
+
+  const handlePostCreated = () => {
+    setFeedKey((k) => k + 1); // Force feed refresh
+    setActiveNav('feed');
+  };
+
   const profileUserId = selectedUserId || user.id;
   const isAdmin = user.username === ADMIN_USERNAME;
 
   return (
     <div className="container">
-      <Header activeNav={activeNav} onNavChange={handleNavChange} isAdmin={isAdmin} />
+      <Header token={token} onNavChange={handleNavChange} onLogout={logout} />
 
       <main className="main">
         {activeNav === 'feed' && (
-          <Feed token={token} userId={user.id} onUserClick={handleSelectUser} />
+          <Feed key={feedKey} token={token} userId={user.id} onUserClick={handleSelectUser} />
         )}
         {activeNav === 'profile' && (
           <Profile
@@ -75,7 +88,20 @@ function AppContent() {
         {activeNav === 'admin' && isAdmin && <AdminPanel token={token} />}
       </main>
 
-      <Footer onLogout={logout} />
+      <BottomNav
+        activeNav={activeNav}
+        onNavChange={handleNavChange}
+        onCreatePost={handleCreatePost}
+        isAdmin={isAdmin}
+      />
+
+      {showCreatePost && (
+        <CreatePost
+          token={token}
+          onPostCreated={handlePostCreated}
+          onClose={() => setShowCreatePost(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,91 @@
+/* ===========================================
+   Bottom Navigation
+   Mobile-First Sticky Navigation
+   =========================================== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-height);
+  padding-bottom: var(--safe-area-bottom);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  z-index: 90;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--touch-target-comfortable);
+  padding: var(--space-sm);
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.bottom-nav-item:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bottom-nav-item.active {
+  color: var(--accent);
+}
+
+.bottom-nav-item--admin.active {
+  color: var(--admin-accent);
+}
+
+.bottom-nav-icon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+.bottom-nav-label {
+  font-size: var(--font-size-xs);
+}
+
+/* Center action button (FAB-style) */
+.bottom-nav-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.bottom-nav-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-large);
+  height: var(--touch-target-large);
+  background: var(--fg);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-family: inherit;
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bottom-nav-action-btn:active {
+  background: var(--accent);
+}

@@ -117,7 +117,7 @@ export const KAOMOJI_REACTIONS = [
   '(づ｡◕‿‿◕｡)づ',
   '(⌐■_■)',
   '(◠‿◠)',
-  'ヽ(>∀<☆)☆',
+  '>⩊<',
   '(¬‿¬)',
 ] as const;
 

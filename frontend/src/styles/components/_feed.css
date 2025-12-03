@@ -1,16 +1,10 @@
 /* ===========================================
    Feed Styles
+   Mobile-First Design
    =========================================== */
 
 .feed {
-  max-width: var(--max-width-feed);
-}
-
-.feed-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-xl);
+  width: 100%;
 }
 
 .feed-loading,
@@ -21,16 +15,27 @@
 
 .feed-empty-text {
   color: var(--fg);
+  font-size: var(--font-size-lg);
   margin-bottom: var(--space-sm);
 }
 
 .feed-empty-hint {
   color: var(--fg-dim);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }
 
 .feed-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
+}
+
+/* Section title */
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-lg);
 }

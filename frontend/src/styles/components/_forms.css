@@ -1,14 +1,15 @@
 /* ===========================================
    Form Styles
+   Mobile-First Touch-Friendly
    =========================================== */
 
-/* Login Container */
+/* Login Container - full width on mobile */
 .login-container {
-  max-width: var(--max-width-form);
+  width: 100%;
 }
 
 .login-title {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   color: var(--fg);
   margin-bottom: var(--space-xl);
   text-transform: uppercase;
@@ -21,6 +22,7 @@
 
 .form-row-inline {
   display: flex;
+  flex-direction: column;
   gap: var(--space-md);
   margin-bottom: var(--space-md);
 }
@@ -41,14 +43,16 @@
 
 .form-input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  min-height: var(--input-height);
+  padding: var(--space-md);
   background: transparent;
   border: 1px solid var(--border);
+  border-radius: var(--border-radius-sm);
   color: var(--fg);
   font-family: inherit;
-  font-size: var(--font-size-md);
+  /* 16px prevents iOS zoom on focus */
+  font-size: var(--input-font-size);
   outline: none;
-  transition: border-color var(--transition-fast);
 }
 
 .form-input:focus {
@@ -60,19 +64,24 @@
   opacity: 0.6;
 }
 
+/* Small input - still touch-friendly */
 .form-input--small {
-  padding: var(--space-sm) 0.75rem;
-  font-size: var(--font-size-sm);
-  flex: 1;
+  min-height: var(--touch-target-min);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
 }
 
 .form-textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
+  padding: var(--space-md);
 }
 
 .form-select {
+  min-height: var(--input-height);
   background: transparent;
   color: var(--fg);
   cursor: pointer;
+  /* Larger touch target for select */
+  padding-right: var(--space-xl);
 }

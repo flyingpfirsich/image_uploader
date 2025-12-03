@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Post, ListActivity } from '../../types';
 import * as api from '../../services/api';
 import { PostCard } from './PostCard';
-import { CreatePost } from './CreatePost';
 import { ListActivityItem } from './ListActivityItem';
+import { ErrorMessage, LoadingSpinner } from '../common';
 
 interface FeedProps {
   token: string;
@@ -21,7 +21,6 @@ export function Feed({ token, userId, onUserClick }: FeedProps) {
   const [listActivity, setListActivity] = useState<ListActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showCreatePost, setShowCreatePost] = useState(false);
 
   const fetchFeed = useCallback(async () => {
     try {
@@ -36,23 +35,22 @@ export function Feed({ token, userId, onUserClick }: FeedProps) {
     }
   }, [token]);
 
-  // Combine and sort posts and list activity
-  const feedItems: FeedItem[] = [
-    ...posts.map(
-      (post): FeedItem => ({
-        type: 'post',
+  // Combine and sort posts and list activity - memoized to avoid recalculation on every render
+  const feedItems = useMemo<FeedItem[]>(() => {
+    const items: FeedItem[] = [
+      ...posts.map((post) => ({
+        type: 'post' as const,
         data: post,
         createdAt: new Date(post.createdAt),
-      })
-    ),
-    ...listActivity.map(
-      (activity): FeedItem => ({
-        type: 'list_activity',
+      })),
+      ...listActivity.map((activity) => ({
+        type: 'list_activity' as const,
         data: activity,
         createdAt: new Date(activity.createdAt),
-      })
-    ),
-  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      })),
+    ];
+    return items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }, [posts, listActivity]);
 
   useEffect(() => {
     fetchFeed();
@@ -68,32 +66,19 @@ export function Feed({ token, userId, onUserClick }: FeedProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="feed-loading">
-        <span className="cursor-blink">Loading feed</span>
-      </div>
-    );
+    return <LoadingSpinner message="Loading feed" className="feed-loading" />;
   }
 
   return (
     <div className="feed">
-      <div className="feed-header">
-        <h2 className="section-title">Today's Moments</h2>
-        <button className="btn" onClick={() => setShowCreatePost(true)}>
-          + New Post
-        </button>
-      </div>
+      <h2 className="section-title">Today's Moments</h2>
 
-      {error && (
-        <ul className="status-list">
-          <li className="status-item status-item--error">{error}</li>
-        </ul>
-      )}
+      <ErrorMessage message={error} />
 
       {feedItems.length === 0 ? (
         <div className="feed-empty">
           <p className="feed-empty-text">No posts today yet.</p>
-          <p className="feed-empty-hint">Be the first to share a moment!</p>
+          <p className="feed-empty-hint">Tap + to share a moment!</p>
         </div>
       ) : (
         <div className="feed-list">
@@ -110,7 +95,7 @@ export function Feed({ token, userId, onUserClick }: FeedProps) {
               />
             ) : (
               <ListActivityItem
-                key={`activity-${item.data.listId}-${item.data.type}-${item.createdAt.getTime()}`}
+                key={`activity-${item.data.listId}-${item.data.type}-${item.createdAt.getTime()}-${item.data.itemTitle ?? ''}`}
                 activity={item.data}
                 token={token}
                 currentUserId={userId}
@@ -119,14 +104,6 @@ export function Feed({ token, userId, onUserClick }: FeedProps) {
             )
           )}
         </div>
-      )}
-
-      {showCreatePost && (
-        <CreatePost
-          token={token}
-          onPostCreated={fetchFeed}
-          onClose={() => setShowCreatePost(false)}
-        />
       )}
     </div>
   );

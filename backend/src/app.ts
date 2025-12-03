@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { join } from 'path';
 
+// Middleware
+import { httpsEnforcement } from './middleware/https.js';
+
 // Routes
 import authRoutes from './routes/auth.js';
 import postsRoutes from './routes/posts.js';
@@ -21,6 +24,12 @@ initializeWebPush();
 initializeScheduler();
 
 const app = express();
+
+// Trust proxy for HTTPS detection behind reverse proxies
+app.set('trust proxy', 1);
+
+// Security middleware
+app.use(httpsEnforcement);
 
 // Middleware
 app.use(cors());

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import type { User, Post } from '../../types';
+import type { User, Post, MusicShare } from '../../types';
 import * as api from '../../services/api';
-import { PostCard } from '../feed/PostCard';
+import { ArchiveGalleryItem } from './ArchiveGalleryItem';
 import { EditProfile } from './EditProfile';
 import { ProfileCalendar } from './ProfileCalendar';
-import { NotificationSettings } from '../settings/NotificationSettings';
 import { ListSection } from '../lists';
+import { MusicShare as MusicShareComponent } from '../music/MusicShare';
 import { formatDate } from '../../utils/date';
 import { AuthenticatedAvatar } from '../common/AuthenticatedAvatar';
 
@@ -27,22 +27,23 @@ export function Profile({
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [friends, setFriends] = useState<User[]>([]);
+  const [recentSongs, setRecentSongs] = useState<MusicShare[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
-  const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 
   const isOwnProfile = userId === currentUserId;
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const [profileData, usersData] = await Promise.all([
+        const [profileData, usersData, musicData] = await Promise.all([
           api.getUserProfile(token, userId),
           isOwnProfile ? api.getUsers(token) : Promise.resolve({ users: [] }),
+          api.getUserRecentMusicShares(token, userId, 3),
         ]);
         setUser(profileData.user);
         setPosts(profileData.posts);
+        setRecentSongs(musicData.shares);
         if (isOwnProfile) {
           setFriends(usersData.users.filter((u: User) => u.id !== currentUserId));
         }
@@ -56,31 +57,10 @@ export function Profile({
     fetchProfile();
   }, [token, userId, isOwnProfile, currentUserId]);
 
-  const handleCreateInvite = async () => {
-    setIsCreatingInvite(true);
-    try {
-      const { code } = await api.createInvite(token);
-      setInviteCode(code);
-    } catch (error) {
-      console.error('Failed to create invite:', error);
-    } finally {
-      setIsCreatingInvite(false);
-    }
-  };
-
   const handleProfileUpdate = (updatedUser: User) => {
     setUser(updatedUser);
     onUserUpdate?.(updatedUser);
     setShowEdit(false);
-  };
-
-  const handleDeletePost = async (postId: string) => {
-    try {
-      await api.deletePost(token, postId);
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-    } catch (error) {
-      console.error('Failed to delete post:', error);
-    }
   };
 
   if (isLoading) {
@@ -128,6 +108,17 @@ export function Profile({
 
       <ListSection userId={userId} currentUserId={currentUserId} token={token} />
 
+      {recentSongs.length > 0 && (
+        <section className="profile-recent-songs">
+          <h3 className="section-title">Recent Songs ({recentSongs.length})</h3>
+          <div className="recent-songs-list">
+            {recentSongs.map((song) => (
+              <MusicShareComponent key={song.id} track={song} mood={song.moodKaomoji} compact />
+            ))}
+          </div>
+        </section>
+      )}
+
       {isOwnProfile && (
         <section className="profile-calendar-section">
           <h3 className="section-title">Activity Calendar</h3>
@@ -164,38 +155,6 @@ export function Profile({
               ))}
             </ul>
           )}
-
-          <div className="profile-invite">
-            <h4 className="section-title" style={{ marginTop: '1.5rem' }}>
-              Invite a Friend
-            </h4>
-            {inviteCode ? (
-              <div className="invite-code-display">
-                <code className="invite-code">{inviteCode}</code>
-                <button
-                  className="btn--text"
-                  onClick={() => navigator.clipboard.writeText(inviteCode)}
-                >
-                  Copy
-                </button>
-              </div>
-            ) : (
-              <button
-                className="btn btn--secondary"
-                onClick={handleCreateInvite}
-                disabled={isCreatingInvite}
-              >
-                {isCreatingInvite ? 'Creating...' : 'Generate Invite Code'}
-              </button>
-            )}
-            <p className="invite-hint">Code expires in 7 days</p>
-          </div>
-        </section>
-      )}
-
-      {isOwnProfile && (
-        <section className="profile-notifications">
-          <NotificationSettings />
         </section>
       )}
 
@@ -204,14 +163,13 @@ export function Profile({
         {posts.length === 0 ? (
           <p className="archive-empty">No posts yet</p>
         ) : (
-          <div className="archive-list">
+          <div className="archive-gallery">
             {posts.map((post) => (
-              <PostCard
+              <ArchiveGalleryItem
                 key={post.id}
                 post={post}
                 currentUserId={currentUserId}
                 token={token}
-                onDelete={handleDeletePost}
               />
             ))}
           </div>

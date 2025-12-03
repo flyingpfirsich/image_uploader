@@ -2,7 +2,7 @@
  * Authentication API functions
  */
 import { apiGet, apiPost, authHeaders, jsonHeaders } from './client';
-import type { AuthResponse, UserResponse, InviteResponse } from './types';
+import type { AuthResponse, RefreshResponse, UserResponse, InviteResponse } from './types';
 
 export async function register(
   username: string,
@@ -37,5 +37,20 @@ export async function createInvite(token: string): Promise<InviteResponse> {
   return apiPost<InviteResponse>('/api/auth/invite', {
     headers: authHeaders(token),
     errorMessage: 'Failed to create invite',
+  });
+}
+
+export async function refreshTokens(refreshToken: string): Promise<RefreshResponse> {
+  return apiPost<RefreshResponse>('/api/auth/refresh', {
+    headers: jsonHeaders(),
+    body: { refreshToken },
+    errorMessage: 'Token refresh failed',
+  });
+}
+
+export async function logoutEverywhere(token: string): Promise<void> {
+  return apiPost<void>('/api/auth/logout', {
+    headers: authHeaders(token),
+    errorMessage: 'Logout failed',
   });
 }

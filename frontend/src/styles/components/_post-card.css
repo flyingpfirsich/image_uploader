@@ -1,10 +1,11 @@
 /* ===========================================
    Post Card Styles
+   Mobile-First Touch-Friendly
    =========================================== */
 
 .post-card {
   border: 1px solid var(--border);
-  padding: var(--space-lg);
+  padding: var(--card-padding);
 }
 
 .post-header {
@@ -14,15 +15,18 @@
   margin-bottom: var(--space-md);
 }
 
+/* Touch-friendly user button */
 .post-user {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-sm);
+  padding: var(--space-xs);
+  margin: calc(-1 * var(--space-xs));
 }
 
 .post-avatar {
-  width: 40px;
-  height: 40px;
+  width: var(--avatar-md);
+  height: var(--avatar-md);
   border-radius: var(--border-radius-full);
   object-fit: cover;
 }
@@ -37,7 +41,7 @@
 }
 
 .post-avatar--kaomoji {
-  font-size: 0.65rem;
+  font-size: var(--font-size-xs);
   letter-spacing: -0.05em;
 }
 
@@ -49,6 +53,7 @@
 .post-display-name {
   font-weight: 500;
   color: var(--fg);
+  font-size: var(--font-size-base);
 }
 
 .post-username {
@@ -57,14 +62,14 @@
 }
 
 .post-user--clickable {
-  transition: opacity var(--transition-fast);
+  cursor: pointer;
 }
 
-.post-user--clickable:hover {
+.post-user--clickable:active {
   opacity: 0.8;
 }
 
-.post-user--clickable:hover .post-username {
+.post-user--clickable:active .post-username {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -88,36 +93,52 @@
 }
 
 .post-media {
-  margin: var(--space-md) 0;
+  margin: var(--space-md) calc(-1 * var(--card-padding));
   position: relative;
 }
 
 .post-media-content {
   width: 100%;
-  max-height: 400px;
+  max-height: 60vh;
   object-fit: contain;
   background: rgba(0, 0, 0, 0.3);
 }
 
+.post-media-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--fg-dim);
+}
+
+/* Touch-friendly media navigation */
 .media-nav {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
   margin-bottom: var(--space-sm);
+  padding: 0 var(--card-padding);
 }
 
 .media-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
   background: transparent;
   border: 1px solid var(--border);
   color: var(--fg);
-  padding: var(--space-xs) var(--space-sm);
   cursor: pointer;
   font-family: inherit;
+  font-size: var(--font-size-lg);
 }
 
-.media-nav-btn:hover:not(:disabled) {
+.media-nav-btn:active:not(:disabled) {
   border-color: var(--fg);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .media-nav-btn:disabled {
@@ -128,24 +149,31 @@
 .media-counter {
   font-size: var(--font-size-sm);
   color: var(--fg-dim);
+  min-width: 60px;
+  text-align: center;
 }
 
 .post-text {
   color: var(--fg);
+  font-size: var(--font-size-base);
   line-height: 1.6;
   margin-bottom: var(--space-md);
   white-space: pre-wrap;
 }
 
+/* Touch-friendly link */
 .post-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target-min);
   color: var(--fg-dim);
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-md);
   word-break: break-all;
+  padding: var(--space-sm) 0;
 }
 
-.post-link:hover {
+.post-link:active {
   color: var(--fg);
 }
 
@@ -160,9 +188,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  position: relative;
 }
 
 .post-actions {
   display: flex;
-  gap: var(--space-md);
+  gap: var(--space-sm);
+}
+
+/* Music share in post */
+.post-music {
+  margin: var(--space-md) 0;
 }

@@ -8,7 +8,7 @@
  */
 
 // Auth
-export { register, login, getMe, createInvite } from './auth';
+export { register, login, getMe, createInvite, refreshTokens, logoutEverywhere } from './auth';
 
 // Posts
 export {
@@ -60,7 +60,7 @@ export {
 } from './admin';
 
 // Music
-export { getSpotifyStatus, searchMusic, createMusicShare } from './music';
+export { getSpotifyStatus, searchMusic, createMusicShare, getUserRecentMusicShares } from './music';
 
 // Lists
 export {
@@ -79,6 +79,7 @@ export {
 // Types
 export type {
   AuthResponse,
+  RefreshResponse,
   UserResponse,
   UsersResponse,
   FeedResponse,

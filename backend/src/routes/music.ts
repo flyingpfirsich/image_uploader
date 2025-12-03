@@ -48,6 +48,19 @@ router.get('/recent', authMiddleware, async (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/music/user/:userId
+// Get recent music shares for a specific user
+router.get('/user/:userId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 3;
+    const shares = await musicService.getUserRecentMusicShares(req.params.userId, limit);
+    res.json({ shares });
+  } catch (error) {
+    console.error('Get user music shares error:', error);
+    res.status(500).json({ error: 'Failed to get user music shares' });
+  }
+});
+
 // POST /api/music
 // Create a new music share
 router.post('/', authMiddleware, async (req: Request, res: Response) => {

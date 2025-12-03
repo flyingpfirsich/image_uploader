@@ -1,5 +1,6 @@
 /* ===========================================
    Base Styles & Reset
+   Mobile-First Design
    =========================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -8,10 +9,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Prevent text selection on touch */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
-  font-size: 14px;
+  font-size: 16px; /* Base for rem - prevents iOS zoom */
 }
 
 body {
@@ -19,14 +22,24 @@ body {
   background-color: var(--bg);
   color: var(--fg);
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
   line-height: 1.6;
   letter-spacing: 0.02em;
+  /* Prevent overscroll bounce */
+  overscroll-behavior: none;
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
-  max-width: var(--max-width-content);
-  margin: 0 auto;
-  padding: var(--space-xl);
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--content-padding);
+  padding-top: calc(var(--content-padding) + var(--safe-area-top));
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + var(--content-padding));
+  padding-left: calc(var(--content-padding) + var(--safe-area-left));
+  padding-right: calc(var(--content-padding) + var(--safe-area-right));
 }
 
 ::selection {
@@ -39,13 +52,14 @@ a {
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
+/* Active state instead of hover for touch */
+a:active {
+  opacity: 0.7;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - thin for mobile */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -54,8 +68,15 @@ a:hover {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border);
+  border-radius: 2px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--fg-dim);
+/* Hide scrollbar on mobile but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

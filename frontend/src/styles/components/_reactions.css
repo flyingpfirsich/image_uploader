@@ -1,5 +1,6 @@
 /* ===========================================
    Reactions Styles
+   Mobile-First Touch-Friendly
    =========================================== */
 
 .reactions {
@@ -7,6 +8,7 @@
   align-items: center;
   gap: var(--space-sm);
   position: relative;
+  flex: 1;
 }
 
 .reaction-list {
@@ -15,22 +17,26 @@
   gap: var(--space-sm);
 }
 
+/* Touch-friendly reaction badges */
 .reaction-badge {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-sm);
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--space-sm) var(--space-md);
   background: transparent;
   border: 1px solid var(--border);
   color: var(--fg);
   cursor: pointer;
   font-family: inherit;
-  font-size: var(--font-size-base);
-  transition: all var(--transition-fast);
+  font-size: var(--font-size-lg);
 }
 
-.reaction-badge:hover {
+.reaction-badge:active {
   border-color: var(--fg-dim);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .reaction-badge--own {
@@ -39,13 +45,14 @@
 }
 
 .reaction-count {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--fg-dim);
 }
 
+/* Touch-friendly add button */
 .reaction-add {
-  width: 28px;
-  height: 28px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,41 +61,58 @@
   color: var(--fg-dim);
   cursor: pointer;
   font-family: inherit;
-  font-size: var(--font-size-md);
-  transition: all var(--transition-fast);
+  font-size: var(--font-size-lg);
 }
 
-.reaction-add:hover {
+.reaction-add:active {
   border-color: var(--fg);
   color: var(--fg);
 }
 
+/* Reaction picker - inline below reactions */
 .reaction-picker {
   position: absolute;
-  bottom: 100%;
-  left: 0;
-  margin-bottom: var(--space-sm);
-  display: flex;
-  flex-wrap: wrap;
+  top: 100%;
+  left: calc(-1 * var(--card-padding, var(--space-md)));
+  right: calc(-1 * var(--card-padding, var(--space-md)));
+  margin-top: var(--space-sm);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-xs);
   padding: var(--space-sm);
   background: var(--bg);
   border: 1px solid var(--border);
-  max-width: 200px;
-  z-index: 10;
+  z-index: 100;
+  box-sizing: border-box;
 }
 
+/* Larger screens: auto width */
+@media (min-width: 480px) {
+  .reaction-picker {
+    left: 0;
+    right: auto;
+    width: max-content;
+    padding: var(--space-md);
+  }
+}
+
+/* Touch-friendly reaction options */
 .reaction-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target-min);
   padding: var(--space-xs);
-  background: transparent;
-  border: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
   color: var(--fg);
   cursor: pointer;
   font-family: inherit;
-  font-size: var(--font-size-md);
-  transition: transform var(--transition-fast);
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
-.reaction-option:hover {
-  transform: scale(1.2);
+.reaction-option:active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--fg-dim);
 }

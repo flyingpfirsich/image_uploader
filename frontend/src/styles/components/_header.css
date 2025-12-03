@@ -1,20 +1,26 @@
 /* ===========================================
    Header & Navigation
+   Mobile-First Design
    =========================================== */
 
+/* Top bar - simplified for mobile */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: var(--space-xl);
-  margin-bottom: var(--space-2xl);
+  height: var(--top-bar-height);
+  padding-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
   border-bottom: 1px solid var(--border);
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-sm);
+  /* Make logo tappable */
+  min-height: var(--touch-target-min);
+  padding: var(--space-xs) 0;
 }
 
 .logo-kaomoji {
@@ -22,10 +28,10 @@
   color: var(--fg);
   letter-spacing: 0.05em;
   user-select: none;
-  transition: color var(--transition-fast);
 }
 
-.logo-kaomoji:hover {
+/* Active state for touch */
+.logo:active .logo-kaomoji {
   color: var(--accent);
 }
 
@@ -37,24 +43,31 @@
   letter-spacing: 0.1em;
 }
 
+/* Top nav - hidden on mobile, using bottom nav instead */
 .nav {
-  display: flex;
-  gap: var(--space-sm);
-  text-transform: uppercase;
-  font-size: var(--font-size-base);
+  display: none;
 }
 
-.nav-sep {
-  color: var(--fg-dim);
-}
-
+/* Nav link base styles (used in bottom nav) */
 .nav-link {
-  color: var(--fg);
-  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.05em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.nav-link:hover {
-  color: var(--accent);
+.nav-link:active {
+  color: var(--fg);
 }
 
 .nav-link.active {
@@ -66,7 +79,170 @@
   color: var(--admin-accent-dim);
 }
 
-.nav-link--admin:hover,
+.nav-link--admin:active,
 .nav-link--admin.active {
   color: var(--admin-accent);
+}
+
+/* Nav separator - not used in bottom nav */
+.nav-sep {
+  display: none;
+}
+
+/* Header menu button */
+.header-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  background: none;
+  border: 0px solid var(--border);
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+}
+
+.header-menu-btn:active {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+/* ===========================================
+   Header Menu (Full-Screen Slide-in)
+   =========================================== */
+
+.header-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.header-menu {
+  width: 100%;
+  max-width: 320px;
+  height: 100%;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight var(--transition-normal) ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.header-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--top-bar-height);
+  padding: var(--space-md) var(--content-padding);
+  padding-top: calc(var(--space-md) + var(--safe-area-top));
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.header-menu-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--content-padding);
+  padding-bottom: calc(var(--content-padding) + var(--safe-area-bottom));
+}
+
+.header-menu-section {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-menu-section:last-child {
+  border-bottom: none;
+}
+
+.header-menu-section-title {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-md);
+}
+
+.header-menu-section--logout {
+  margin-top: auto;
+  padding-top: var(--space-xl);
+  border-bottom: none;
+}
+
+.header-menu-section--logout .btn {
+  width: 100%;
+}
+
+/* Override notification settings styles when inside header menu */
+.header-menu-section .notification-settings {
+  border: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.header-menu-section .notification-header {
+  flex-wrap: wrap;
+}
+
+.header-menu-section .notification-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-menu-section .notification-header-text {
+  min-width: 0;
+}
+
+.header-menu-section .notification-title {
+  font-size: var(--font-size-sm);
+}
+
+.header-menu-section .notification-subtitle {
+  font-size: var(--font-size-xs);
+}
+
+.header-menu-section .notification-options {
+  margin-top: var(--space-md);
+}
+
+.header-menu-section .notification-option {
+  padding: var(--space-sm);
+}
+
+.header-menu-section .notification-option-label {
+  font-size: var(--font-size-sm);
+}
+
+.header-menu-section .notification-option-description {
+  font-size: var(--font-size-xs);
+}
+
+.header-menu-section .notification-warning {
+  font-size: var(--font-size-xs);
+  padding: var(--space-sm);
+}
+
+.header-menu-section .notification-debug {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+}
+
+.header-menu-section .notification-debug .debug-info {
+  font-size: 0.65rem;
+  word-break: break-all;
 }

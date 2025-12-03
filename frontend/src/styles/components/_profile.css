@@ -1,9 +1,10 @@
 /* ===========================================
    Profile Styles
+   Mobile-First Design
    =========================================== */
 
 .profile {
-  max-width: var(--max-width-feed);
+  width: 100%;
 }
 
 .profile-loading,
@@ -12,17 +13,21 @@
   padding: var(--space-2xl) 0;
 }
 
+/* Stack layout on mobile */
 .profile-header {
   display: flex;
-  gap: var(--space-lg);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-md);
   padding-bottom: var(--space-xl);
   margin-bottom: var(--space-xl);
   border-bottom: 1px solid var(--border);
 }
 
 .profile-avatar {
-  width: 80px;
-  height: 80px;
+  width: var(--avatar-xl);
+  height: var(--avatar-xl);
   border-radius: var(--border-radius-full);
   object-fit: cover;
   flex-shrink: 0;
@@ -39,16 +44,16 @@
 }
 
 .profile-avatar--kaomoji {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   letter-spacing: -0.05em;
 }
 
 .profile-info {
-  flex: 1;
+  width: 100%;
 }
 
 .profile-name {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   font-weight: 500;
   color: var(--fg);
   margin-bottom: var(--space-xs);
@@ -65,8 +70,14 @@
   color: var(--fg-dim);
 }
 
+/* Full-width actions on mobile */
 .profile-actions {
-  flex-shrink: 0;
+  width: 100%;
+  margin-top: var(--space-md);
+}
+
+.profile-actions .btn {
+  width: 100%;
 }
 
 /* Friends Section */
@@ -187,6 +198,25 @@
   margin-top: var(--space-sm);
 }
 
+/* Recent Songs Section */
+.profile-recent-songs {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--border);
+}
+
+.recent-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.recent-songs-list .music-share--compact {
+  background: var(--bg-elevated);
+  padding: var(--space-sm);
+}
+
 /* Calendar Section */
 .profile-calendar-section {
   margin-top: var(--space-xl);
@@ -205,8 +235,236 @@
   padding: var(--space-xl) 0;
 }
 
-.archive-list {
+/* Archive Gallery - Multi-column layout */
+.archive-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
+}
+
+/* Archive Gallery Item */
+.archive-gallery-item {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  border-radius: var(--border-radius-lg);
+  position: relative;
+  cursor: pointer;
+}
+
+.archive-gallery-item:hover {
+  opacity: 0.85;
+}
+
+.archive-gallery-badge {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--fg);
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  z-index: 1;
+}
+
+.archive-gallery-media {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.archive-gallery-content {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.archive-gallery-loading {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--fg-dim);
+}
+
+.archive-gallery-nav {
+  position: absolute;
+  top: var(--space-xs);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  z-index: 1;
+}
+
+.archive-gallery-nav-btn {
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: var(--fg);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.archive-gallery-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.archive-gallery-counter {
+  font-size: var(--font-size-xs);
+  color: var(--fg);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* Post Detail Modal */
+.post-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+.post-detail-modal {
+  background: var(--bg);
+  border-radius: var(--border-radius-lg);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.post-detail-close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: var(--fg);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-detail-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.post-detail-media {
+  position: relative;
+  background: var(--bg-elevated);
+}
+
+.post-detail-media-content {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  display: block;
+}
+
+.post-detail-media-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--fg-dim);
+}
+
+.post-detail-media-nav {
+  position: absolute;
+  bottom: var(--space-sm);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.post-detail-nav-btn {
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: var(--fg);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.post-detail-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.post-detail-counter {
+  font-size: var(--font-size-sm);
+  color: var(--fg);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 10px;
+  border-radius: var(--border-radius-sm);
+}
+
+.post-detail-content {
+  padding: var(--space-md);
+}
+
+.post-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.post-detail-user {
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.post-detail-time {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+}
+
+.post-detail-music {
+  margin-bottom: var(--space-md);
+}
+
+.post-detail-text {
+  color: var(--fg);
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
+}
+
+.post-detail-location {
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.post-detail-interactions {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-md);
 }

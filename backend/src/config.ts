@@ -12,8 +12,15 @@ export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
 
   // JWT
-  jwtSecret: process.env.JWT_SECRET || 'druzi-secret-change-in-production',
-  jwtExpiresIn: '30d',
+  jwtSecret:
+    process.env.JWT_SECRET ||
+    (process.env.NODE_ENV === 'production'
+      ? (() => {
+          throw new Error('JWT_SECRET must be set in production');
+        })()
+      : 'dev-only-secret'),
+  jwtAccessExpiresIn: '15m', // Short-lived access tokens
+  jwtRefreshExpiresIn: '7d', // Refresh tokens valid for 7 days
 
   // Database
   dbPath: process.env.DB_PATH || join(rootDir, 'data', 'druzi.db'),
@@ -39,7 +46,7 @@ export const config = {
   // Admin credentials
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
   adminPassword: process.env.ADMIN_PASSWORD || 'DRUZI2025',
-  
+
   // Spotify API (for music moments)
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID || '',
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
