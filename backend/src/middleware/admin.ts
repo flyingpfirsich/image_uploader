@@ -10,12 +10,12 @@ export function adminMiddleware(req: Request, res: Response, next: NextFunction)
     res.status(401).json({ error: 'Authentication required' });
     return;
   }
-  
+
   if (req.user.username !== config.adminUsername) {
     res.status(403).json({ error: 'Admin access required' });
     return;
   }
-  
+
   next();
 }
 
@@ -25,8 +25,3 @@ export function adminMiddleware(req: Request, res: Response, next: NextFunction)
 export function isAdmin(username: string): boolean {
   return username === config.adminUsername;
 }
-
-
-
-
-

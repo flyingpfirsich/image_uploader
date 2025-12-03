@@ -1,5 +1,18 @@
-import { eq, desc, and, gte, lt } from 'drizzle-orm';
-import { db, posts, media, reactions, users, musicShares, Post, Media, Reaction, MusicShare } from '../db/index.js';
+import { eq, desc, and, gte, lt, asc } from 'drizzle-orm';
+import {
+  db,
+  posts,
+  media,
+  reactions,
+  comments,
+  users,
+  musicShares,
+  Post,
+  Media,
+  Reaction,
+  Comment,
+  MusicShare,
+} from '../db/index.js';
 import { generateId } from '../utils/nanoid.js';
 
 interface CreatePostInput {
@@ -19,6 +32,15 @@ interface MediaInput {
   order: number;
 }
 
+export interface CommentWithUser extends Comment {
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+}
+
 export interface PostWithDetails extends Post {
   user: {
     id: string;
@@ -34,6 +56,7 @@ export interface PostWithDetails extends Post {
       displayName: string;
     };
   })[];
+  comments: CommentWithUser[];
   musicShare: MusicShare | null;
 }
 
@@ -110,6 +133,29 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
     })
   );
 
+  // Fetch comments for this post
+  const postComments = await db.query.comments.findMany({
+    where: eq(comments.postId, postId),
+    orderBy: [asc(comments.createdAt)],
+  });
+
+  const commentsWithUsers = await Promise.all(
+    postComments.map(async (c) => {
+      const commentUser = await db.query.users.findFirst({
+        where: eq(users.id, c.userId),
+      });
+      return {
+        ...c,
+        user: {
+          id: commentUser!.id,
+          username: commentUser!.username,
+          displayName: commentUser!.displayName,
+          avatar: commentUser!.avatar,
+        },
+      };
+    })
+  );
+
   // Fetch music share for this post
   const postMusicShare = await db.query.musicShares.findFirst({
     where: eq(musicShares.postId, postId),
@@ -125,6 +171,7 @@ export async function getPostById(postId: string): Promise<PostWithDetails | nul
     },
     media: postMedia,
     reactions: reactionsWithUsers,
+    comments: commentsWithUsers,
     musicShare: postMusicShare || null,
   };
 }
@@ -138,16 +185,11 @@ export async function getTodaysFeed(): Promise<PostWithDetails[]> {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   const todaysPosts = await db.query.posts.findMany({
-    where: and(
-      gte(posts.createdAt, today),
-      lt(posts.createdAt, tomorrow)
-    ),
+    where: and(gte(posts.createdAt, today), lt(posts.createdAt, tomorrow)),
     orderBy: [desc(posts.createdAt)],
   });
 
-  const postsWithDetails = await Promise.all(
-    todaysPosts.map((p) => getPostById(p.id))
-  );
+  const postsWithDetails = await Promise.all(todaysPosts.map((p) => getPostById(p.id)));
 
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
@@ -158,9 +200,7 @@ export async function getUserPosts(userId: string): Promise<PostWithDetails[]> {
     orderBy: [desc(posts.createdAt)],
   });
 
-  const postsWithDetails = await Promise.all(
-    userPosts.map((p) => getPostById(p.id))
-  );
+  const postsWithDetails = await Promise.all(userPosts.map((p) => getPostById(p.id)));
 
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
@@ -182,9 +222,7 @@ export async function getUserTodaysPosts(userId: string): Promise<PostWithDetail
     orderBy: [desc(posts.createdAt)],
   });
 
-  const postsWithDetails = await Promise.all(
-    userTodaysPosts.map((p) => getPostById(p.id))
-  );
+  const postsWithDetails = await Promise.all(userTodaysPosts.map((p) => getPostById(p.id)));
 
   return postsWithDetails.filter((p): p is PostWithDetails => p !== null);
 }
@@ -240,13 +278,60 @@ export async function removeReaction(
   userId: string,
   kaomoji: string
 ): Promise<boolean> {
-  const result = await db.delete(reactions).where(
-    and(
-      eq(reactions.postId, postId),
-      eq(reactions.userId, userId),
-      eq(reactions.kaomoji, kaomoji)
-    )
-  );
+  const result = await db
+    .delete(reactions)
+    .where(
+      and(
+        eq(reactions.postId, postId),
+        eq(reactions.userId, userId),
+        eq(reactions.kaomoji, kaomoji)
+      )
+    );
 
+  return result.changes > 0;
+}
+
+export async function addComment(
+  postId: string,
+  userId: string,
+  text: string
+): Promise<CommentWithUser> {
+  const id = generateId();
+  await db.insert(comments).values({
+    id,
+    postId,
+    userId,
+    text,
+  });
+
+  const comment = await db.query.comments.findFirst({
+    where: eq(comments.id, id),
+  });
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  return {
+    ...comment!,
+    user: {
+      id: user!.id,
+      username: user!.username,
+      displayName: user!.displayName,
+      avatar: user!.avatar,
+    },
+  };
+}
+
+export async function deleteComment(commentId: string, userId: string): Promise<boolean> {
+  const comment = await db.query.comments.findFirst({
+    where: eq(comments.id, commentId),
+  });
+
+  if (!comment || comment.userId !== userId) {
+    return false;
+  }
+
+  const result = await db.delete(comments).where(eq(comments.id, commentId));
   return result.changes > 0;
 }

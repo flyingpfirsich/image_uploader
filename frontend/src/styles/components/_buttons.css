@@ -56,11 +56,30 @@
 }
 
 .btn--danger {
-  color: var(--error);
+  border-color: var(--error);
+  color: var(--error-light);
 }
 
-.btn--danger:hover {
-  color: var(--error-light);
+.btn--danger:hover:not(:disabled) {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+}
+
+.btn--small {
+  padding: 0.35rem 0.75rem;
+  font-size: var(--font-size-xs);
+}
+
+.btn--ghost {
+  border-color: transparent;
+  color: var(--fg-dim);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--border);
 }
 
 /* Icon Buttons */
@@ -127,4 +146,3 @@
   background: var(--error-light);
   border-color: var(--error-light);
 }
-

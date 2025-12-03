@@ -458,6 +458,28 @@
   margin-bottom: var(--space-md);
 }
 
+.action-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.form-select {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+}
+
 /* Test Post Form */
 .test-post-form {
   max-width: 500px;
@@ -500,6 +522,17 @@
 
 .result-message {
   color: var(--fg);
+}
+
+/* Section title with button */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.section-title .btn--small {
+  margin-left: auto;
 }
 
 /* Invite Codes */
@@ -616,4 +649,3 @@
   color: var(--fg-dim);
   flex: 2;
 }
-

@@ -41,13 +41,16 @@ router.post(
       );
 
       // Send notification to friends (async, don't wait)
-      authService.getUserById(req.user!.userId).then((user) => {
-        if (user) {
-          notificationService.notifyFriendPosted(req.user!.userId, user.displayName);
-        }
-      }).catch((err) => {
-        console.error('Failed to send friend notification:', err);
-      });
+      authService
+        .getUserById(req.user!.userId)
+        .then((user) => {
+          if (user) {
+            notificationService.notifyFriendPosted(req.user!.userId, user.displayName);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to send friend notification:', err);
+        });
 
       res.json(post);
     } catch (error) {
@@ -99,11 +102,7 @@ router.post('/:id/react', authMiddleware, async (req: Request, res: Response) =>
       return;
     }
 
-    const reaction = await postService.addReaction(
-      req.params.id,
-      req.user!.userId,
-      kaomoji
-    );
+    const reaction = await postService.addReaction(req.params.id, req.user!.userId, kaomoji);
 
     res.json(reaction);
   } catch (_error) {
@@ -125,6 +124,39 @@ router.delete('/:id/react', authMiddleware, async (req: Request, res: Response) 
     res.json({ success: true });
   } catch (_error) {
     res.status(500).json({ error: 'Failed to remove reaction' });
+  }
+});
+
+// POST /api/posts/:id/comments
+router.post('/:id/comments', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      res.status(400).json({ error: 'Comment text required' });
+      return;
+    }
+
+    const comment = await postService.addComment(req.params.id, req.user!.userId, text.trim());
+    res.json(comment);
+  } catch (_error) {
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
+// DELETE /api/posts/:id/comments/:commentId
+router.delete('/:id/comments/:commentId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const success = await postService.deleteComment(req.params.commentId, req.user!.userId);
+
+    if (!success) {
+      res.status(403).json({ error: 'Cannot delete this comment' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (_error) {
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 

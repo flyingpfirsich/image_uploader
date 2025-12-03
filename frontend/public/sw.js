@@ -4,7 +4,7 @@ const CACHE_NAME = 'druzi-v1';
 // Handle push notifications from server
 self.addEventListener('push', (event) => {
   console.log('[SW] Push received');
-  
+
   let data = {
     type: 'unknown',
     title: '(◕‿◕) druzi',
@@ -14,7 +14,7 @@ self.addEventListener('push', (event) => {
     tag: 'default',
     data: { url: '/' },
   };
-  
+
   if (event.data) {
     try {
       data = { ...data, ...event.data.json() };
@@ -22,7 +22,7 @@ self.addEventListener('push', (event) => {
       console.error('[SW] Failed to parse push data:', e);
     }
   }
-  
+
   const options = {
     body: data.body,
     icon: data.icon || '/icon.svg',
@@ -31,31 +31,30 @@ self.addEventListener('push', (event) => {
     requireInteraction: data.type === 'daily',
     vibrate: [200, 100, 200],
     data: data.data || { url: '/' },
-    actions: data.type === 'daily' ? [
-      { action: 'open', title: 'Open druzi' },
-      { action: 'dismiss', title: 'Later' }
-    ] : [
-      { action: 'open', title: 'View' }
-    ],
+    actions:
+      data.type === 'daily'
+        ? [
+            { action: 'open', title: 'Open druzi' },
+            { action: 'dismiss', title: 'Later' },
+          ]
+        : [{ action: 'open', title: 'View' }],
   };
-  
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event.action);
   event.notification.close();
-  
+
   if (event.action === 'dismiss') {
     return;
   }
-  
+
   // Get URL from notification data
   const url = event.notification.data?.url || '/';
-  
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // If app is already open, focus it
@@ -92,9 +91,7 @@ self.addEventListener('activate', (event) => {
       // Clean up old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
-          cacheNames
-            .filter((name) => name !== CACHE_NAME)
-            .map((name) => caches.delete(name))
+          cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
         );
       }),
     ])

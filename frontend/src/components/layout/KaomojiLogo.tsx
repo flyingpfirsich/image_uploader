@@ -4,8 +4,8 @@ interface KaomojiLogoProps {
 
 export function KaomojiLogo({ onClick }: KaomojiLogoProps) {
   return (
-    <button 
-      className="logo" 
+    <button
+      className="logo"
       onClick={onClick}
       style={{ background: 'none', border: 'none', cursor: 'pointer' }}
     >

@@ -72,9 +72,7 @@ function AppContent() {
             onSelectUser={handleSelectUser}
           />
         )}
-        {activeNav === 'admin' && isAdmin && (
-          <AdminPanel token={token} />
-        )}
+        {activeNav === 'admin' && isAdmin && <AdminPanel token={token} />}
       </main>
 
       <Footer onLogout={logout} />

@@ -20,7 +20,8 @@ export function MusicPicker({ token, onSelect, onClose }: MusicPickerProps) {
 
   // Check if Spotify is configured on mount
   useEffect(() => {
-    api.getSpotifyStatus()
+    api
+      .getSpotifyStatus()
       .then(({ configured }) => setIsConfigured(configured))
       .catch(() => setIsConfigured(false));
   }, []);
@@ -66,7 +67,9 @@ export function MusicPicker({ token, onSelect, onClose }: MusicPickerProps) {
         <div className="music-picker" onClick={(e) => e.stopPropagation()}>
           <header className="music-picker-header">
             <h3>♪ Add Music</h3>
-            <button className="btn--text" onClick={onClose}>x</button>
+            <button className="btn--text" onClick={onClose}>
+              x
+            </button>
           </header>
           <div className="music-picker-empty">
             <p className="music-picker-empty-kaomoji">(；へ；)</p>
@@ -83,7 +86,9 @@ export function MusicPicker({ token, onSelect, onClose }: MusicPickerProps) {
       <div className="music-picker" onClick={(e) => e.stopPropagation()}>
         <header className="music-picker-header">
           <h3>♪ Add Music</h3>
-          <button className="btn--text" onClick={onClose}>x</button>
+          <button className="btn--text" onClick={onClose}>
+            x
+          </button>
         </header>
 
         {/* Search Input */}
@@ -99,9 +104,7 @@ export function MusicPicker({ token, onSelect, onClose }: MusicPickerProps) {
         </div>
 
         {/* Error */}
-        {error && (
-          <p className="music-picker-error">{error}</p>
-        )}
+        {error && <p className="music-picker-error">{error}</p>}
 
         {/* Selected Track Preview */}
         {selectedTrack && (
@@ -195,4 +198,3 @@ export function MusicPicker({ token, onSelect, onClose }: MusicPickerProps) {
     </div>
   );
 }
-

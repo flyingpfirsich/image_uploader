@@ -18,7 +18,7 @@ export function NotificationSettings() {
     setFriendPosts,
     testNotification,
   } = useNotifications({ token });
-  
+
   const [isToggling, setIsToggling] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
 
@@ -101,11 +101,11 @@ export function NotificationSettings() {
           </span>
         </button>
       </div>
-      
+
       {permission === 'denied' && (
         <p className="notification-warning">{TEXT.notifications.denied}</p>
       )}
-      
+
       {isEnabled && (
         <div className="notification-options">
           {/* Daily Reminder Toggle */}
@@ -133,7 +133,7 @@ export function NotificationSettings() {
               </span>
             </button>
           </div>
-          
+
           {/* Friend Posts Toggle */}
           <div className="notification-option">
             <div className="notification-option-info">
@@ -147,7 +147,11 @@ export function NotificationSettings() {
             <button
               className={`notification-toggle ${friendPosts ? 'active' : ''}`}
               onClick={handleFriendToggle}
-              aria-label={friendPosts ? 'Disable friend post notifications' : 'Enable friend post notifications'}
+              aria-label={
+                friendPosts
+                  ? 'Disable friend post notifications'
+                  : 'Enable friend post notifications'
+              }
             >
               <span className="toggle-track">
                 <span className="toggle-thumb" />
@@ -156,11 +160,11 @@ export function NotificationSettings() {
           </div>
         </div>
       )}
-      
+
       {/* Debug/Test Section */}
       {import.meta.env.DEV && isEnabled && (
         <div className="notification-debug">
-          <button 
+          <button
             className="btn btn--test"
             onClick={handleTest}
             disabled={isTesting || permission !== 'granted'}
@@ -169,10 +173,14 @@ export function NotificationSettings() {
           </button>
           <div className="debug-info">
             <code>
-              [DEBUG] permission: {permission}<br />
-              [DEBUG] enabled: {isEnabled ? 'true' : 'false'}<br />
-              [DEBUG] daily: {dailyReminder ? 'on' : 'off'}<br />
-              [DEBUG] friends: {friendPosts ? 'on' : 'off'}<br />
+              [DEBUG] permission: {permission}
+              <br />
+              [DEBUG] enabled: {isEnabled ? 'true' : 'false'}
+              <br />
+              [DEBUG] daily: {dailyReminder ? 'on' : 'off'}
+              <br />
+              [DEBUG] friends: {friendPosts ? 'on' : 'off'}
+              <br />
               [DEBUG] scheduled: {scheduledTime?.toISOString() || 'null'}
             </code>
           </div>

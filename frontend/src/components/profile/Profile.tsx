@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { User, Post } from '../../types';
 import * as api from '../../services/api';
-import { getAvatarUrl } from '../../services/api';
 import { PostCard } from '../feed/PostCard';
 import { EditProfile } from './EditProfile';
 import { ProfileCalendar } from './ProfileCalendar';
 import { NotificationSettings } from '../settings/NotificationSettings';
+import { ListSection } from '../lists';
 import { formatDate } from '../../utils/date';
-import { getKaomojiForUser } from '../../utils/kaomoji';
+import { AuthenticatedAvatar } from '../common/AuthenticatedAvatar';
 
 interface ProfileProps {
   userId: string;
@@ -17,7 +17,13 @@ interface ProfileProps {
   onSelectUser?: (userId: string) => void;
 }
 
-export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUser }: ProfileProps) {
+export function Profile({
+  userId,
+  currentUserId,
+  token,
+  onUserUpdate,
+  onSelectUser,
+}: ProfileProps) {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [friends, setFriends] = useState<User[]>([]);
@@ -89,19 +95,17 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
     return <div className="profile-error">User not found</div>;
   }
 
-  const avatarUrl = getAvatarUrl(user.avatar);
-
   return (
     <div className="profile">
       <header className="profile-header">
         <div className="profile-avatar-section">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="profile-avatar" />
-          ) : (
-            <div className="profile-avatar profile-avatar--placeholder profile-avatar--kaomoji">
-              {getKaomojiForUser(user.id)}
-            </div>
-          )}
+          <AuthenticatedAvatar
+            filename={user.avatar}
+            userId={user.id}
+            token={token}
+            className="profile-avatar"
+            placeholderClassName="profile-avatar--placeholder profile-avatar--kaomoji"
+          />
         </div>
 
         <div className="profile-info">
@@ -122,10 +126,12 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
         )}
       </header>
 
+      <ListSection userId={userId} currentUserId={currentUserId} token={token} />
+
       {isOwnProfile && (
         <section className="profile-calendar-section">
           <h3 className="section-title">Activity Calendar</h3>
-          <ProfileCalendar posts={posts} friends={friends} />
+          <ProfileCalendar posts={posts} friends={friends} token={token} />
         </section>
       )}
 
@@ -135,40 +141,34 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
           {friends.length === 0 ? (
             <div className="friends-empty">
               <p className="friends-empty-text">No friends yet!</p>
-              <p className="friends-empty-hint">
-                Invite your friends to join druzi
-              </p>
+              <p className="friends-empty-hint">Invite your friends to join druzi</p>
             </div>
           ) : (
             <ul className="friends-list">
-              {friends.map((friend) => {
-                const friendAvatarUrl = getAvatarUrl(friend.avatar);
-                return (
-                  <li key={friend.id} className="friend-item">
-                    <button
-                      className="friend-btn"
-                      onClick={() => onSelectUser?.(friend.id)}
-                    >
-                      {friendAvatarUrl ? (
-                        <img src={friendAvatarUrl} alt="" className="friend-avatar" />
-                      ) : (
-                        <div className="friend-avatar friend-avatar--placeholder friend-avatar--kaomoji">
-                          {getKaomojiForUser(friend.id)}
-                        </div>
-                      )}
-                      <div className="friend-info">
-                        <span className="friend-name">{friend.displayName}</span>
-                        <span className="friend-username">@{friend.username}</span>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
+              {friends.map((friend) => (
+                <li key={friend.id} className="friend-item">
+                  <button className="friend-btn" onClick={() => onSelectUser?.(friend.id)}>
+                    <AuthenticatedAvatar
+                      filename={friend.avatar}
+                      userId={friend.id}
+                      token={token}
+                      className="friend-avatar"
+                      placeholderClassName="friend-avatar--placeholder friend-avatar--kaomoji"
+                    />
+                    <div className="friend-info">
+                      <span className="friend-name">{friend.displayName}</span>
+                      <span className="friend-username">@{friend.username}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
             </ul>
           )}
 
           <div className="profile-invite">
-            <h4 className="section-title" style={{ marginTop: '1.5rem' }}>Invite a Friend</h4>
+            <h4 className="section-title" style={{ marginTop: '1.5rem' }}>
+              Invite a Friend
+            </h4>
             {inviteCode ? (
               <div className="invite-code-display">
                 <code className="invite-code">{inviteCode}</code>
@@ -229,4 +229,3 @@ export function Profile({ userId, currentUserId, token, onUserUpdate, onSelectUs
     </div>
   );
 }
-

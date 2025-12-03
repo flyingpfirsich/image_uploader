@@ -15,26 +15,12 @@ export function BeRealPreview({ beRealPhotos, mainPhotoPosition, onSwap }: BeRea
   return (
     <div className="bereal-preview" onClick={onSwap}>
       {/* Main photo */}
-      <img 
-        src={mainPhoto.url} 
-        alt="Main" 
-        className="bereal-main"
-      />
+      <img src={mainPhoto.url} alt="Main" className="bereal-main" />
       {/* Overlay photo (smaller, in corner) */}
       <div className="bereal-overlay-container">
-        <img 
-          src={overlayPhoto.url} 
-          alt="Overlay" 
-          className="bereal-overlay"
-        />
+        <img src={overlayPhoto.url} alt="Overlay" className="bereal-overlay" />
         <span className="bereal-swap-hint">TAP</span>
       </div>
     </div>
   );
 }
-
-
-
-
-
-

@@ -1,1 +1,16 @@
-npm test
+#!/usr/bin/env sh
+
+# Add node/npm paths (Homebrew on macOS)
+export PATH="/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# Add local node_modules to PATH
+export PATH="$(pwd)/node_modules/.bin:$PATH"
+
+# Run lint-staged (formatting)
+npx lint-staged || exit 1
+
+# Run lint fix
+npm run lint:fix || exit 1
+
+# Run tests
+npm test || exit 1

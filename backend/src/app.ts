@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { join } from 'path';
-import { config } from './config.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -11,6 +10,8 @@ import usersRoutes from './routes/users.js';
 import notificationsRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
 import musicRoutes from './routes/music.js';
+import listsRoutes from './routes/lists.js';
+import uploadsRoutes from './routes/uploads.js';
 
 // Services
 import { initializeWebPush, initializeScheduler } from './services/notification.service.js';
@@ -25,8 +26,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded files
-app.use('/uploads', express.static(config.uploadsDir));
+// Protected uploads routes (requires authentication)
+app.use('/uploads', uploadsRoutes);
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -36,6 +37,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/music', musicRoutes);
+app.use('/api/lists', listsRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -79,6 +81,10 @@ app.get('/api', (_req, res) => {
       'POST /api/admin/test-notification',
       'POST /api/admin/test-daily-reminder',
       'POST /api/admin/test-post',
+      'POST /api/admin/test-bulk-posts',
+      'POST /api/admin/test-reactions',
+      'POST /api/admin/test-users',
+      'DELETE /api/admin/test-data',
       'GET  /api/admin/system',
       'GET  /api/music/spotify/status',
       'GET  /api/music/search',
@@ -86,6 +92,17 @@ app.get('/api', (_req, res) => {
       'POST /api/music',
       'GET  /api/music/:id',
       'DELETE /api/music/:id',
+      'GET  /api/lists',
+      'GET  /api/lists/user/:userId',
+      'GET  /api/lists/activity',
+      'GET  /api/lists/:id',
+      'POST /api/lists',
+      'PATCH /api/lists/:id',
+      'DELETE /api/lists/:id',
+      'POST /api/lists/:id/items',
+      'PATCH /api/lists/:id/items/:itemId',
+      'DELETE /api/lists/:id/items/:itemId',
+      'POST /api/lists/:id/items/:itemId/vote',
     ],
   });
 });
@@ -106,5 +123,3 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 
 export default app;
-
-

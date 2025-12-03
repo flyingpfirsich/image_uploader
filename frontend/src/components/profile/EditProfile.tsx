@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import type { User } from '../../types';
 import * as api from '../../services/api';
-import { getAvatarUrl } from '../../services/api';
+import { useAuthenticatedAvatar } from '../../hooks/useAuthenticatedMedia';
 
 interface EditProfileProps {
   user: User;
@@ -19,9 +19,16 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Load existing avatar using authenticated blob URL
+  const existingAvatarUrl = useAuthenticatedAvatar(user.avatar, token);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Revoke previous preview URL if any
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
@@ -54,14 +61,17 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
     }
   };
 
-  const currentAvatar = avatarPreview || getAvatarUrl(user.avatar);
+  // Use local preview if user selected a new file, otherwise use the authenticated existing avatar
+  const currentAvatar = avatarPreview || existingAvatarUrl;
 
   return (
     <div className="edit-profile-overlay" onClick={onClose}>
       <div className="edit-profile-modal" onClick={(e) => e.stopPropagation()}>
         <header className="edit-profile-header">
           <h2 className="section-title">Edit Profile</h2>
-          <button className="btn--text" onClick={onClose}>×</button>
+          <button className="btn--text" onClick={onClose}>
+            ×
+          </button>
         </header>
 
         <form onSubmit={handleSubmit}>
@@ -81,9 +91,7 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
               {currentAvatar ? (
                 <img src={currentAvatar} alt="" className="edit-avatar-preview" />
               ) : (
-                <div className="edit-avatar-placeholder">
-                  {displayName.charAt(0).toUpperCase()}
-                </div>
+                <div className="edit-avatar-placeholder">{displayName.charAt(0).toUpperCase()}</div>
               )}
               <span className="edit-avatar-overlay">Change</span>
             </button>
@@ -129,8 +137,3 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
     </div>
   );
 }
-
-
-
-
-

@@ -10,49 +10,55 @@ interface UseCameraOptions {
 export function useCamera({ captureMode, onError }: UseCameraOptions) {
   const [cameraActive, setCameraActive] = useState(false);
   const [facingMode, setFacingMode] = useState<FacingMode>('environment');
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const setError = useCallback((status: Status) => {
-    onError?.(status);
-  }, [onError]);
+  const setError = useCallback(
+    (status: Status) => {
+      onError?.(status);
+    },
+    [onError]
+  );
 
   // Start camera stream (720p for good quality within 10MB limit)
-  const startCamera = useCallback(async (overrideFacingMode?: FacingMode, overrideCaptureMode?: CaptureMode) => {
-    try {
-      const useFacingMode = overrideFacingMode || facingMode;
-      const useCaptureMode = overrideCaptureMode || captureMode;
-      const constraints: MediaStreamConstraints = {
-        video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: useCaptureMode === 'video',
-      };
-      
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+  const startCamera = useCallback(
+    async (overrideFacingMode?: FacingMode, overrideCaptureMode?: CaptureMode) => {
+      try {
+        const useFacingMode = overrideFacingMode || facingMode;
+        const useCaptureMode = overrideCaptureMode || captureMode;
+        const constraints: MediaStreamConstraints = {
+          video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: useCaptureMode === 'video',
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+
+        setCameraActive(true);
+        return true;
+      } catch (error) {
+        console.error('Camera error:', error);
+        if ((error as Error).name === 'NotAllowedError') {
+          setError({ type: 'error', message: TEXT.camera.permissionDenied });
+        } else {
+          setError({ type: 'error', message: TEXT.camera.noCamera });
+        }
+        return false;
       }
-      
-      setCameraActive(true);
-      return true;
-    } catch (error) {
-      console.error('Camera error:', error);
-      if ((error as Error).name === 'NotAllowedError') {
-        setError({ type: 'error', message: TEXT.camera.permissionDenied });
-      } else {
-        setError({ type: 'error', message: TEXT.camera.noCamera });
-      }
-      return false;
-    }
-  }, [captureMode, facingMode, setError]);
+    },
+    [captureMode, facingMode, setError]
+  );
 
   // Stop camera stream
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
     if (videoRef.current) {
@@ -65,11 +71,11 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
   const switchCamera = useCallback(() => {
     const newFacingMode: FacingMode = facingMode === 'user' ? 'environment' : 'user';
     setFacingMode(newFacingMode);
-    
+
     // Restart camera with new facing mode if camera is active
     if (cameraActive) {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
       // Small delay to ensure previous stream is fully stopped
       setTimeout(() => {
@@ -82,7 +88,7 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
   useEffect(() => {
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -98,5 +104,3 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
     switchCamera,
   };
 }
-
-

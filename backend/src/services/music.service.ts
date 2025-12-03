@@ -143,40 +143,10 @@ export async function getRecentMusicShares(limit: number = 20): Promise<MusicSha
 }
 
 /**
- * Get user's recent music shares (On Repeat)
- */
-export async function getUserOnRepeat(userId: string, limit: number = 3): Promise<MusicShareWithUser[]> {
-  const result = await db
-    .select({
-      share: musicShares,
-      user: {
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-        avatar: users.avatar,
-      },
-    })
-    .from(musicShares)
-    .leftJoin(users, eq(musicShares.userId, users.id))
-    .where(eq(musicShares.userId, userId))
-    .orderBy(desc(musicShares.createdAt))
-    .limit(limit);
-
-  return result.map(({ share, user }) => ({
-    ...share,
-    user: user || undefined,
-  }));
-}
-
-/**
  * Delete a music share (owner only)
  */
 export async function deleteMusicShare(id: string, userId: string): Promise<boolean> {
-  const share = await db
-    .select()
-    .from(musicShares)
-    .where(eq(musicShares.id, id))
-    .limit(1);
+  const share = await db.select().from(musicShares).where(eq(musicShares.id, id)).limit(1);
 
   if (share.length === 0) return false;
   if (share[0].userId !== userId) return false;
@@ -188,7 +158,9 @@ export async function deleteMusicShare(id: string, userId: string): Promise<bool
 /**
  * Batch fetch music shares for multiple posts
  */
-export async function getMusicSharesForPosts(postIds: string[]): Promise<Map<string, MusicShareWithUser>> {
+export async function getMusicSharesForPosts(
+  postIds: string[]
+): Promise<Map<string, MusicShareWithUser>> {
   if (postIds.length === 0) return new Map();
 
   const result = await db
@@ -217,4 +189,3 @@ export async function getMusicSharesForPosts(postIds: string[]): Promise<Map<str
 
   return map;
 }
-

@@ -16,14 +16,17 @@ export function UserManagement({ token }: UserManagementProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  
+
   // Modal states
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [actionMessage, setActionMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -44,7 +47,7 @@ export function UserManagement({ token }: UserManagementProps) {
 
   // Filter and sort users
   const filteredUsers = useMemo(() => {
-    const result = users.filter(user => {
+    const result = users.filter((user) => {
       const query = searchQuery.toLowerCase();
       return (
         user.username.toLowerCase().includes(query) ||
@@ -85,20 +88,23 @@ export function UserManagement({ token }: UserManagementProps) {
 
   async function handleDeleteUser() {
     if (!selectedUser) return;
-    
+
     setActionLoading(true);
     setActionMessage(null);
     try {
       await api.deleteAdminUser(token, selectedUser.id);
       setActionMessage({ type: 'success', text: `User ${selectedUser.username} deleted` });
-      setUsers(users.filter(u => u.id !== selectedUser.id));
+      setUsers(users.filter((u) => u.id !== selectedUser.id));
       setTimeout(() => {
         setShowDeleteConfirm(false);
         setSelectedUser(null);
         setActionMessage(null);
       }, 1500);
     } catch (err) {
-      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete user' });
+      setActionMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to delete user',
+      });
     } finally {
       setActionLoading(false);
     }
@@ -106,7 +112,7 @@ export function UserManagement({ token }: UserManagementProps) {
 
   async function handleResetPassword() {
     if (!selectedUser || !newPassword) return;
-    
+
     setActionLoading(true);
     setActionMessage(null);
     try {
@@ -119,7 +125,10 @@ export function UserManagement({ token }: UserManagementProps) {
         setActionMessage(null);
       }, 1500);
     } catch (err) {
-      setActionMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to reset password' });
+      setActionMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to reset password',
+      });
     } finally {
       setActionLoading(false);
     }
@@ -159,7 +168,9 @@ export function UserManagement({ token }: UserManagementProps) {
       <div className="admin-error">
         <span className="error-icon">(╯°□°)╯</span>
         <span>{error}</span>
-        <button className="btn btn--secondary" onClick={loadUsers}>retry</button>
+        <button className="btn btn--secondary" onClick={loadUsers}>
+          retry
+        </button>
       </div>
     );
   }
@@ -181,19 +192,19 @@ export function UserManagement({ token }: UserManagementProps) {
         <table className="user-table">
           <thead>
             <tr>
-              <th 
+              <th
                 className={`sortable ${sortField === 'username' ? 'sorted' : ''}`}
                 onClick={() => handleSort('username')}
               >
                 username {sortField === 'username' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
-              <th 
+              <th
                 className={`sortable ${sortField === 'displayName' ? 'sorted' : ''}`}
                 onClick={() => handleSort('displayName')}
               >
                 display name {sortField === 'displayName' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
-              <th 
+              <th
                 className={`sortable ${sortField === 'postCount' ? 'sorted' : ''}`}
                 onClick={() => handleSort('postCount')}
               >
@@ -201,7 +212,7 @@ export function UserManagement({ token }: UserManagementProps) {
               </th>
               <th>reactions</th>
               <th>push</th>
-              <th 
+              <th
                 className={`sortable ${sortField === 'createdAt' ? 'sorted' : ''}`}
                 onClick={() => handleSort('createdAt')}
               >
@@ -211,7 +222,7 @@ export function UserManagement({ token }: UserManagementProps) {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map(user => (
+            {filteredUsers.map((user) => (
               <tr key={user.id}>
                 <td className="user-cell-username">@{user.username}</td>
                 <td>{user.displayName}</td>
@@ -219,14 +230,16 @@ export function UserManagement({ token }: UserManagementProps) {
                 <td className="user-cell-number">{user.reactionCount}</td>
                 <td className="user-cell-status">
                   {user.hasPushSubscription ? (
-                    <span className="status-dot status-dot--active" title="Has push subscription">●</span>
+                    <span className="status-dot status-dot--active" title="Has push subscription">
+                      ●
+                    </span>
                   ) : (
-                    <span className="status-dot status-dot--inactive" title="No push subscription">○</span>
+                    <span className="status-dot status-dot--inactive" title="No push subscription">
+                      ○
+                    </span>
                   )}
                 </td>
-                <td className="user-cell-date">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </td>
+                <td className="user-cell-date">{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td className="user-cell-actions">
                   <button
                     className="btn-icon"
@@ -252,10 +265,12 @@ export function UserManagement({ token }: UserManagementProps) {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && selectedUser && (
         <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>delete user</h3>
-              <button className="modal-close" onClick={closeModals}>×</button>
+              <button className="modal-close" onClick={closeModals}>
+                ×
+              </button>
             </div>
             <div className="modal-body">
               <p className="modal-warning">
@@ -275,9 +290,9 @@ export function UserManagement({ token }: UserManagementProps) {
               <button className="btn btn--secondary" onClick={closeModals} disabled={actionLoading}>
                 cancel
               </button>
-              <button 
-                className="btn btn--danger" 
-                onClick={handleDeleteUser} 
+              <button
+                className="btn btn--danger"
+                onClick={handleDeleteUser}
                 disabled={actionLoading}
               >
                 {actionLoading ? 'deleting...' : 'delete'}
@@ -290,13 +305,17 @@ export function UserManagement({ token }: UserManagementProps) {
       {/* Reset Password Modal */}
       {showResetPassword && selectedUser && (
         <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>reset password</h3>
-              <button className="modal-close" onClick={closeModals}>×</button>
+              <button className="modal-close" onClick={closeModals}>
+                ×
+              </button>
             </div>
             <div className="modal-body">
-              <p>Reset password for <strong>@{selectedUser.username}</strong></p>
+              <p>
+                Reset password for <strong>@{selectedUser.username}</strong>
+              </p>
               <div className="form-row">
                 <label className="form-label">new password</label>
                 <input
@@ -317,9 +336,9 @@ export function UserManagement({ token }: UserManagementProps) {
               <button className="btn btn--secondary" onClick={closeModals} disabled={actionLoading}>
                 cancel
               </button>
-              <button 
-                className="btn" 
-                onClick={handleResetPassword} 
+              <button
+                className="btn"
+                onClick={handleResetPassword}
                 disabled={actionLoading || newPassword.length < 6}
               >
                 {actionLoading ? 'resetting...' : 'reset password'}
@@ -331,8 +350,3 @@ export function UserManagement({ token }: UserManagementProps) {
     </div>
   );
 }
-
-
-
-
-

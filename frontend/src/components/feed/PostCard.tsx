@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { Post } from '../../types';
-import { getMediaUrl, getAvatarUrl } from '../../services/api';
 import { Reactions } from './Reactions';
+import { Comments } from './Comments';
 import { MusicShare } from '../music';
 import { formatDistanceToNow } from '../../utils/date';
 import { getKaomojiForUser } from '../../utils/kaomoji';
+import { useAuthenticatedMedia, useAuthenticatedAvatar } from '../../hooks/useAuthenticatedMedia';
 
 interface PostCardProps {
   post: Post;
@@ -15,11 +16,28 @@ interface PostCardProps {
   onUserClick?: (userId: string) => void;
 }
 
-export function PostCard({ post, currentUserId, token, onDelete, onReactionChange, onUserClick }: PostCardProps) {
+export function PostCard({
+  post,
+  currentUserId,
+  token,
+  onDelete,
+  onReactionChange,
+  onUserClick,
+}: PostCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const isOwner = post.userId === currentUserId;
-  const avatarUrl = getAvatarUrl(post.user.avatar);
+
+  // Load avatar using authenticated blob URL
+  const avatarUrl = useAuthenticatedAvatar(post.user.avatar, token);
+
+  // Load current media using authenticated blob URL
+  const currentMedia = post.media[currentMediaIndex];
+  const { url: mediaUrl, isLoading: mediaLoading } = useAuthenticatedMedia(
+    currentMedia?.filename ?? null,
+    token,
+    'media'
+  );
 
   const handleDelete = () => {
     if (showDeleteConfirm) {
@@ -91,30 +109,21 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
               </button>
             </div>
           )}
-          {post.media[currentMediaIndex].mimeType.startsWith('video/') ? (
-            <video
-              src={getMediaUrl(post.media[currentMediaIndex].filename)}
-              className="post-media-content"
-              controls
-              loop
-              playsInline
-            />
-          ) : (
-            <img
-              src={getMediaUrl(post.media[currentMediaIndex].filename)}
-              alt=""
-              className="post-media-content"
-            />
-          )}
+          {mediaLoading ? (
+            <div className="post-media-loading">Loading...</div>
+          ) : mediaUrl ? (
+            currentMedia.mimeType.startsWith('video/') ? (
+              <video src={mediaUrl} className="post-media-content" controls loop playsInline />
+            ) : (
+              <img src={mediaUrl} alt="" className="post-media-content" />
+            )
+          ) : null}
         </div>
       )}
 
       {post.musicShare && (
         <div className="post-music">
-          <MusicShare
-            track={post.musicShare}
-            mood={post.musicShare.moodKaomoji}
-          />
+          <MusicShare track={post.musicShare} mood={post.musicShare.moodKaomoji} />
         </div>
       )}
 
@@ -127,32 +136,43 @@ export function PostCard({ post, currentUserId, token, onDelete, onReactionChang
       )}
 
       <footer className="post-footer">
-        <Reactions
+        <div className="post-footer-row">
+          <Reactions
+            postId={post.id}
+            reactions={post.reactions}
+            currentUserId={currentUserId}
+            token={token}
+            onReactionChange={onReactionChange}
+          />
+
+          {isOwner && (
+            <div className="post-actions">
+              {showDeleteConfirm ? (
+                <>
+                  <button className="btn--text btn--danger" onClick={handleDelete}>
+                    Confirm
+                  </button>
+                  <button className="btn--text" onClick={() => setShowDeleteConfirm(false)}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button className="btn--text btn--danger" onClick={handleDelete}>
+                  Delete
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <Comments
           postId={post.id}
-          reactions={post.reactions}
+          comments={post.comments}
           currentUserId={currentUserId}
           token={token}
-          onReactionChange={onReactionChange}
+          onCommentChange={onReactionChange}
+          onUserClick={onUserClick}
         />
-
-        {isOwner && (
-          <div className="post-actions">
-            {showDeleteConfirm ? (
-              <>
-                <button className="btn--text btn--danger" onClick={handleDelete}>
-                  Confirm
-                </button>
-                <button className="btn--text" onClick={() => setShowDeleteConfirm(false)}>
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button className="btn--text btn--danger" onClick={handleDelete}>
-                Delete
-              </button>
-            )}
-          </div>
-        )}
       </footer>
     </article>
   );

@@ -6,7 +6,13 @@ const AUTH_TOKEN_KEY = 'druzi_token';
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string, displayName: string, inviteCode: string, birthday?: string) => Promise<void>;
+  register: (
+    username: string,
+    password: string,
+    displayName: string,
+    inviteCode: string,
+    birthday?: string
+  ) => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -48,18 +54,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(user);
   }, []);
 
-  const register = useCallback(async (
-    username: string,
-    password: string,
-    displayName: string,
-    inviteCode: string,
-    birthday?: string
-  ) => {
-    const { user, token } = await api.register(username, password, displayName, inviteCode, birthday);
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-    setToken(token);
-    setUser(user);
-  }, []);
+  const register = useCallback(
+    async (
+      username: string,
+      password: string,
+      displayName: string,
+      inviteCode: string,
+      birthday?: string
+    ) => {
+      const { user, token } = await api.register(
+        username,
+        password,
+        displayName,
+        inviteCode,
+        birthday
+      );
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      setToken(token);
+      setUser(user);
+    },
+    []
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -82,11 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -97,4 +108,3 @@ export function useAuth() {
   }
   return context;
 }
-

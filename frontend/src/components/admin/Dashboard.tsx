@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as api from '../../services/api';
-import type { AdminStats, ActivityDay, TopPoster, EngagementStats, SystemInfo } from '../../services/api';
+import type {
+  AdminStats,
+  ActivityDay,
+  TopPoster,
+  EngagementStats,
+  SystemInfo,
+} from '../../services/api';
 
 interface DashboardProps {
   token: string;
@@ -55,7 +61,9 @@ export function Dashboard({ token }: DashboardProps) {
       <div className="admin-error">
         <span className="error-icon">(╯°□°)╯</span>
         <span>{error}</span>
-        <button className="btn btn--secondary" onClick={loadData}>retry</button>
+        <button className="btn btn--secondary" onClick={loadData}>
+          retry
+        </button>
       </div>
     );
   }
@@ -97,8 +105,12 @@ export function Dashboard({ token }: DashboardProps) {
           <ActivityChart data={activity} />
         </div>
         <div className="chart-legend">
-          <span className="legend-item"><span className="legend-dot legend-dot--posts"></span> posts</span>
-          <span className="legend-item"><span className="legend-dot legend-dot--signups"></span> signups</span>
+          <span className="legend-item">
+            <span className="legend-dot legend-dot--posts"></span> posts
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot legend-dot--signups"></span> signups
+          </span>
         </div>
       </div>
 
@@ -152,14 +164,16 @@ export function Dashboard({ token }: DashboardProps) {
         <div className="system-info">
           <div className="system-row">
             <span className="system-label">vapid configured:</span>
-            <span className={`system-value ${systemInfo?.vapidConfigured ? 'system-value--ok' : 'system-value--warn'}`}>
+            <span
+              className={`system-value ${systemInfo?.vapidConfigured ? 'system-value--ok' : 'system-value--warn'}`}
+            >
               {systemInfo?.vapidConfigured ? 'yes' : 'no'}
             </span>
           </div>
           <div className="system-row">
             <span className="system-label">next notification:</span>
             <span className="system-value">
-              {systemInfo?.scheduledNotificationTime 
+              {systemInfo?.scheduledNotificationTime
                 ? new Date(systemInfo.scheduledNotificationTime).toLocaleString()
                 : 'not scheduled'}
             </span>
@@ -190,20 +204,20 @@ function ActivityChart({ data }: { data: ActivityDay[] }) {
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
-  const maxPosts = Math.max(...data.map(d => d.posts), 1);
-  const maxSignups = Math.max(...data.map(d => d.signups), 1);
+  const maxPosts = Math.max(...data.map((d) => d.posts), 1);
+  const maxSignups = Math.max(...data.map((d) => d.signups), 1);
   const maxValue = Math.max(maxPosts, maxSignups);
 
   const xScale = (i: number) => padding.left + (i / (data.length - 1)) * chartWidth;
   const yScale = (val: number) => padding.top + chartHeight - (val / maxValue) * chartHeight;
 
-  const postsPath = data.map((d, i) => 
-    `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.posts)}`
-  ).join(' ');
+  const postsPath = data
+    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.posts)}`)
+    .join(' ');
 
-  const signupsPath = data.map((d, i) => 
-    `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.signups)}`
-  ).join(' ');
+  const signupsPath = data
+    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.signups)}`)
+    .join(' ');
 
   // Y-axis labels
   const yLabels = [0, Math.round(maxValue / 2), maxValue];
@@ -220,12 +234,7 @@ function ActivityChart({ data }: { data: ActivityDay[] }) {
             y2={yScale(val)}
             className="chart-grid"
           />
-          <text
-            x={padding.left - 5}
-            y={yScale(val) + 4}
-            className="chart-label"
-            textAnchor="end"
-          >
+          <text x={padding.left - 5} y={yScale(val) + 4} className="chart-label" textAnchor="end">
             {val}
           </text>
         </g>
@@ -236,13 +245,7 @@ function ActivityChart({ data }: { data: ActivityDay[] }) {
         if (i % 7 !== 0 && i !== data.length - 1) return null;
         const date = new Date(d.date);
         return (
-          <text
-            key={i}
-            x={xScale(i)}
-            y={height - 5}
-            className="chart-label"
-            textAnchor="middle"
-          >
+          <text key={i} x={xScale(i)} y={height - 5} className="chart-label" textAnchor="middle">
             {date.getDate()}/{date.getMonth() + 1}
           </text>
         );
@@ -255,8 +258,18 @@ function ActivityChart({ data }: { data: ActivityDay[] }) {
       {/* Data points */}
       {data.map((d, i) => (
         <g key={i}>
-          <circle cx={xScale(i)} cy={yScale(d.posts)} r="3" className="chart-dot chart-dot--posts" />
-          <circle cx={xScale(i)} cy={yScale(d.signups)} r="3" className="chart-dot chart-dot--signups" />
+          <circle
+            cx={xScale(i)}
+            cy={yScale(d.posts)}
+            r="3"
+            className="chart-dot chart-dot--posts"
+          />
+          <circle
+            cx={xScale(i)}
+            cy={yScale(d.signups)}
+            r="3"
+            className="chart-dot chart-dot--signups"
+          />
         </g>
       ))}
     </svg>
@@ -267,13 +280,8 @@ function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
-  
+
   if (days > 0) return `${days}d ${hours}h ${mins}m`;
   if (hours > 0) return `${hours}h ${mins}m`;
   return `${mins}m`;
 }
-
-
-
-
-

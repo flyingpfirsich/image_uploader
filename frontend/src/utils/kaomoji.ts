@@ -36,16 +36,11 @@ export function getKaomojiForUser(userId: string): string {
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     const char = userId.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
-  
+
   // Use absolute value and modulo to get index
   const index = Math.abs(hash) % AVATAR_KAOMOJIS.length;
   return AVATAR_KAOMOJIS[index];
 }
-
-
-
-
-

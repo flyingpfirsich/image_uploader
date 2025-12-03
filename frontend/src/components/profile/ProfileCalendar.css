@@ -35,8 +35,13 @@
 }
 
 @keyframes streakPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .streak-info {
@@ -383,8 +388,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .day-modal {
@@ -604,4 +613,3 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-

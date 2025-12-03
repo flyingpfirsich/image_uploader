@@ -8,9 +8,3 @@ const inviteAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const generateInviteCode = customAlphabet(inviteAlphabet, 8);
 
 export { generateInviteCode };
-
-
-
-
-
-
