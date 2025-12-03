@@ -23,10 +23,15 @@ if (existsSync(migrationsFolder)) {
     migrate(db, { migrationsFolder });
     console.log('[DB] Migrations complete');
   } catch (err) {
-    const error = err as Error;
-    // Only skip for "table already exists" errors
-    if (error.message?.includes('already exists')) {
-      console.log('[DB] Migration skipped (tables already exist)');
+    const error = err as Error & { cause?: Error };
+    const errorMessage = error.message || '';
+    const causeMessage = error.cause?.message || '';
+
+    // Check both main error and cause for "already exists"
+    if (errorMessage.includes('already exists') || causeMessage.includes('already exists')) {
+      console.log(
+        '[DB] Migration skipped (tables already exist - run migrations manually or reset tracking)'
+      );
     } else {
       // Log the actual error for debugging
       console.error('[DB] Migration failed:', error.message);
