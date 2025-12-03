@@ -1,63 +1,33 @@
+import { useState } from 'react';
 import { KaomojiLogo } from './KaomojiLogo';
+import { HeaderMenu } from './HeaderMenu';
 import type { NavMode } from '../../types';
 
 interface HeaderProps {
-  activeNav: NavMode;
+  token: string;
   onNavChange: (nav: NavMode) => void;
-  isAdmin?: boolean;
+  onLogout: () => void;
 }
 
-export function Header({ activeNav, onNavChange, isAdmin }: HeaderProps) {
+export function Header({ token, onNavChange, onLogout }: HeaderProps) {
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
-    <header className="header">
-      <KaomojiLogo onClick={() => onNavChange('feed')} />
-      <nav className="nav">
+    <>
+      <header className="header">
+        <KaomojiLogo onClick={() => onNavChange('feed')} />
         <button
-          className={`nav-link ${activeNav === 'feed' ? 'active' : ''}`}
-          onClick={() => onNavChange('feed')}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontSize: 'inherit',
-          }}
+          className="header-menu-btn"
+          onClick={() => setShowMenu(true)}
+          aria-label="Open menu"
         >
-          FEED
+          [=]
         </button>
-        <span className="nav-sep">/</span>
-        <button
-          className={`nav-link ${activeNav === 'profile' ? 'active' : ''}`}
-          onClick={() => onNavChange('profile')}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontSize: 'inherit',
-          }}
-        >
-          PROFILE
-        </button>
-        {isAdmin && (
-          <>
-            <span className="nav-sep">/</span>
-            <button
-              className={`nav-link nav-link--admin ${activeNav === 'admin' ? 'active' : ''}`}
-              onClick={() => onNavChange('admin')}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontSize: 'inherit',
-              }}
-            >
-              ADMIN
-            </button>
-          </>
-        )}
-      </nav>
-    </header>
+      </header>
+
+      {showMenu && (
+        <HeaderMenu token={token} onLogout={onLogout} onClose={() => setShowMenu(false)} />
+      )}
+    </>
   );
 }

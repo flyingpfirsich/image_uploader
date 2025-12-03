@@ -5,12 +5,12 @@
 
 import { beforeEach, afterEach, vi } from 'vitest';
 import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import * as schema from '../db/schema.js';
 
 // Create in-memory database for tests
 let testSqlite: Database.Database;
-let testDb: ReturnType<typeof drizzle>;
+let testDb: BetterSQLite3Database<typeof schema>;
 
 export function getTestDb() {
   return testDb;

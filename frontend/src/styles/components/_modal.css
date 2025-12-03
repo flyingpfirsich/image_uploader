@@ -1,44 +1,65 @@
 /* ===========================================
    Modal Styles
+   Mobile-First Full-Screen Modals
    =========================================== */
 
+/* Full-screen overlay */
 .modal-overlay,
 .create-post-overlay,
 .edit-profile-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--bg);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 100;
-  padding: var(--space-xl);
+  overflow: hidden;
 }
 
+/* Full-screen modal container */
 .modal,
 .create-post-modal,
 .edit-profile-modal {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: var(--max-width-modal);
-  max-height: 90vh;
-  overflow-y: auto;
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
 }
 
+/* Confirmation modal - smaller, centered */
 .modal {
-  max-width: 400px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - var(--space-xl) * 2);
+  max-width: 320px;
+  height: auto;
+  border: 1px solid var(--border);
   padding: var(--space-lg);
 }
 
+/* Modal header - fixed at top */
 .modal-header,
 .create-post-header,
 .edit-profile-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-lg);
+  min-height: var(--top-bar-height);
+  padding: var(--space-md) var(--content-padding);
+  padding-top: calc(var(--space-md) + var(--safe-area-top));
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal-header {
+  padding: 0;
+  padding-bottom: var(--space-md);
+  min-height: auto;
+  border-bottom: none;
 }
 
 .modal-header h3 {
@@ -48,16 +69,21 @@
   text-transform: uppercase;
 }
 
+/* Touch-friendly close button */
 .modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   background: none;
   border: none;
   color: var(--fg-dim);
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   cursor: pointer;
-  transition: color var(--transition-fast);
 }
 
-.modal-close:hover {
+.modal-close:active {
   color: var(--fg);
 }
 
@@ -100,11 +126,35 @@
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
 }
 
-/* Create Post Modal Specific */
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* ===========================================
+   Create Post Modal - Full Screen
+   =========================================== */
+
+/* Scrollable content area */
+.create-post-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--content-padding);
+  padding-bottom: calc(var(--content-padding) + var(--safe-area-bottom));
+}
+
+/* Form inside modal needs horizontal padding */
+.create-post-modal > form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 var(--content-padding);
+}
+
 .create-post-previews {
   display: flex;
   flex-wrap: wrap;
@@ -125,35 +175,49 @@
   border: 1px solid var(--border);
 }
 
+/* Touch-friendly remove button */
 .preview-remove {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 20px;
-  height: 20px;
+  top: -10px;
+  right: -10px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--fg);
   cursor: pointer;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.preview-remove:active {
+  background: var(--border);
+}
+
 .create-post-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
 }
 
+.create-post-actions .form-input--small {
+  grid-column: span 2;
+}
+
+/* Fixed bottom submit area */
 .create-post-submit {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  padding: var(--content-padding);
+  padding-bottom: calc(var(--content-padding) + var(--safe-area-bottom));
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.create-post-submit .btn {
+  flex: 1;
 }
 
 /* Media Input Section */
@@ -164,66 +228,65 @@
   margin: var(--space-lg) 0;
 }
 
+/* Touch-friendly media buttons */
 .media-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
+  min-height: var(--touch-target-comfortable);
   background: transparent;
   border: 1px solid var(--border);
   color: var(--fg);
   cursor: pointer;
-  transition: all var(--transition-fast);
   font-family: inherit;
 }
 
-.media-btn:hover {
+.media-btn:active {
   background: rgba(255, 255, 255, 0.05);
   border-color: var(--fg-dim);
 }
 
 .media-btn--primary {
   width: 100%;
-  padding: var(--space-lg);
+  min-height: 120px;
+  padding: var(--space-xl);
   flex-direction: column;
   border: 1px dashed var(--border);
 }
 
-.media-btn--primary:hover {
+.media-btn--primary:active {
   border-color: var(--accent);
   background: rgba(255, 255, 255, 0.02);
 }
 
 .media-btn--secondary {
+  min-height: var(--touch-target-min);
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
-  border: none;
+  border: 1px solid var(--border);
   color: var(--fg-dim);
 }
 
-.media-btn--upload {
-  border: 1px solid var(--border);
-  margin-left: auto;
-}
-
+.media-btn--upload,
 .media-btn--music {
-  border: 1px solid var(--border);
+  flex: 1;
 }
 
-.media-btn--secondary:hover {
+.media-btn--secondary:active {
   color: var(--fg);
   background: rgba(255, 255, 255, 0.05);
 }
 
 .media-btn-icon {
-  font-size: 1.5rem;
+  font-size: var(--font-size-xl);
   line-height: 1;
 }
 
 .media-btn--primary .media-btn-icon {
-  font-size: 2.5rem;
-  margin-bottom: var(--space-xs);
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
 }
 
 .media-actions-secondary {
@@ -234,6 +297,7 @@
   padding-top: var(--space-sm);
 }
 
+/* Touch-friendly add more button */
 .preview-add-more {
   width: 80px;
   height: 80px;
@@ -244,30 +308,40 @@
   background: transparent;
   color: var(--fg-dim);
   cursor: pointer;
-  font-size: 1.5rem;
-  transition: all var(--transition-fast);
+  font-size: var(--font-size-xl);
 }
 
-.preview-add-more:hover {
+.preview-add-more:active {
   color: var(--fg);
   border-color: var(--fg);
 }
 
-/* Edit Profile Modal Specific */
+/* ===========================================
+   Edit Profile Modal - Full Screen
+   =========================================== */
+
+/* Scrollable content area */
+.edit-profile-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--content-padding);
+}
+
 .edit-avatar-section {
   display: flex;
   justify-content: center;
   margin-bottom: var(--space-xl);
 }
 
+/* Touch-friendly avatar button */
 .edit-avatar-btn {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: var(--avatar-xl);
+  height: var(--avatar-xl);
   border-radius: var(--border-radius-full);
   overflow: hidden;
   background: transparent;
-  border: none;
+  border: 2px dashed var(--border);
   cursor: pointer;
 }
 
@@ -284,31 +358,37 @@
   justify-content: center;
   background: var(--border);
   color: var(--fg);
-  font-size: 2.5rem;
+  font-size: var(--font-size-2xl);
   font-weight: 500;
 }
 
+/* Always show overlay on mobile (no hover) */
 .edit-avatar-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   color: var(--fg);
   font-size: var(--font-size-xs);
   text-transform: uppercase;
-  opacity: 0;
-  transition: opacity var(--transition-fast);
 }
 
-.edit-avatar-btn:hover .edit-avatar-overlay {
-  opacity: 1;
+.edit-avatar-btn:active .edit-avatar-overlay {
+  background: rgba(0, 0, 0, 0.7);
 }
 
+/* Fixed bottom actions */
 .edit-profile-actions {
   display: flex;
-  justify-content: flex-end;
   gap: var(--space-md);
-  margin-top: var(--space-xl);
+  padding: var(--content-padding);
+  padding-bottom: calc(var(--content-padding) + var(--safe-area-bottom));
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.edit-profile-actions .btn {
+  flex: 1;
 }

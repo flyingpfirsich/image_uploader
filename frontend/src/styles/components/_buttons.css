@@ -1,10 +1,14 @@
 /* ===========================================
    Button Styles
+   Mobile-First Touch-Friendly
    =========================================== */
 
 .btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-height);
+  padding: var(--btn-padding-y) var(--btn-padding-x);
   background: transparent;
   border: 1px solid var(--fg-dim);
   color: var(--fg);
@@ -13,10 +17,13 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  /* Touch-friendly */
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
-.btn:hover:not(:disabled) {
+/* Active state for touch (instead of hover) */
+.btn:active:not(:disabled) {
   background: var(--fg);
   color: var(--bg);
   border-color: var(--fg);
@@ -27,21 +34,31 @@
   cursor: not-allowed;
 }
 
+/* Full-width button variant */
+.btn--full {
+  width: 100%;
+}
+
 .btn--secondary {
   border-color: var(--border);
   color: var(--fg-dim);
 }
 
-.btn--secondary:hover:not(:disabled) {
+.btn--secondary:active:not(:disabled) {
   background: var(--fg-dim);
   color: var(--bg);
   border-color: var(--fg-dim);
 }
 
 .btn--text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--space-sm);
   background: transparent;
   border: none;
-  padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
   color: var(--fg);
@@ -50,9 +67,17 @@
   cursor: pointer;
 }
 
-.btn--text:hover:not(:disabled) {
+.btn--text:active:not(:disabled) {
   background: transparent;
   color: var(--accent);
+}
+
+/* Smaller text button variant */
+.btn--text.btn--small {
+  min-height: unset;
+  min-width: unset;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-xs);
 }
 
 .btn--danger {
@@ -60,15 +85,17 @@
   color: var(--error-light);
 }
 
-.btn--danger:hover:not(:disabled) {
+.btn--danger:active:not(:disabled) {
   background: var(--error);
   color: #fff;
   border-color: var(--error);
 }
 
+/* Small button - still meets touch target */
 .btn--small {
-  padding: 0.35rem 0.75rem;
-  font-size: var(--font-size-xs);
+  min-height: var(--touch-target-min);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
 }
 
 .btn--ghost {
@@ -76,34 +103,35 @@
   color: var(--fg-dim);
 }
 
-.btn--ghost:hover:not(:disabled) {
+.btn--ghost:active:not(:disabled) {
   background: transparent;
   color: var(--fg);
   border-color: var(--border);
 }
 
-/* Icon Buttons */
+/* Icon Buttons - touch-friendly */
 .btn-icon {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--fg);
-  width: 28px;
-  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: var(--icon-btn-size);
+  height: var(--icon-btn-size);
+  min-width: var(--icon-btn-size);
+  min-height: var(--icon-btn-size);
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg);
   cursor: pointer;
   font-family: inherit;
   font-size: var(--font-size-md);
-  transition: all var(--transition-fast);
 }
 
-.btn-icon:hover:not(:disabled) {
+.btn-icon:active:not(:disabled) {
   border-color: var(--fg);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.btn-icon--danger:hover:not(:disabled) {
+.btn-icon--danger:active:not(:disabled) {
   border-color: var(--error);
   color: var(--error-light);
 }
@@ -113,36 +141,39 @@
   cursor: not-allowed;
 }
 
-/* Camera-specific buttons */
+/* Camera-specific buttons - larger for easy capture */
 .btn--capture {
-  min-width: 120px;
+  min-width: 140px;
+  min-height: var(--touch-target-large);
   border-color: var(--fg);
   letter-spacing: 0.1em;
 }
 
-.btn--capture:hover:not(:disabled) {
+.btn--capture:active:not(:disabled) {
   background: var(--fg);
   color: var(--bg);
 }
 
 .btn--record {
+  min-height: var(--touch-target-large);
   border-color: var(--error);
   color: var(--error-light);
 }
 
-.btn--record:hover:not(:disabled) {
+.btn--record:active:not(:disabled) {
   background: var(--error);
   color: #fff;
   border-color: var(--error);
 }
 
 .btn--stop {
+  min-height: var(--touch-target-large);
   border-color: var(--error);
   background: var(--error);
   color: #fff;
 }
 
-.btn--stop:hover:not(:disabled) {
+.btn--stop:active:not(:disabled) {
   background: var(--error-light);
   border-color: var(--error-light);
 }

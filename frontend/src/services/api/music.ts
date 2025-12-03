@@ -44,3 +44,14 @@ export async function createMusicShare(
     errorMessage: 'Failed to create music share',
   });
 }
+
+export async function getUserRecentMusicShares(
+  token: string,
+  userId: string,
+  limit: number = 3
+): Promise<{ shares: MusicShare[] }> {
+  return apiGet<{ shares: MusicShare[] }>(`/api/music/user/${userId}?limit=${limit}`, {
+    headers: authHeaders(token),
+    errorMessage: 'Failed to get user music shares',
+  });
+}

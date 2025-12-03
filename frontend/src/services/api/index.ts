@@ -60,7 +60,7 @@ export {
 } from './admin';
 
 // Music
-export { getSpotifyStatus, searchMusic, createMusicShare } from './music';
+export { getSpotifyStatus, searchMusic, createMusicShare, getUserRecentMusicShares } from './music';
 
 // Lists
 export {

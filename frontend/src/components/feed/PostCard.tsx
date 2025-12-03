@@ -149,15 +149,18 @@ export function PostCard({
             <div className="post-actions">
               {showDeleteConfirm ? (
                 <>
-                  <button className="btn--text btn--danger" onClick={handleDelete}>
+                  <button className="btn--text btn--small btn--danger" onClick={handleDelete}>
                     Confirm
                   </button>
-                  <button className="btn--text" onClick={() => setShowDeleteConfirm(false)}>
+                  <button
+                    className="btn--text btn--small"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
                     Cancel
                   </button>
                 </>
               ) : (
-                <button className="btn--text btn--danger" onClick={handleDelete}>
+                <button className="btn--text btn--small btn--danger" onClick={handleDelete}>
                   Delete
                 </button>
               )}

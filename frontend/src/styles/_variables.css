@@ -1,5 +1,6 @@
 /* ===========================================
    CSS Custom Properties (Design Tokens)
+   Mobile-First Design System
    =========================================== */
 
 :root {
@@ -30,13 +31,13 @@
 
   /* Typography */
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
-  --font-size-xs: 0.7rem;
-  --font-size-sm: 0.8rem;
-  --font-size-base: 0.9rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
   --font-size-md: 1rem;
-  --font-size-lg: 1.2rem;
-  --font-size-xl: 1.4rem;
-  --font-size-2xl: 2rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
 
   /* Borders */
   --border-width: 1px;
@@ -51,11 +52,44 @@
   /* Shadows */
   --shadow-dropdown: 0 4px 12px rgba(0, 0, 0, 0.3);
 
-  /* Layout */
-  --max-width-content: 720px;
-  --max-width-feed: 560px;
-  --max-width-form: 380px;
-  --max-width-friends: 400px;
-  --max-width-modal: 480px;
-  --max-width-admin: 800px;
+  /* ===========================================
+     Mobile-First Tokens
+     =========================================== */
+
+  /* Touch Targets (Apple/Google recommend 44px minimum) */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  --touch-target-large: 56px;
+
+  /* Navigation */
+  --bottom-nav-height: 64px;
+  --top-bar-height: 56px;
+
+  /* Safe Areas (for notch/home indicator) */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+
+  /* Mobile Layout */
+  --content-padding: 1rem;
+  --card-padding: 1rem;
+
+  /* Input Sizing (16px prevents iOS zoom on focus) */
+  --input-font-size: 1rem;
+  --input-height: 48px;
+
+  /* Button Sizing */
+  --btn-height: 48px;
+  --btn-padding-x: 1.5rem;
+  --btn-padding-y: 0.875rem;
+
+  /* Icon Button Sizing */
+  --icon-btn-size: 44px;
+
+  /* Avatar Sizes */
+  --avatar-sm: 32px;
+  --avatar-md: 44px;
+  --avatar-lg: 64px;
+  --avatar-xl: 80px;
 }

@@ -156,6 +156,35 @@ export async function deleteMusicShare(id: string, userId: string): Promise<bool
 }
 
 /**
+ * Get recent music shares for a specific user
+ */
+export async function getUserRecentMusicShares(
+  userId: string,
+  limit: number = 3
+): Promise<MusicShareWithUser[]> {
+  const result = await db
+    .select({
+      share: musicShares,
+      user: {
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatar: users.avatar,
+      },
+    })
+    .from(musicShares)
+    .leftJoin(users, eq(musicShares.userId, users.id))
+    .where(eq(musicShares.userId, userId))
+    .orderBy(desc(musicShares.createdAt))
+    .limit(limit);
+
+  return result.map(({ share, user }) => ({
+    ...share,
+    user: user || undefined,
+  }));
+}
+
+/**
  * Batch fetch music shares for multiple posts
  */
 export async function getMusicSharesForPosts(
