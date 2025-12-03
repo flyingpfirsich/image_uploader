@@ -12,6 +12,8 @@ vi.mock('../services/api', () => ({
   getMe: vi.fn(),
   login: vi.fn(),
   register: vi.fn(),
+  refreshTokens: vi.fn(),
+  logoutEverywhere: vi.fn(),
 }));
 
 import * as api from '../services/api';
@@ -47,7 +49,8 @@ describe('AuthContext', () => {
         createdAt: new Date(),
       };
 
-      localStorage.setItem('druzi_token', 'valid-token');
+      localStorage.setItem('druzi_access_token', 'valid-token');
+      localStorage.setItem('druzi_refresh_token', 'valid-refresh-token');
       vi.mocked(api.getMe).mockResolvedValueOnce({ user: mockUser });
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -62,8 +65,10 @@ describe('AuthContext', () => {
     });
 
     it('should clear invalid token from localStorage', async () => {
-      localStorage.setItem('druzi_token', 'invalid-token');
+      localStorage.setItem('druzi_access_token', 'invalid-token');
+      localStorage.setItem('druzi_refresh_token', 'invalid-refresh-token');
       vi.mocked(api.getMe).mockRejectedValueOnce(new Error('Invalid token'));
+      vi.mocked(api.refreshTokens).mockRejectedValueOnce(new Error('Invalid refresh token'));
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -71,7 +76,7 @@ describe('AuthContext', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(localStorage.getItem('druzi_token')).toBeNull();
+      expect(localStorage.getItem('druzi_access_token')).toBeNull();
       expect(result.current.token).toBeNull();
       expect(result.current.user).toBeNull();
     });
@@ -89,7 +94,11 @@ describe('AuthContext', () => {
       };
       const mockToken = 'new-token';
 
-      vi.mocked(api.login).mockResolvedValueOnce({ user: mockUser, token: mockToken });
+      vi.mocked(api.login).mockResolvedValueOnce({
+        user: mockUser,
+        accessToken: mockToken,
+        refreshToken: 'refresh-token',
+      });
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -136,7 +145,11 @@ describe('AuthContext', () => {
       };
       const mockToken = 'new-token';
 
-      vi.mocked(api.register).mockResolvedValueOnce({ user: mockUser, token: mockToken });
+      vi.mocked(api.register).mockResolvedValueOnce({
+        user: mockUser,
+        accessToken: mockToken,
+        refreshToken: 'refresh-token',
+      });
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -169,7 +182,11 @@ describe('AuthContext', () => {
       };
       const mockToken = 'new-token';
 
-      vi.mocked(api.register).mockResolvedValueOnce({ user: mockUser, token: mockToken });
+      vi.mocked(api.register).mockResolvedValueOnce({
+        user: mockUser,
+        accessToken: mockToken,
+        refreshToken: 'refresh-token',
+      });
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -202,7 +219,8 @@ describe('AuthContext', () => {
         createdAt: new Date(),
       };
 
-      localStorage.setItem('druzi_token', 'valid-token');
+      localStorage.setItem('druzi_access_token', 'valid-token');
+      localStorage.setItem('druzi_refresh_token', 'valid-refresh-token');
       vi.mocked(api.getMe).mockResolvedValueOnce({ user: mockUser });
 
       const { result } = renderHook(() => useAuth(), { wrapper });
@@ -218,7 +236,7 @@ describe('AuthContext', () => {
       expect(result.current.user).toBeNull();
       expect(result.current.token).toBeNull();
       expect(result.current.isAuthenticated).toBe(false);
-      expect(localStorage.getItem('druzi_token')).toBeNull();
+      expect(localStorage.getItem('druzi_access_token')).toBeNull();
     });
   });
 
@@ -233,7 +251,8 @@ describe('AuthContext', () => {
         createdAt: new Date(),
       };
 
-      localStorage.setItem('druzi_token', 'valid-token');
+      localStorage.setItem('druzi_access_token', 'valid-token');
+      localStorage.setItem('druzi_refresh_token', 'valid-refresh-token');
       vi.mocked(api.getMe).mockResolvedValueOnce({ user: mockUser });
 
       const { result } = renderHook(() => useAuth(), { wrapper });

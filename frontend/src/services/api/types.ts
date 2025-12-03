@@ -6,7 +6,13 @@ import type { User, Post, MusicShare, List, ListActivity } from '../../types';
 // Auth responses
 export interface AuthResponse {
   user: User;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RefreshResponse {
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface UserResponse {

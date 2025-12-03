@@ -121,6 +121,14 @@ beforeEach(() => {
       mood_kaomoji TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
     );
+
+    CREATE TABLE refresh_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    );
   `);
 
   // Create drizzle instance
@@ -140,7 +148,8 @@ vi.mock('../config.js', () => ({
   config: {
     port: 3000,
     jwtSecret: 'test-secret',
-    jwtExpiresIn: '1h',
+    jwtAccessExpiresIn: '15m',
+    jwtRefreshExpiresIn: '7d',
     dbPath: ':memory:',
     uploadsDir: '/tmp/test-uploads',
     maxFileSize: 10 * 1024 * 1024,

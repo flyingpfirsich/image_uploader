@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, JwtPayload } from '../utils/jwt.js';
+import { verifyAccessToken, JwtPayload } from '../utils/jwt.js';
 
 // Extend Express Request to include user
 declare global {
@@ -20,7 +20,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   }
 
   const token = authHeader.slice(7);
-  const payload = verifyToken(token);
+  const payload = verifyAccessToken(token);
 
   if (!payload) {
     res.status(401).json({ error: 'Invalid or expired token' });

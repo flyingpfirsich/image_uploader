@@ -13,6 +13,19 @@ export const users = sqliteTable('users', {
     .$defaultFn(() => new Date()),
 });
 
+// Refresh tokens table (for secure token refresh)
+export const refreshTokens = sqliteTable('refresh_tokens', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  tokenHash: text('token_hash').notNull(), // Hashed refresh token
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // Invite codes table
 export const inviteCodes = sqliteTable('invite_codes', {
   code: text('code').primaryKey(),
@@ -199,3 +212,5 @@ export type List = typeof lists.$inferSelect;
 export type NewList = typeof lists.$inferInsert;
 export type ListItem = typeof listItems.$inferSelect;
 export type NewListItem = typeof listItems.$inferInsert;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type NewRefreshToken = typeof refreshTokens.$inferInsert;
