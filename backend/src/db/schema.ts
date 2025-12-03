@@ -142,6 +142,39 @@ export const musicShares = sqliteTable('music_shares', {
     .$defaultFn(() => new Date()),
 });
 
+// Lists table
+export const lists = sqliteTable('lists', {
+  id: text('id').primaryKey(),
+  creatorId: text('creator_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  allowAnyoneAdd: integer('allow_anyone_add', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// List items table
+export const listItems = sqliteTable('list_items', {
+  id: text('id').primaryKey(),
+  listId: text('list_id')
+    .notNull()
+    .references(() => lists.id, { onDelete: 'cascade' }),
+  addedById: text('added_by_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  note: text('note'),
+  externalUrl: text('external_url'),
+  completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
+  order: integer('order').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // TypeScript types derived from schema
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -162,3 +195,7 @@ export type MusicShare = typeof musicShares.$inferSelect;
 export type NewMusicShare = typeof musicShares.$inferInsert;
 export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
+export type List = typeof lists.$inferSelect;
+export type NewList = typeof lists.$inferInsert;
+export type ListItem = typeof listItems.$inferSelect;
+export type NewListItem = typeof listItems.$inferInsert;

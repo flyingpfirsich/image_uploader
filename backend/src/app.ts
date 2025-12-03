@@ -10,6 +10,7 @@ import usersRoutes from './routes/users.js';
 import notificationsRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
 import musicRoutes from './routes/music.js';
+import listsRoutes from './routes/lists.js';
 import uploadsRoutes from './routes/uploads.js';
 
 // Services
@@ -36,6 +37,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/music', musicRoutes);
+app.use('/api/lists', listsRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -90,6 +92,17 @@ app.get('/api', (_req, res) => {
       'POST /api/music',
       'GET  /api/music/:id',
       'DELETE /api/music/:id',
+      'GET  /api/lists',
+      'GET  /api/lists/user/:userId',
+      'GET  /api/lists/activity',
+      'GET  /api/lists/:id',
+      'POST /api/lists',
+      'PATCH /api/lists/:id',
+      'DELETE /api/lists/:id',
+      'POST /api/lists/:id/items',
+      'PATCH /api/lists/:id/items/:itemId',
+      'DELETE /api/lists/:id/items/:itemId',
+      'POST /api/lists/:id/items/:itemId/vote',
     ],
   });
 });

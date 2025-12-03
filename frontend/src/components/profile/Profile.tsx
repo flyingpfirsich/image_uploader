@@ -5,6 +5,7 @@ import { PostCard } from '../feed/PostCard';
 import { EditProfile } from './EditProfile';
 import { ProfileCalendar } from './ProfileCalendar';
 import { NotificationSettings } from '../settings/NotificationSettings';
+import { ListSection } from '../lists';
 import { formatDate } from '../../utils/date';
 import { AuthenticatedAvatar } from '../common/AuthenticatedAvatar';
 
@@ -124,6 +125,8 @@ export function Profile({
           </div>
         )}
       </header>
+
+      <ListSection userId={userId} currentUserId={currentUserId} token={token} />
 
       {isOwnProfile && (
         <section className="profile-calendar-section">

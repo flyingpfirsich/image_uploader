@@ -1,7 +1,7 @@
 /**
  * API response types
  */
-import type { User, Post, MusicShare } from '../../types';
+import type { User, Post, MusicShare, List, ListActivity } from '../../types';
 
 // Auth responses
 export interface AuthResponse {
@@ -19,6 +19,11 @@ export interface UsersResponse {
 
 export interface FeedResponse {
   posts: Post[];
+  listActivity?: ListActivity[];
+}
+
+export interface ListsResponse {
+  lists: List[];
 }
 
 export interface ProfileResponse {

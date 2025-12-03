@@ -1,6 +1,0 @@
-{
-  "frontend/**/*.{ts,tsx}": ["eslint --fix --config frontend/eslint.config.js", "prettier --write"],
-  "frontend/**/*.css": ["prettier --write"],
-  "backend/src/**/*.ts": ["eslint --fix --config backend/eslint.config.js", "prettier --write"],
-  "**/*.{json,md}": ["prettier --write"]
-}

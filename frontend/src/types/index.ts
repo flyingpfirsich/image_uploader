@@ -161,3 +161,57 @@ export const MUSIC_MOOD_KAOMOJIS = [
   { kaomoji: '(⌐■_■)', label: 'Cool' },
   { kaomoji: '(╯°□°)╯', label: 'Intense' },
 ] as const;
+
+// List types
+export interface List {
+  id: string;
+  creatorId: string;
+  title: string;
+  description: string | null;
+  allowAnyoneAdd: boolean;
+  createdAt: Date;
+  creator: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+  itemCount: number;
+}
+
+export interface ListItem {
+  id: string;
+  listId: string;
+  addedById: string;
+  title: string;
+  note: string | null;
+  externalUrl: string | null;
+  completed: boolean;
+  order: number;
+  createdAt: Date;
+  addedBy: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+}
+
+export interface ListWithItems extends List {
+  items: ListItem[];
+}
+
+export interface ListActivity {
+  type: 'list_created' | 'item_added';
+  listId: string;
+  listTitle: string;
+  itemTitle?: string;
+  userId: string;
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+  createdAt: Date;
+}

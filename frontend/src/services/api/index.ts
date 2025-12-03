@@ -62,6 +62,20 @@ export {
 // Music
 export { getSpotifyStatus, searchMusic, createMusicShare } from './music';
 
+// Lists
+export {
+  getLists,
+  getListsByUser,
+  getListActivity,
+  getList,
+  createList,
+  updateList,
+  deleteList,
+  addListItem,
+  updateListItem,
+  deleteListItem,
+} from './lists';
+
 // Types
 export type {
   AuthResponse,
@@ -79,6 +93,7 @@ export type {
   AdminInviteCode,
   SystemInfo,
   MusicShare,
+  ListsResponse,
 } from './types';
 
 // Client utilities (for advanced use cases)

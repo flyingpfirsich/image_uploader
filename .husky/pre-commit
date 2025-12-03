@@ -1,11 +1,16 @@
 #!/usr/bin/env sh
 
-# Source nvm/node if available
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# Add node/npm paths (Homebrew on macOS)
+export PATH="/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-# Fallback: add common node paths
-export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:$HOME/.nvm/versions/node/$(cat $HOME/.nvmrc 2>/dev/null || echo 'lts')/bin"
+# Add local node_modules to PATH
+export PATH="$(pwd)/node_modules/.bin:$PATH"
 
-npx lint-staged
-npm test
+# Run lint-staged (formatting)
+npx lint-staged || exit 1
+
+# Run lint fix
+npm run lint:fix || exit 1
+
+# Run tests
+npm test || exit 1
