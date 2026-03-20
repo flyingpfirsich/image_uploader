@@ -198,25 +198,6 @@
   margin-top: var(--space-sm);
 }
 
-/* Recent Songs Section */
-.profile-recent-songs {
-  margin-top: var(--space-xl);
-  padding: var(--space-lg);
-  border: 1px solid var(--border);
-}
-
-.recent-songs-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  margin-top: var(--space-md);
-}
-
-.recent-songs-list .music-share--compact {
-  background: var(--bg-elevated);
-  padding: var(--space-sm);
-}
-
 /* Calendar Section */
 .profile-calendar-section {
   margin-top: var(--space-xl);
