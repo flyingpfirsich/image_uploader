@@ -5,7 +5,7 @@ import { ArchiveGalleryItem } from './ArchiveGalleryItem';
 import { EditProfile } from './EditProfile';
 import { ProfileCalendar } from './ProfileCalendar';
 import { ListSection } from '../lists';
-import { MusicShare as MusicShareComponent } from '../music/MusicShare';
+import { RecentSongs } from './RecentSongs';
 import { formatDate } from '../../utils/date';
 import { AuthenticatedAvatar } from '../common/AuthenticatedAvatar';
 
@@ -39,7 +39,7 @@ export function Profile({
         const [profileData, usersData, musicData] = await Promise.all([
           api.getUserProfile(token, userId),
           isOwnProfile ? api.getUsers(token) : Promise.resolve({ users: [] }),
-          api.getUserRecentMusicShares(token, userId, 3),
+          api.getUserRecentMusicShares(token, userId, 50),
         ]);
         setUser(profileData.user);
         setPosts(profileData.posts);
@@ -108,16 +108,7 @@ export function Profile({
 
       <ListSection userId={userId} currentUserId={currentUserId} token={token} />
 
-      {recentSongs.length > 0 && (
-        <section className="profile-recent-songs">
-          <h3 className="section-title">Recent Songs ({recentSongs.length})</h3>
-          <div className="recent-songs-list">
-            {recentSongs.map((song) => (
-              <MusicShareComponent key={song.id} track={song} mood={song.moodKaomoji} compact />
-            ))}
-          </div>
-        </section>
-      )}
+      {recentSongs.length > 0 && <RecentSongs songs={recentSongs} />}
 
       {isOwnProfile && (
         <section className="profile-calendar-section">

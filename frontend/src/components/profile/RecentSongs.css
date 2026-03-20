@@ -1,0 +1,76 @@
+/* ===========================================
+   Recent Songs - Collapsible Music Section
+   =========================================== */
+
+.recent-songs {
+  margin-top: var(--space-xl);
+  border: 1px solid var(--border);
+}
+
+/* Header */
+.recent-songs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.recent-songs-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* Toggle Button */
+.recent-songs-toggle {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--fg-dim);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  cursor: pointer;
+  padding: var(--space-xs) var(--space-sm);
+  transition: all var(--transition-fast);
+}
+
+.recent-songs-toggle:hover {
+  color: var(--fg);
+  border-color: var(--border);
+}
+
+/* Song List */
+.recent-songs-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.recent-songs-item .music-share--compact {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: transparent;
+  padding: var(--space-sm) var(--space-md);
+  transition: all var(--transition-fast);
+}
+
+.recent-songs-item .music-share--compact:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border);
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .recent-songs-header {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .recent-songs-list {
+    padding: var(--space-xs);
+  }
+}
