@@ -98,12 +98,16 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   const removeFile = useCallback(
     (index: number) => {
       URL.revokeObjectURL(previews[index]);
-      setFiles((prev) => prev.filter((_, i) => i !== index));
-      setPreviews((prev) => prev.filter((_, i) => i !== index));
-      // Restart camera when media is removed
-      startCamera();
+      const newFiles = files.filter((_, i) => i !== index);
+      const newPreviews = previews.filter((_, i) => i !== index);
+      setFiles(newFiles);
+      setPreviews(newPreviews);
+      // Restart camera only when last file is removed
+      if (newFiles.length === 0) {
+        startCamera();
+      }
     },
-    [previews, startCamera]
+    [files, previews, startCamera]
   );
 
   // Auto-start camera when component mounts
@@ -147,13 +151,28 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     const file = new File([capturedMedia.blob], fileName, { type: mimeType });
     const preview = URL.createObjectURL(file);
 
-    setFiles([file]);
-    setPreviews([preview]);
+    // Add to existing files instead of replacing
+    setFiles((prev) => [...prev, file]);
+    setPreviews((prev) => [...prev, preview]);
 
     URL.revokeObjectURL(capturedMedia.url);
     setCapturedMedia(null);
     stopCamera();
   }, [capturedMedia, stopCamera]);
+
+  // Add BeReal composite photo to existing files
+  const handleAddBeRealPhoto = useCallback(async () => {
+    if (!hasBeRealPhotos) return;
+
+    const composited = await compositeBeRealPhotos();
+    if (composited) {
+      const preview = URL.createObjectURL(composited);
+      setFiles((prev) => [...prev, composited]);
+      setPreviews((prev) => [...prev, preview]);
+      clearBeRealPhotos();
+      stopCamera();
+    }
+  }, [hasBeRealPhotos, compositeBeRealPhotos, clearBeRealPhotos, stopCamera]);
 
   // Submit post
   const handleSubmit = async (e: React.FormEvent) => {
@@ -266,6 +285,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
           onCaptureBeRealPhoto={captureBeRealPhoto}
           onStartCamera={handleStartCamera}
           onStopCamera={stopCamera}
+          onAddBeRealPhoto={handleAddBeRealPhoto}
           onStartRecording={startRecording}
           onStopRecording={stopRecording}
           onTextChange={setText}

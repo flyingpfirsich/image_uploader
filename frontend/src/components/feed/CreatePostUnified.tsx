@@ -20,6 +20,8 @@ function getRandomPlaceholder() {
 const VIEWFINDER_MAX_HEIGHT = 300;
 const VIEWFINDER_SNAP_THRESHOLD = 0.6;
 
+type ViewfinderMode = 'camera' | 'preview';
+
 interface CreatePostUnifiedProps {
   token: string;
   // Camera state
@@ -51,6 +53,7 @@ interface CreatePostUnifiedProps {
   onCaptureBeRealPhoto: () => void;
   onStartCamera: () => void;
   onStopCamera: () => void;
+  onAddBeRealPhoto: () => Promise<void>;
   onStartRecording: () => void;
   onStopRecording: () => void;
   // Form handlers
@@ -91,6 +94,7 @@ export function CreatePostUnified({
   onCaptureBeRealPhoto,
   onStartCamera,
   onStopCamera,
+  onAddBeRealPhoto,
   onStartRecording,
   onStopRecording,
   onTextChange,
@@ -117,6 +121,11 @@ export function CreatePostUnified({
   const [isDragging, setIsDragging] = useState(false);
   const touchStartY = useRef(0);
   const touchStartHeight = useRef(VIEWFINDER_MAX_HEIGHT);
+
+  // Carousel state for multiple media
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  // Toggle between camera and preview when we have media
+  const [viewfinderMode, setViewfinderMode] = useState<ViewfinderMode>('camera');
 
   const handleSwipeStart = useCallback(
     (e: React.TouchEvent) => {
@@ -221,6 +230,44 @@ export function CreatePostUnified({
 
   // Determine what to show in the viewfinder area
   const hasMedia = files.length > 0;
+  const totalMedia = files.length;
+
+  // Carousel navigation
+  const nextMedia = useCallback(() => {
+    if (currentMediaIndex < totalMedia - 1) {
+      setCurrentMediaIndex(currentMediaIndex + 1);
+    }
+  }, [currentMediaIndex, totalMedia]);
+
+  const prevMedia = useCallback(() => {
+    if (currentMediaIndex > 0) {
+      setCurrentMediaIndex(currentMediaIndex - 1);
+    }
+  }, [currentMediaIndex]);
+
+  // Reset carousel index when files change
+  useEffect(() => {
+    if (currentMediaIndex >= files.length && files.length > 0) {
+      setCurrentMediaIndex(files.length - 1);
+    } else if (files.length === 0) {
+      setCurrentMediaIndex(0);
+    }
+  }, [files.length, currentMediaIndex]);
+
+  // Switch viewfinder mode based on file count changes
+  const prevFilesLength = useRef(0);
+  useEffect(() => {
+    // Switch to preview when going from 0 files to having files
+    if (files.length > 0 && prevFilesLength.current === 0) {
+      setViewfinderMode('preview');
+      onStopCamera();
+    }
+    // Switch to camera when all files are removed
+    if (files.length === 0 && prevFilesLength.current > 0) {
+      setViewfinderMode('camera');
+    }
+    prevFilesLength.current = files.length;
+  }, [files.length, onStopCamera]);
 
   // Auto-collapse viewfinder when focusing text inputs (only if no media)
   const collapseViewfinder = useCallback(() => {
@@ -238,6 +285,13 @@ export function CreatePostUnified({
     }
   }, [captureMode, capturedMedia, onUseCapturedMedia]);
 
+  // Auto-add BeReal photos when captured
+  useEffect(() => {
+    if (hasBeRealPhotos) {
+      onAddBeRealPhoto();
+    }
+  }, [hasBeRealPhotos, onAddBeRealPhoto]);
+
   return (
     <>
       <form ref={formRef} className="create-post-unified" onSubmit={onSubmit}>
@@ -250,28 +304,57 @@ export function CreatePostUnified({
             transition: isDragging ? 'none' : 'height 0.25s ease-out',
           }}
         >
-          {hasMedia ? (
-            // Show captured/uploaded media with X to remove
+          {/* Preview mode: show media carousel */}
+          {viewfinderMode === 'preview' && hasMedia && (
             <div className="unified-media-preview">
-              {previews.map((preview, index) => (
-                <div key={index} className="unified-preview-item">
-                  {files[index].type.startsWith('video/') ? (
-                    <video src={preview} controls className="unified-preview-media" />
-                  ) : (
-                    <img src={preview} alt="" className="unified-preview-media" />
-                  )}
+              <div className="unified-preview-item">
+                {files[currentMediaIndex]?.type.startsWith('video/') ? (
+                  <video
+                    src={previews[currentMediaIndex]}
+                    controls
+                    className="unified-preview-media"
+                  />
+                ) : (
+                  <img src={previews[currentMediaIndex]} alt="" className="unified-preview-media" />
+                )}
+                <button
+                  type="button"
+                  className="unified-preview-remove"
+                  onClick={() => onRemoveFile(currentMediaIndex)}
+                >
+                  x
+                </button>
+              </div>
+
+              {/* Carousel navigation - only show if more than one photo */}
+              {totalMedia > 1 && (
+                <div className="unified-media-nav">
                   <button
                     type="button"
-                    className="unified-preview-remove"
-                    onClick={() => onRemoveFile(index)}
+                    className="unified-nav-btn"
+                    onClick={prevMedia}
+                    disabled={currentMediaIndex === 0}
                   >
-                    x
+                    &larr;
+                  </button>
+                  <span className="unified-media-counter">
+                    {currentMediaIndex + 1} / {totalMedia}
+                  </span>
+                  <button
+                    type="button"
+                    className="unified-nav-btn"
+                    onClick={nextMedia}
+                    disabled={currentMediaIndex === totalMedia - 1}
+                  >
+                    &rarr;
                   </button>
                 </div>
-              ))}
+              )}
             </div>
-          ) : hasBeRealPhotos ? (
-            // Show BeReal preview with tap to swap
+          )}
+
+          {/* BeReal preview mode */}
+          {viewfinderMode === 'preview' && !hasMedia && hasBeRealPhotos && (
             <div className="unified-bereal-preview" onClick={onSwapBeRealPhotos}>
               {(() => {
                 const mainPhoto =
@@ -297,13 +380,17 @@ export function CreatePostUnified({
                 onClick={(e) => {
                   e.stopPropagation();
                   onStartCamera();
+                  setViewfinderMode('camera');
                 }}
               >
                 x
               </button>
             </div>
-          ) : (
-            // Show camera
+          )}
+
+          {/* Camera mode - show when in camera mode OR when no media exists at all */}
+          {(viewfinderMode === 'camera' ||
+            (viewfinderMode !== 'preview' && !hasMedia && !hasBeRealPhotos)) && (
             <>
               <CameraPreview
                 captureMode={captureMode}
