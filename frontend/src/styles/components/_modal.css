@@ -446,12 +446,20 @@
   position: relative;
   max-width: 100%;
   max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .unified-preview-media {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+/* Video needs extra padding for controls */
+video.unified-preview-media {
+  max-height: calc(100% - 40px);
 }
 
 .unified-preview-remove {
