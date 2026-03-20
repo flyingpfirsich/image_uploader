@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { MusicShare } from '../../types';
 import { MusicShare as MusicShareComponent } from '../music/MusicShare';
 import './RecentSongs.css';
@@ -11,9 +11,20 @@ const INITIAL_VISIBLE = 3;
 
 export function RecentSongs({ songs }: RecentSongsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const hasMore = songs.length > INITIAL_VISIBLE;
-  const visibleSongs = isExpanded ? songs : songs.slice(0, INITIAL_VISIBLE);
-  const hiddenCount = songs.length - INITIAL_VISIBLE;
+
+  const uniqueSongs = useMemo(() => {
+    const seen = new Set<string>();
+    return songs.filter((song) => {
+      const key = `${song.trackName}-${song.artistName}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [songs]);
+
+  const hasMore = uniqueSongs.length > INITIAL_VISIBLE;
+  const visibleSongs = isExpanded ? uniqueSongs : uniqueSongs.slice(0, INITIAL_VISIBLE);
+  const hiddenCount = uniqueSongs.length - INITIAL_VISIBLE;
 
   const toggleExpanded = useCallback(() => {
     setIsExpanded((prev) => !prev);
@@ -22,7 +33,7 @@ export function RecentSongs({ songs }: RecentSongsProps) {
   return (
     <section className="recent-songs">
       <header className="recent-songs-header">
-        <h3 className="recent-songs-title">Songs ({songs.length})</h3>
+        <h3 className="recent-songs-title">Songs ({uniqueSongs.length})</h3>
         {hasMore && (
           <button
             className="recent-songs-toggle"
