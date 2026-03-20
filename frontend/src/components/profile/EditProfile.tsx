@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import type { User } from '../../types';
 import * as api from '../../services/api';
+import { invalidateMediaCache } from '../../services/api/media';
 import { useAuthenticatedAvatar } from '../../hooks/useAuthenticatedMedia';
 
 interface EditProfileProps {
@@ -40,6 +41,9 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
     setError('');
 
     try {
+      // If updating avatar, invalidate the old one from cache
+      const oldAvatar = user.avatar;
+
       const { user: updatedUser } = await api.updateProfile(
         token,
         {
@@ -48,6 +52,11 @@ export function EditProfile({ user, token, onSave, onClose }: EditProfileProps) 
         },
         avatarFile || undefined
       );
+
+      // Invalidate old avatar from cache if it changed
+      if (oldAvatar && updatedUser.avatar !== oldAvatar) {
+        invalidateMediaCache('/uploads/avatars/' + oldAvatar);
+      }
 
       if (avatarPreview) {
         URL.revokeObjectURL(avatarPreview);

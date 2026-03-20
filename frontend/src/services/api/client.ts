@@ -6,6 +6,10 @@ export const API_URL = import.meta.env.PROD
   ? ''
   : import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Use relative URLs for uploads so service worker can cache them
+// In dev mode, Vite proxy forwards /uploads to the backend
+export const UPLOADS_URL = '';
+
 /**
  * Get authorization headers with Bearer token
  */
@@ -213,9 +217,12 @@ export async function apiFetchBlob(
   options: {
     headers?: HeadersInit;
     errorMessage?: string;
+    useUploadsUrl?: boolean;
   } = {}
 ): Promise<Blob> {
-  const res = await fetch(`${API_URL}${url}`, {
+  // Use UPLOADS_URL for upload paths so service worker can cache them
+  const baseUrl = options.useUploadsUrl ? UPLOADS_URL : API_URL;
+  const res = await fetch(`${baseUrl}${url}`, {
     headers: options.headers,
   });
 

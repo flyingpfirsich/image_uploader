@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Post } from '../../types';
 import { useAuthenticatedMedia } from '../../hooks/useAuthenticatedMedia';
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import { PostDetailModal } from './PostDetailModal';
 
 interface ArchiveGalleryItemProps {
@@ -17,10 +18,16 @@ export function ArchiveGalleryItem({
   onPostChange,
 }: ArchiveGalleryItemProps) {
   const [showDetail, setShowDetail] = useState(false);
+  const [ref, isVisible] = useIntersectionObserver<HTMLElement>({
+    rootMargin: '200px', // Start loading 200px before entering viewport
+    triggerOnce: true,
+  });
 
   const firstMedia = post.media[0];
+
+  // Only fetch when visible (lazy loading)
   const { url: mediaUrl, isLoading: mediaLoading } = useAuthenticatedMedia(
-    firstMedia?.filename ?? null,
+    isVisible ? (firstMedia?.filename ?? null) : null,
     token,
     'media'
   );
@@ -34,10 +41,10 @@ export function ArchiveGalleryItem({
 
   return (
     <>
-      <article className="archive-gallery-item" onClick={() => setShowDetail(true)}>
+      <article ref={ref} className="archive-gallery-item" onClick={() => setShowDetail(true)}>
         <div className="archive-gallery-media">
           {hasMultipleMedia && <span className="archive-gallery-badge">{post.media.length}</span>}
-          {mediaLoading ? (
+          {!isVisible || mediaLoading ? (
             <div className="archive-gallery-loading">...</div>
           ) : mediaUrl ? (
             firstMedia.mimeType.startsWith('video/') ? (

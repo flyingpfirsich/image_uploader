@@ -7,6 +7,167 @@ interface UseAuthenticatedMediaResult {
   error: string | null;
 }
 
+// =============================================================================
+// In-Memory Cache with Request Deduplication
+// =============================================================================
+
+interface CacheEntry {
+  url: string;
+  refCount: number;
+  timestamp: number;
+}
+
+interface PendingRequest {
+  promise: Promise<string>;
+  subscribers: Set<(url: string) => void>;
+  errorSubscribers: Set<(error: Error) => void>;
+}
+
+// Global in-memory cache for blob URLs
+const mediaCache = new Map<string, CacheEntry>();
+// Track in-flight requests for deduplication
+const pendingRequests = new Map<string, PendingRequest>();
+// Max cache size (entries, not bytes)
+const MAX_CACHE_SIZE = 200;
+
+function getCacheKey(filename: string, type: 'media' | 'avatar'): string {
+  return `${type}:${filename}`;
+}
+
+/**
+ * Get a blob URL from cache, incrementing ref count
+ */
+function getFromCache(key: string): string | null {
+  const entry = mediaCache.get(key);
+  if (entry) {
+    entry.refCount++;
+    entry.timestamp = Date.now();
+    return entry.url;
+  }
+  return null;
+}
+
+/**
+ * Add a blob URL to cache with ref count of 1
+ */
+function addToCache(key: string, url: string): void {
+  // Evict old entries if cache is full
+  if (mediaCache.size >= MAX_CACHE_SIZE) {
+    evictLRU();
+  }
+  mediaCache.set(key, { url, refCount: 1, timestamp: Date.now() });
+}
+
+/**
+ * Release a reference to a cached blob URL
+ * When refCount reaches 0, the entry is eligible for eviction
+ */
+function releaseFromCache(key: string): void {
+  const entry = mediaCache.get(key);
+  if (entry) {
+    entry.refCount = Math.max(0, entry.refCount - 1);
+  }
+}
+
+/**
+ * Evict least recently used entries with refCount 0
+ */
+function evictLRU(): void {
+  const evictableEntries: [string, CacheEntry][] = [];
+
+  mediaCache.forEach((entry, key) => {
+    if (entry.refCount === 0) {
+      evictableEntries.push([key, entry]);
+    }
+  });
+
+  // Sort by timestamp (oldest first)
+  evictableEntries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+  // Evict oldest 20% or at least 1
+  const evictCount = Math.max(1, Math.floor(evictableEntries.length * 0.2));
+  for (let i = 0; i < evictCount && i < evictableEntries.length; i++) {
+    const [key, entry] = evictableEntries[i];
+    URL.revokeObjectURL(entry.url);
+    mediaCache.delete(key);
+  }
+}
+
+/**
+ * Fetch media with deduplication - multiple components requesting the same
+ * file will share a single network request
+ */
+async function fetchWithDeduplication(
+  filename: string,
+  token: string,
+  type: 'media' | 'avatar'
+): Promise<string> {
+  const cacheKey = getCacheKey(filename, type);
+
+  // Check cache first
+  const cached = getFromCache(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  // Check if there's already a pending request
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) {
+    // Subscribe to the existing request
+    return new Promise((resolve, reject) => {
+      pending.subscribers.add(resolve);
+      pending.errorSubscribers.add(reject);
+    });
+  }
+
+  // Create new request
+  const fetchFn = type === 'avatar' ? fetchAvatarBlob : fetchMediaBlob;
+  const subscribers = new Set<(url: string) => void>();
+  const errorSubscribers = new Set<(error: Error) => void>();
+
+  const promise = fetchFn(filename, token);
+
+  pendingRequests.set(cacheKey, { promise, subscribers, errorSubscribers });
+
+  try {
+    const blobUrl = await promise;
+
+    // Add to cache
+    addToCache(cacheKey, blobUrl);
+
+    // Increment ref count for each subscriber
+    subscribers.forEach(() => {
+      const entry = mediaCache.get(cacheKey);
+      if (entry) entry.refCount++;
+    });
+
+    // Notify all subscribers
+    subscribers.forEach((resolve) => resolve(blobUrl));
+
+    return blobUrl;
+  } catch (error) {
+    // Notify all error subscribers
+    errorSubscribers.forEach((reject) => reject(error as Error));
+    throw error;
+  } finally {
+    pendingRequests.delete(cacheKey);
+  }
+}
+
+/**
+ * Clear the in-memory media cache (call on logout)
+ */
+export function clearInMemoryMediaCache(): void {
+  mediaCache.forEach((entry) => {
+    URL.revokeObjectURL(entry.url);
+  });
+  mediaCache.clear();
+}
+
+// =============================================================================
+// Hooks
+// =============================================================================
+
 // State machine for media loading
 type MediaState = {
   url: string | null;
@@ -40,7 +201,7 @@ const initialMediaState: MediaState = { url: null, isLoading: false, error: null
 /**
  * Hook to load media files with authentication
  * Returns a blob URL that can be used in img/video src
- * Automatically cleans up blob URLs on unmount or when filename changes
+ * Uses in-memory cache and request deduplication for optimal performance
  */
 export function useAuthenticatedMedia(
   filename: string | null,
@@ -48,14 +209,13 @@ export function useAuthenticatedMedia(
   type: 'media' | 'avatar' = 'media'
 ): UseAuthenticatedMediaResult {
   const [state, dispatch] = useReducer(mediaReducer, initialMediaState);
-  const currentUrlRef = useRef<string | null>(null);
+  const cacheKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Cleanup previous blob URL
-    const previousUrl = currentUrlRef.current;
-    if (previousUrl) {
-      URL.revokeObjectURL(previousUrl);
-      currentUrlRef.current = null;
+    // Release previous cache reference
+    if (cacheKeyRef.current) {
+      releaseFromCache(cacheKeyRef.current);
+      cacheKeyRef.current = null;
     }
 
     // Early return if no filename or token
@@ -64,18 +224,27 @@ export function useAuthenticatedMedia(
       return;
     }
 
+    const cacheKey = getCacheKey(filename, type);
     let cancelled = false;
+
+    // Check cache synchronously first
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      cacheKeyRef.current = cacheKey;
+      dispatch({ type: 'FETCH_SUCCESS', url: cached });
+      return;
+    }
+
     dispatch({ type: 'FETCH_START' });
 
-    const fetchFn = type === 'avatar' ? fetchAvatarBlob : fetchMediaBlob;
-
-    fetchFn(filename, token)
+    fetchWithDeduplication(filename, token, type)
       .then((blobUrl) => {
         if (!cancelled) {
-          currentUrlRef.current = blobUrl;
+          cacheKeyRef.current = cacheKey;
           dispatch({ type: 'FETCH_SUCCESS', url: blobUrl });
         } else {
-          URL.revokeObjectURL(blobUrl);
+          // Release our reference since we're cancelled
+          releaseFromCache(cacheKey);
         }
       })
       .catch((err) => {
@@ -89,12 +258,11 @@ export function useAuthenticatedMedia(
     };
   }, [filename, token, type]);
 
-  // Cleanup on unmount
+  // Release cache reference on unmount
   useEffect(() => {
-    const urlRef = currentUrlRef;
     return () => {
-      if (urlRef.current) {
-        URL.revokeObjectURL(urlRef.current);
+      if (cacheKeyRef.current) {
+        releaseFromCache(cacheKeyRef.current);
       }
     };
   }, []);
@@ -135,7 +303,7 @@ const initialMediaListState: MediaListState = {
 
 /**
  * Hook to load multiple media files with authentication
- * Useful for posts with multiple images/videos
+ * Uses in-memory cache and request deduplication
  */
 export function useAuthenticatedMediaList(
   filenames: string[],
@@ -143,16 +311,15 @@ export function useAuthenticatedMediaList(
   type: 'media' | 'avatar' = 'media'
 ): MediaListState {
   const [state, dispatch] = useReducer(mediaListReducer, initialMediaListState);
-  const urlsRef = useRef<Map<string, string>>(new Map());
+  const cacheKeysRef = useRef<string[]>([]);
 
   // Create a stable key from filenames array
   const filenamesKey = useMemo(() => filenames.join(','), [filenames]);
 
   useEffect(() => {
-    // Cleanup all previous blob URLs
-    const previousUrls = urlsRef.current;
-    previousUrls.forEach((url) => URL.revokeObjectURL(url));
-    urlsRef.current = new Map();
+    // Release previous cache references
+    cacheKeysRef.current.forEach((key) => releaseFromCache(key));
+    cacheKeysRef.current = [];
 
     // Early return if no filenames or token
     if (filenames.length === 0 || !token) {
@@ -163,38 +330,40 @@ export function useAuthenticatedMediaList(
     let cancelled = false;
     dispatch({ type: 'FETCH_START' });
 
-    const fetchFn = type === 'avatar' ? fetchAvatarBlob : fetchMediaBlob;
-
     Promise.all(
       filenames.map(async (filename) => {
+        const cacheKey = getCacheKey(filename, type);
         try {
-          const blobUrl = await fetchFn(filename, token);
-          return { filename, blobUrl, error: null };
+          const blobUrl = await fetchWithDeduplication(filename, token, type);
+          return { filename, cacheKey, blobUrl, error: null };
         } catch (err) {
-          return { filename, blobUrl: null, error: (err as Error).message };
+          return { filename, cacheKey, blobUrl: null, error: (err as Error).message };
         }
       })
     ).then((results) => {
       if (cancelled) {
-        results.forEach(({ blobUrl }) => {
-          if (blobUrl) URL.revokeObjectURL(blobUrl);
+        // Release references for cancelled request
+        results.forEach(({ cacheKey, blobUrl }) => {
+          if (blobUrl) releaseFromCache(cacheKey);
         });
         return;
       }
 
       const newUrls = new Map<string, string>();
       const newErrors = new Map<string, string>();
+      const newCacheKeys: string[] = [];
 
-      results.forEach(({ filename, blobUrl, error }) => {
+      results.forEach(({ filename, cacheKey, blobUrl, error }) => {
         if (blobUrl) {
           newUrls.set(filename, blobUrl);
-          urlsRef.current.set(filename, blobUrl);
+          newCacheKeys.push(cacheKey);
         }
         if (error) {
           newErrors.set(filename, error);
         }
       });
 
+      cacheKeysRef.current = newCacheKeys;
       dispatch({ type: 'FETCH_COMPLETE', urls: newUrls, errors: newErrors });
     });
 
@@ -203,11 +372,10 @@ export function useAuthenticatedMediaList(
     };
   }, [filenamesKey, filenames, token, type]);
 
-  // Cleanup on unmount
+  // Release cache references on unmount
   useEffect(() => {
-    const refValue = urlsRef.current;
     return () => {
-      refValue.forEach((url) => URL.revokeObjectURL(url));
+      cacheKeysRef.current.forEach((key) => releaseFromCache(key));
     };
   }, []);
 
