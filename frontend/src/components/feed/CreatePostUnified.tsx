@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { TEXT } from '../../constants/text';
 import { CameraPreview } from '../camera/CameraPreview';
-import { MusicPicker, MusicShare } from '../music';
+import { MusicShare } from '../music';
+import * as api from '../../services/api';
 import type {
   CapturedMedia,
   CaptureMode,
@@ -102,8 +103,13 @@ export function CreatePostUnified({
 }: CreatePostUnifiedProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const [showMusicPicker, setShowMusicPicker] = useState(false);
   const [placeholder] = useState(getRandomPlaceholder);
+
+  // Inline music search state
+  const [musicQuery, setMusicQuery] = useState('');
+  const [musicResults, setMusicResults] = useState<SpotifyTrack[]>([]);
+  const [isSearchingMusic, setIsSearchingMusic] = useState(false);
+  const [musicError, setMusicError] = useState('');
 
   // Viewfinder collapse state
   const [viewfinderHeight, setViewfinderHeight] = useState(VIEWFINDER_MAX_HEIGHT);
@@ -112,12 +118,8 @@ export function CreatePostUnified({
   const touchStartY = useRef(0);
   const touchStartHeight = useRef(VIEWFINDER_MAX_HEIGHT);
 
-  const handleTouchStart = useCallback(
+  const handleSwipeStart = useCallback(
     (e: React.TouchEvent) => {
-      // Don't interfere with scrolling in textarea or other inputs
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') return;
-
       touchStartY.current = e.touches[0].clientY;
       touchStartHeight.current = viewfinderHeight;
       setIsDragging(true);
@@ -125,7 +127,7 @@ export function CreatePostUnified({
     [viewfinderHeight]
   );
 
-  const handleTouchMove = useCallback(
+  const handleSwipeMove = useCallback(
     (e: React.TouchEvent) => {
       if (!isDragging) return;
 
@@ -139,7 +141,7 @@ export function CreatePostUnified({
     [isDragging]
   );
 
-  const handleTouchEnd = useCallback(() => {
+  const handleSwipeEnd = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
 
@@ -183,10 +185,51 @@ export function CreatePostUnified({
     onFilesChange([...files, ...selectedFiles], [...previews, ...newPreviews]);
   };
 
-  const handleMusicSelect = (track: SpotifyTrack, mood?: string) => {
-    onMusicSelect(track, mood);
-    setShowMusicPicker(false);
-  };
+  // Music search with debounce
+  useEffect(() => {
+    if (!musicQuery.trim() || musicQuery.length < 2) {
+      setMusicResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingMusic(true);
+      setMusicError('');
+
+      try {
+        const { tracks } = await api.searchMusic(token, musicQuery);
+        setMusicResults(tracks);
+      } catch (err) {
+        setMusicError(err instanceof Error ? err.message : 'Search failed');
+        setMusicResults([]);
+      } finally {
+        setIsSearchingMusic(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [musicQuery, token]);
+
+  const handleTrackSelect = useCallback(
+    (track: SpotifyTrack) => {
+      onMusicSelect(track, undefined);
+      setMusicResults([]);
+      setMusicQuery('');
+    },
+    [onMusicSelect]
+  );
+
+  // Determine what to show in the viewfinder area
+  const hasMedia = files.length > 0;
+
+  // Auto-collapse viewfinder when focusing text inputs (only if no media)
+  const collapseViewfinder = useCallback(() => {
+    if (!isCollapsed && !hasMedia && !hasBeRealPhotos) {
+      setViewfinderHeight(0);
+      setIsCollapsed(true);
+      onStopCamera();
+    }
+  }, [isCollapsed, hasMedia, hasBeRealPhotos, onStopCamera]);
 
   // Auto-use video when captured
   useEffect(() => {
@@ -195,19 +238,9 @@ export function CreatePostUnified({
     }
   }, [captureMode, capturedMedia, onUseCapturedMedia]);
 
-  // Determine what to show in the viewfinder area
-  const hasMedia = files.length > 0;
-
   return (
     <>
-      <form
-        ref={formRef}
-        className="create-post-unified"
-        onSubmit={onSubmit}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      <form ref={formRef} className="create-post-unified" onSubmit={onSubmit}>
         {/* Viewfinder / Media Preview Area */}
         <div
           className={`unified-viewfinder ${isDragging ? 'dragging' : ''} ${isCollapsed ? 'collapsed' : ''}`}
@@ -336,8 +369,11 @@ export function CreatePostUnified({
 
         {/* Swipe indicator / expand button */}
         <div
-          className={`unified-swipe-indicator ${isCollapsed ? 'collapsed' : ''}`}
+          className={`unified-swipe-indicator ${isCollapsed ? 'collapsed' : ''} ${isDragging ? 'dragging' : ''}`}
           onClick={isCollapsed ? expandViewfinder : undefined}
+          onTouchStart={handleSwipeStart}
+          onTouchMove={handleSwipeMove}
+          onTouchEnd={handleSwipeEnd}
         >
           <div className="swipe-handle" />
           {isCollapsed && <span className="swipe-hint">tap to open camera</span>}
@@ -350,6 +386,7 @@ export function CreatePostUnified({
             placeholder={placeholder}
             value={text}
             onChange={(e) => onTextChange(e.target.value)}
+            onFocus={collapseViewfinder}
             rows={2}
           />
 
@@ -366,33 +403,57 @@ export function CreatePostUnified({
             </div>
           )}
 
-          <div className="unified-actions">
-            <input
-              type="text"
-              className="unified-input"
-              placeholder="@ location"
-              value={location}
-              onChange={(e) => onLocationChange(e.target.value)}
-            />
-            <div className="unified-action-btns">
-              <button
-                type="button"
-                className="unified-action-btn"
-                onClick={() => fileInputRef.current?.click()}
-                title="Upload"
-              >
-                ^
-              </button>
-              <button
-                type="button"
-                className="unified-action-btn"
-                onClick={() => setShowMusicPicker(true)}
-                title="Music"
-              >
-                {'>>'}
-              </button>
+          {/* Location Input */}
+          <input
+            type="text"
+            className="unified-input"
+            placeholder="@ location"
+            value={location}
+            onChange={(e) => onLocationChange(e.target.value)}
+            onFocus={collapseViewfinder}
+          />
+
+          {/* Inline Music Search */}
+          {!selectedTrack && (
+            <div className="unified-music-section">
+              <input
+                type="text"
+                className="unified-input"
+                placeholder=">> search for a song"
+                value={musicQuery}
+                onChange={(e) => setMusicQuery(e.target.value)}
+                onFocus={collapseViewfinder}
+              />
+
+              {/* Search results */}
+              {musicResults.length > 0 && (
+                <div className="unified-music-results">
+                  {musicResults.slice(0, 4).map((track) => (
+                    <button
+                      key={track.spotifyTrackId}
+                      type="button"
+                      className="unified-music-result"
+                      onClick={() => handleTrackSelect(track)}
+                    >
+                      {track.albumArtUrl && (
+                        <img src={track.albumArtUrl} alt="" className="unified-music-result-art" />
+                      )}
+                      <div className="unified-music-result-info">
+                        <p className="unified-music-result-name">{track.trackName}</p>
+                        <p className="unified-music-result-artist">{track.artistName}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Loading/error states */}
+              {isSearchingMusic && <p className="unified-music-status">Searching...</p>}
+              {musicError && (
+                <p className="unified-music-status unified-music-status--error">{musicError}</p>
+              )}
             </div>
-          </div>
+          )}
 
           <input
             ref={fileInputRef}
@@ -405,21 +466,21 @@ export function CreatePostUnified({
 
           {error && <p className="unified-error">{error}</p>}
 
-          <div className="create-post-submit">
-            <button type="submit" className="btn" disabled={isLoading}>
+          <div className="unified-submit-row">
+            <button
+              type="button"
+              className="unified-upload-btn"
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload from gallery"
+            >
+              ^
+            </button>
+            <button type="submit" className="btn unified-post-btn" disabled={isLoading}>
               {isLoading ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>
       </form>
-
-      {showMusicPicker && (
-        <MusicPicker
-          token={token}
-          onSelect={handleMusicSelect}
-          onClose={() => setShowMusicPicker(false)}
-        />
-      )}
     </>
   );
 }
