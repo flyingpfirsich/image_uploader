@@ -114,7 +114,6 @@ export function CreatePostCompose({
             value={text}
             onChange={(e) => onTextChange(e.target.value)}
             rows={3}
-            autoFocus
           />
         </div>
 
@@ -159,20 +158,29 @@ export function CreatePostCompose({
 
           <button
             type="button"
-            className="media-btn media-btn--secondary media-btn--music"
-            onClick={() => setShowMusicPicker(true)}
-            title="Add music"
+            className="media-btn media-btn--secondary"
+            onClick={onStartCamera}
+            title="Take photo"
           >
-            <span className="media-btn-icon">{'>>'}</span>
+            <span className="media-btn-icon">[ ]</span>
           </button>
 
           <button
             type="button"
-            className="media-btn media-btn--secondary media-btn--upload"
+            className="media-btn media-btn--secondary"
             onClick={() => fileInputRef.current?.click()}
             title="Upload from device"
           >
             <span className="media-btn-icon">^</span>
+          </button>
+
+          <button
+            type="button"
+            className="media-btn media-btn--secondary"
+            onClick={() => setShowMusicPicker(true)}
+            title="Add music"
+          >
+            <span className="media-btn-icon">{'>>'}</span>
           </button>
         </div>
 
