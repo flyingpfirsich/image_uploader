@@ -71,19 +71,23 @@ export function CameraPreview({
               <p>{TEXT.camera.start}</p>
             </div>
           )}
+          {isCapturingSecond && (
+            <div className="capturing-second-indicator">
+              <span className="capturing-spinner" />
+              {TEXT.camera.capturingSecond}
+            </div>
+          )}
           {isRecording && (
             <div className="recording-indicator">
               <span className="rec-dot" />
               {TEXT.camera.recording}
             </div>
           )}
-          {/* Camera switch button - available in both photo and video modes */}
-          {cameraActive && !isRecording && !isCapturingSecond && (
+          {/* Camera switch button */}
+          {cameraActive && !isRecording && !isCapturingSecond && captureMode === 'photo' && (
             <button
-              type="button"
               className="camera-switch-btn"
               onClick={(e) => {
-                e.preventDefault();
                 e.stopPropagation();
                 onSwitchCamera();
               }}

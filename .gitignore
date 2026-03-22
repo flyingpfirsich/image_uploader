@@ -1,6 +1,10 @@
-# SQLite database files (temporary)
+# SQLite database files
+*.db
 *.db-wal
 *.db-shm
+
+# Local SSL certs
+.certs/
 
 # Logs
 logs
@@ -149,6 +153,3 @@ backend/uploads
 
 # Database
 backend/data
-
-# Local development certificates
-.certs/

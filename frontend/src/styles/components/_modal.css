@@ -198,13 +198,13 @@
 
 .create-post-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
 }
 
 .create-post-actions .form-input--small {
-  grid-column: span 3;
+  grid-column: span 2;
 }
 
 /* Fixed bottom submit area */
@@ -269,9 +269,9 @@
   color: var(--fg-dim);
 }
 
-.create-post-actions .media-btn--secondary {
+.media-btn--upload,
+.media-btn--music {
   flex: 1;
-  justify-content: center;
 }
 
 .media-btn--secondary:active {

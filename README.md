@@ -1,269 +1,120 @@
-# druzi
+# Minimal Image Uploader
 
-A private social platform for staying connected with close friends through photos, music, goals, and daily moments.
+A minimal web interface to upload images directly to your Raspberry Pi from anywhere.
 
-## Features
+## Architecture
 
-### Social Feed
+- **Frontend:** React + Vite (Minimal Terminal Style)
+- **Backend:** Node.js + Express
+- **Transport:** SSH/SCP (via `node-ssh`) to Raspberry Pi
+- **Deployment:** Docker (Single container)
 
-- **Photo & Video Posts**: Share moments with friends using front/back camera capture
-- **Reactions**: React to posts with kaomoji (´・ω・`)
-- **Comments**: Have conversations on posts
-- **Location Tags**: Add location context to your posts
-- **Link Sharing**: Attach links with previews
+## Prerequisites
 
-### Music Sharing
+1.  **Raspberry Pi** connected to the internet.
+2.  **Hetzner Server** (or any VPS) running **Coolify** (or Docker).
+3.  **Tailscale** (Recommended) for secure connection between VPS and Pi without port forwarding.
 
-- **Spotify Integration**: Search and share songs from Spotify
-- **Mood Tags**: Tag songs with kaomoji moods (energized, chill, in my feels, etc.)
-- **Music Feed**: See what your friends are listening to
+## Raspberry Pi Setup (The Target)
 
-### Goals & Achievements
+You need to expose your Pi so the web server can SSH into it. We recommend **Tailscale** for a secure, private network.
 
-- **Set Goals**: Create goals with target counts and optional deadlines
-- **Track Progress**: Log achievements with proof posts (photos/videos)
-- **Friend Support**: Get cheers from friends on your goals
-- **Visibility Control**: Keep goals private or share with friends
-
-### Collaborative Lists
-
-- **Shared Lists**: Create lists that friends can contribute to
-- **Use Cases**: Movie recommendations, restaurant wishlist, book clubs, etc.
-- **Voting**: Mark items as completed
-- **Activity Feed**: See recent list updates
-
-### Notifications
-
-- **Push Notifications**: Web push support for daily reminders and friend activity
-- **Customizable**: Control which notifications you receive
-- **Daily Reminders**: Get prompted to share or check in
-
-### User Features
-
-- **Invite-Only**: Controlled growth through invite codes
-- **User Profiles**: Avatars, birthdays, and user info
-- **Admin Dashboard**: Stats, activity monitoring, and user management
-- **Secure Auth**: JWT + refresh tokens with HTTPS enforcement
-
-## Tech Stack
-
-**Frontend:**
-
-- React 18 + TypeScript
-- Vite for build tooling
-- CSS Modules for styling
-- Camera API for photo/video capture
-
-**Backend:**
-
-- Node.js + Express
-- SQLite + Drizzle ORM
-- JWT authentication with refresh tokens
-- Web Push API for notifications
-- Spotify Web API integration
-
-**Deployment:**
-
-- Docker (single container)
-- Multi-stage build
-- Production-optimized
-
-## Project Structure
-
-```
-.
-├── frontend/          # React frontend
-│   ├── src/
-│   │   ├── components/    # UI components
-│   │   ├── services/      # API client
-│   │   ├── styles/        # CSS modules
-│   │   └── types/         # TypeScript types
-│   └── package.json
-├── backend/           # Express backend
-│   ├── src/
-│   │   ├── routes/        # API endpoints
-│   │   ├── services/      # Business logic
-│   │   ├── middleware/    # Auth & security
-│   │   └── db/            # Database schema
-│   ├── drizzle/           # Migrations
-│   └── package.json
-├── Dockerfile         # Production build
-└── package.json       # Workspace root
-```
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js 20+
-- npm
-
-### 1. Install Dependencies
+### 1. Install Tailscale on Raspberry Pi
 
 ```bash
-npm install
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
 ```
 
-### 2. Backend Environment Variables
+Note the IP address (e.g., `100.x.y.z`).
 
-Create `backend/.env`:
-
-```env
-# Server
-PORT=3000
-NODE_ENV=development
-
-# Security
-JWT_SECRET=your-secret-key-change-this-in-production
-JWT_REFRESH_SECRET=your-refresh-secret-change-this
-
-# Admin setup
-ADMIN_PASSWORD=your-admin-password
-
-# Web Push (generate with: npm run generate-vapid)
-VAPID_PUBLIC_KEY=your-vapid-public-key
-VAPID_PRIVATE_KEY=your-vapid-private-key
-VAPID_SUBJECT=mailto:your-email@example.com
-
-# Spotify API (optional, for music sharing)
-SPOTIFY_CLIENT_ID=your-spotify-client-id
-SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
-```
-
-### 3. Run Development Servers
+### 2. Create a dedicated user (Optional but recommended)
 
 ```bash
-# Both frontend and backend
-npm run dev
-
-# Or separately:
-npm run dev:frontend  # Frontend: http://localhost:5173
-npm run dev:backend   # Backend: http://localhost:3000
+sudo adduser uploader
+# Follow prompts to set a password
 ```
 
-### 4. First-time Setup
-
-1. Navigate to http://localhost:5173
-2. Create the admin account (username: `admin`)
-3. Generate invite codes in the admin panel
-4. Use invite codes to register new users
-
-## Production Deployment
-
-### Docker Build
+### 3. Ensure SSH is enabled
 
 ```bash
-docker build -t druzi .
+sudo systemctl enable ssh
+sudo systemctl start ssh
 ```
 
-### Run Container
+### 4. Prepare the videos folder
 
 ```bash
-docker run -d \
-  -p 80:80 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/uploads:/app/uploads \
-  -e JWT_SECRET=your-secret \
-  -e JWT_REFRESH_SECRET=your-refresh-secret \
-  -e ADMIN_PASSWORD=your-admin-password \
-  -e VAPID_PUBLIC_KEY=your-key \
-  -e VAPID_PRIVATE_KEY=your-key \
-  -e VAPID_SUBJECT=mailto:you@example.com \
-  druzi
+mkdir -p /home/uploader/Videos
+chown uploader:uploader /home/uploader/Videos
 ```
 
-### Environment Variables
+## VPS / Web Server Setup
 
-All backend environment variables are required in production. Use Docker volumes to persist:
+### 1. Install Tailscale on VPS
 
-- `/app/data` - SQLite database
-- `/app/uploads` - User-uploaded media
-
-### HTTPS Enforcement
-
-The app enforces HTTPS in production when behind a reverse proxy. Ensure your proxy sets the `X-Forwarded-Proto` header.
-
-## Scripts
+Run the same install command as above. Ensure both devices can ping each other.
 
 ```bash
-# Development
-npm run dev              # Run both frontend & backend
-npm run dev:frontend     # Frontend only
-npm run dev:backend      # Backend only
-
-# Building
-npm run build            # Build both frontend & backend
-npm run build:frontend   # Frontend only
-npm run build:backend    # Backend only
-
-# Code Quality
-npm run lint             # Lint all code
-npm run lint:fix         # Auto-fix linting issues
-npm run format           # Format code with Prettier
-npm run test             # Run tests
+ping 100.x.y.z  # Ping the Pi from VPS
 ```
 
-## API Overview
+### 2. SSH Key Setup (Passwordless Auth)
 
-The backend exposes a RESTful API at `/api/*`:
+On the **VPS** (where the web server runs), generate an SSH key:
 
-### Authentication
+```bash
+ssh-keygen -t ed25519 -C "webserver" -f ./webserver_key
+# Press enter for no passphrase
+```
 
-- `POST /api/auth/register` - Register new user (requires invite code)
-- `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/refresh` - Refresh access token
+Copy the public key (`webserver_key.pub`) to the Pi's `authorized_keys`:
 
-### Posts & Feed
+```bash
+# Run this from the VPS
+ssh-copy-id -i ./webserver_key.pub uploader@100.x.y.z
+```
 
-- `GET /api/feed` - Get feed of posts
-- `POST /api/posts` - Create post
-- `DELETE /api/posts/:id` - Delete post
-- `POST /api/posts/:id/react` - Add reaction
-- `POST /api/posts/:id/comments` - Add comment
+_Or manually append the content of `.pub` to `/home/uploader/.ssh/authorized_keys` on the Pi._
 
-### Music
+Save the **Private Key** (`webserver_key`). You will need this for the Docker container.
 
-- `GET /api/music/search` - Search Spotify
-- `POST /api/music` - Share a song
-- `GET /api/music/recent` - Recent music shares
+## Deployment (Coolify)
 
-### Goals
+1.  **Create a new Resource** -> **Git Repository** (or Dockerfile).
+2.  Select this repository.
+3.  **Environment Variables:**
+    Add the following variables in Coolify:
 
-- `GET /api/goals` - Get all goals
-- `POST /api/goals` - Create goal
-- `POST /api/goals/:id/achieve` - Log achievement
-- `POST /api/goals/:id/cheer` - Send cheer
+    ```env
+    PORT=3000
+    SHARED_PASSWORD=your_secret_upload_password
 
-### Lists
+    # Pi Configuration
+    PI_HOST=100.x.y.z          # Tailscale IP of the Pi
+    PI_USER=uploader
 
-- `GET /api/lists` - Get all lists
-- `POST /api/lists` - Create list
-- `POST /api/lists/:id/items` - Add item to list
+    # Authentication (Choose one)
+    PI_PASSWORD=               # If using password auth
+    # OR (Recommended)
+    # You need to mount the key or paste the content.
+    # For node-ssh, we might need to adapt the code to read key from ENV string if you can't mount files easily in Coolify.
+    ```
 
-### Moods
+### SSH Key via Env Variable
 
-- `GET /api/moods/today` - Get today's mood
-- `POST /api/moods/today` - Set today's mood
-- `GET /api/moods/history` - Get mood history
+If you cannot mount files easily, update `server.js` to read the key from a string variable `PI_KEY_STRING`.
 
-### Admin (requires admin role)
+**Update `backend/server.js` (if needed):**
 
-- `GET /api/admin/stats` - Platform statistics
-- `POST /api/admin/invite-codes` - Generate invite codes
-- `GET /api/admin/users` - Manage users
+```javascript
+privateKey: process.env.PI_KEY_STRING || fs.readFileSync(process.env.PI_KEY_PATH);
+```
 
-Full API documentation available at `GET /api`
+## Local Development
 
-## Contributing
-
-This is a private project. When contributing:
-
-1. Follow existing code style (enforced by ESLint/Prettier)
-2. Write tests for new features
-3. Keep commits atomic and descriptive
-4. Pre-commit hooks will run linting and formatting
-
-## License
-
-Private - All Rights Reserved
+1.  `cd backend && npm install`
+2.  `cd frontend && npm install`
+3.  Create `backend/.env` based on usage.
+4.  Run Backend: `cd backend && npm run dev`
+5.  Run Frontend: `cd frontend && npm run dev`
