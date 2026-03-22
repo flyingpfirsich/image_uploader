@@ -164,12 +164,13 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // If BeReal photos exist, composite them first
-    let filesToSubmit = files;
-    if (hasBeRealPhotos && files.length === 0) {
+    // If BeReal photos exist, composite them and add to files
+    let filesToSubmit = [...files];
+    if (hasBeRealPhotos) {
       const composited = await compositeBeRealPhotos();
       if (composited) {
-        filesToSubmit = [composited];
+        // Prepend BeReal photo so it appears first in the carousel
+        filesToSubmit = [composited, ...files];
         clearBeRealPhotos();
       }
     }
