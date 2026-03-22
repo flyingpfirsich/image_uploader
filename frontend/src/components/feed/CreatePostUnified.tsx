@@ -426,9 +426,7 @@ export function CreatePostUnified({
 
               {/* Camera Controls Overlay */}
               <div className="unified-camera-controls">
-                {isCapturingSecond ? (
-                  <span className="unified-cam-status">{TEXT.camera.capturingSecond}</span>
-                ) : !cameraActive ? (
+                {isCapturingSecond ? null : !cameraActive ? (
                   <button type="button" className="btn" onClick={onStartCamera}>
                     {TEXT.camera.start}
                   </button>
