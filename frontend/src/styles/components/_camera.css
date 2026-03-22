@@ -187,6 +187,7 @@
   top: 12px;
   left: 12px;
   width: 28%;
+  aspect-ratio: 9 / 16;
   border: 3px solid #fff;
   border-radius: var(--border-radius-md);
   overflow: hidden;
@@ -195,6 +196,8 @@
 
 .bereal-overlay {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 

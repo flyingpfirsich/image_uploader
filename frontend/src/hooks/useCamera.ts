@@ -27,8 +27,14 @@ export function useCamera({ captureMode, onError }: UseCameraOptions) {
       try {
         const useFacingMode = overrideFacingMode || facingMode;
         const useCaptureMode = overrideCaptureMode || captureMode;
+        // Primary capture always uses 4:3 portrait to match phone camera apps
         const constraints: MediaStreamConstraints = {
-          video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: {
+            facingMode: useFacingMode,
+            width: { ideal: 1080 },
+            height: { ideal: 1440 },
+            aspectRatio: { ideal: 3 / 4 },
+          },
           audio: useCaptureMode === 'video',
         };
 
