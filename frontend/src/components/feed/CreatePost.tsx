@@ -4,8 +4,11 @@ import { TEXT } from '../../constants/text';
 import { useCamera } from '../../hooks/useCamera';
 import { useBeRealCapture } from '../../hooks/useBeRealCapture';
 import { useVideoRecording } from '../../hooks/useVideoRecording';
-import { CreatePostUnified } from './CreatePostUnified';
-import type { CapturedMedia, CaptureMode, SpotifyTrack } from '../../types';
+import { CreatePostCamera } from './CreatePostCamera';
+import { CreatePostCompose } from './CreatePostCompose';
+import type { CapturedMedia, CaptureMode, Status, SpotifyTrack } from '../../types';
+
+type PostMode = 'camera' | 'compose';
 
 interface CreatePostProps {
   token: string;
@@ -14,12 +17,15 @@ interface CreatePostProps {
 }
 
 export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
+  const [mode, setMode] = useState<PostMode>('compose');
   const [captureMode, setCaptureMode] = useState<CaptureMode>('photo');
   const [capturedMedia, setCapturedMedia] = useState<CapturedMedia | null>(null);
+  const [status, setStatus] = useState<Status>({ type: '', message: '' });
 
   // Post form state
   const [text, setText] = useState('');
   const [location, setLocation] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +47,10 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   }, []);
 
   // Camera hooks
+  const handleCameraError = useCallback((newStatus: Status) => {
+    setStatus(newStatus);
+  }, []);
+
   const {
     cameraActive,
     facingMode,
@@ -50,7 +60,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     startCamera,
     stopCamera,
     switchCamera,
-  } = useCamera({ captureMode });
+  } = useCamera({ captureMode, onError: handleCameraError });
 
   const setCameraActive = useCallback(
     (active: boolean) => {
@@ -77,6 +87,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     facingMode,
     setFacingMode,
     setCameraActive,
+    onStatusChange: setStatus,
   });
 
   const handleRecordingComplete = useCallback((media: CapturedMedia) => {
@@ -98,37 +109,17 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
   const removeFile = useCallback(
     (index: number) => {
       URL.revokeObjectURL(previews[index]);
-      const newFiles = files.filter((_, i) => i !== index);
-      const newPreviews = previews.filter((_, i) => i !== index);
-      setFiles(newFiles);
-      setPreviews(newPreviews);
-      // Restart camera only when last file is removed
-      if (newFiles.length === 0) {
-        startCamera();
-      }
+      setFiles((prev) => prev.filter((_, i) => i !== index));
+      setPreviews((prev) => prev.filter((_, i) => i !== index));
     },
-    [files, previews, startCamera]
+    [previews]
   );
-
-  // Auto-start camera when component mounts
-  useEffect(() => {
-    startCamera();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Camera mode handlers
   const handleStartCamera = useCallback(() => {
-    // Clear existing files and captured media to show camera again
-    previews.forEach((p) => URL.revokeObjectURL(p));
-    setFiles([]);
-    setPreviews([]);
-    if (capturedMedia) {
-      URL.revokeObjectURL(capturedMedia.url);
-      setCapturedMedia(null);
-    }
-    clearBeRealPhotos();
+    setMode('camera');
     startCamera();
-  }, [startCamera, previews, capturedMedia, clearBeRealPhotos]);
+  }, [startCamera]);
 
   const handleCaptureModeChange = useCallback(
     (newMode: CaptureMode) => {
@@ -141,6 +132,27 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     [cameraActive, stopCamera, startCamera]
   );
 
+  const handleRetake = useCallback(() => {
+    if (capturedMedia) {
+      URL.revokeObjectURL(capturedMedia.url);
+      setCapturedMedia(null);
+    }
+    clearBeRealPhotos();
+    setFacingMode('environment');
+    startCamera('environment');
+  }, [capturedMedia, clearBeRealPhotos, setFacingMode, startCamera]);
+
+  const handleUseBeRealPhotos = useCallback(async () => {
+    const file = await compositeBeRealPhotos();
+    if (file) {
+      const preview = URL.createObjectURL(file);
+      setFiles([file]);
+      setPreviews([preview]);
+      clearBeRealPhotos();
+      setMode('compose');
+    }
+  }, [compositeBeRealPhotos, clearBeRealPhotos]);
+
   const handleUseCapturedMedia = useCallback(() => {
     if (!capturedMedia) return;
 
@@ -151,46 +163,29 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     const file = new File([capturedMedia.blob], fileName, { type: mimeType });
     const preview = URL.createObjectURL(file);
 
-    // Add to existing files instead of replacing
-    setFiles((prev) => [...prev, file]);
-    setPreviews((prev) => [...prev, preview]);
+    setFiles([file]);
+    setPreviews([preview]);
 
     URL.revokeObjectURL(capturedMedia.url);
     setCapturedMedia(null);
+    setMode('compose');
+  }, [capturedMedia]);
+
+  const handleBackToCompose = useCallback(() => {
     stopCamera();
-  }, [capturedMedia, stopCamera]);
-
-  // Add BeReal composite photo to existing files
-  const handleAddBeRealPhoto = useCallback(async () => {
-    if (!hasBeRealPhotos) return;
-
-    const composited = await compositeBeRealPhotos();
-    if (composited) {
-      const preview = URL.createObjectURL(composited);
-      setFiles((prev) => [...prev, composited]);
-      setPreviews((prev) => [...prev, preview]);
-      clearBeRealPhotos();
-      stopCamera();
+    clearBeRealPhotos();
+    if (capturedMedia) {
+      URL.revokeObjectURL(capturedMedia.url);
+      setCapturedMedia(null);
     }
-  }, [hasBeRealPhotos, compositeBeRealPhotos, clearBeRealPhotos, stopCamera]);
+    setMode('compose');
+  }, [stopCamera, clearBeRealPhotos, capturedMedia]);
 
   // Submit post
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // If BeReal photos exist, composite them first
-    let filesToSubmit = files;
-    if (hasBeRealPhotos && files.length === 0) {
-      const composited = await compositeBeRealPhotos();
-      if (composited) {
-        filesToSubmit = [composited];
-        clearBeRealPhotos();
-      }
-    }
-
-    // Allow posting with just media (no text required)
-    if (!text.trim() && filesToSubmit.length === 0 && !selectedTrack) {
-      setError('Add a photo, text, or music');
+    if (!text.trim() && files.length === 0 && !selectedTrack) {
+      setError('Add some text, media, or music');
       return;
     }
 
@@ -203,9 +198,10 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
         {
           text: text.trim() || undefined,
           location: location.trim() || undefined,
+          linkUrl: linkUrl.trim() || undefined,
           hasMusic: !!selectedTrack,
         },
-        filesToSubmit.length > 0 ? filesToSubmit : undefined
+        files.length > 0 ? files : undefined
       );
 
       // If a track was selected, create a music share linked to the post
@@ -251,51 +247,65 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     <div className="create-post-overlay" onClick={onClose}>
       <div className="create-post-modal" onClick={(e) => e.stopPropagation()}>
         <header className="create-post-header">
-          <h2 className="section-title">{TEXT.createPost.title}</h2>
+          <h2 className="section-title">
+            {mode === 'camera' ? TEXT.createPost.captureTitle : TEXT.createPost.title}
+          </h2>
           <button className="btn--text" onClick={onClose}>
             x
           </button>
         </header>
 
-        <CreatePostUnified
-          token={token}
-          captureMode={captureMode}
-          capturedMedia={capturedMedia}
-          hasBeRealPhotos={hasBeRealPhotos}
-          beRealPhotos={beRealPhotos}
-          mainPhotoPosition={mainPhotoPosition}
-          cameraActive={cameraActive}
-          isCapturingSecond={isCapturingSecond}
-          isRecording={isRecording}
-          facingMode={facingMode}
-          videoRef={videoRef}
-          canvasRef={canvasRef}
-          text={text}
-          location={location}
-          files={files}
-          previews={previews}
-          isLoading={isLoading}
-          error={error}
-          selectedTrack={selectedTrack}
-          selectedMood={selectedMood}
-          onCaptureModeChange={handleCaptureModeChange}
-          onSwapBeRealPhotos={swapBeRealPhotos}
-          onSwitchCamera={switchCamera}
-          onUseCapturedMedia={handleUseCapturedMedia}
-          onCaptureBeRealPhoto={captureBeRealPhoto}
-          onStartCamera={handleStartCamera}
-          onStopCamera={stopCamera}
-          onAddBeRealPhoto={handleAddBeRealPhoto}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          onTextChange={setText}
-          onLocationChange={setLocation}
-          onFilesChange={handleFilesChange}
-          onRemoveFile={removeFile}
-          onMusicSelect={handleMusicSelect}
-          onMusicRemove={handleMusicRemove}
-          onSubmit={handleSubmit}
-        />
+        {mode === 'camera' && (
+          <CreatePostCamera
+            captureMode={captureMode}
+            capturedMedia={capturedMedia}
+            hasBeRealPhotos={hasBeRealPhotos}
+            beRealPhotos={beRealPhotos}
+            mainPhotoPosition={mainPhotoPosition}
+            cameraActive={cameraActive}
+            isCapturingSecond={isCapturingSecond}
+            isRecording={isRecording}
+            facingMode={facingMode}
+            videoRef={videoRef}
+            canvasRef={canvasRef}
+            status={status}
+            onCaptureModeChange={handleCaptureModeChange}
+            onSwapBeRealPhotos={swapBeRealPhotos}
+            onSwitchCamera={switchCamera}
+            onRetake={handleRetake}
+            onUseBeRealPhotos={handleUseBeRealPhotos}
+            onUseCapturedMedia={handleUseCapturedMedia}
+            onCaptureBeRealPhoto={captureBeRealPhoto}
+            onStartCamera={() => startCamera()}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            onBack={handleBackToCompose}
+          />
+        )}
+
+        {mode === 'compose' && (
+          <CreatePostCompose
+            token={token}
+            text={text}
+            location={location}
+            linkUrl={linkUrl}
+            files={files}
+            previews={previews}
+            isLoading={isLoading}
+            error={error}
+            selectedTrack={selectedTrack}
+            selectedMood={selectedMood}
+            onTextChange={setText}
+            onLocationChange={setLocation}
+            onLinkUrlChange={setLinkUrl}
+            onFilesChange={handleFilesChange}
+            onRemoveFile={removeFile}
+            onMusicSelect={handleMusicSelect}
+            onMusicRemove={handleMusicRemove}
+            onStartCamera={handleStartCamera}
+            onSubmit={handleSubmit}
+          />
+        )}
       </div>
     </div>
   );

@@ -149,6 +149,3 @@ backend/uploads
 
 # Database
 backend/data
-
-# Local development certificates
-.certs/

@@ -154,10 +154,12 @@ export interface MusicShare {
 }
 
 export const MUSIC_MOOD_KAOMOJIS = [
-  { kaomoji: '(ノ◕ヮ◕)ノ', label: 'Energized' },
-  { kaomoji: '(︶｡︶)', label: 'Chill' },
+  { kaomoji: '(ノ◕ヮ◕)ノ♪', label: 'Energized' },
+  { kaomoji: '(︶｡︶✽)', label: 'Chill' },
   { kaomoji: '(；へ；)', label: 'In my feels' },
+  { kaomoji: '(◕‿◕)♡', label: 'Romantic' },
   { kaomoji: '(⌐■_■)', label: 'Cool' },
+  { kaomoji: '(╯°□°)╯', label: 'Intense' },
 ] as const;
 
 // List types
