@@ -53,7 +53,7 @@ interface CreatePostUnifiedProps {
   onCaptureBeRealPhoto: () => void;
   onStartCamera: () => void;
   onStopCamera: () => void;
-  onAddBeRealPhoto: () => Promise<void>;
+  onClearBeRealPhotos: () => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
   // Form handlers
@@ -94,7 +94,7 @@ export function CreatePostUnified({
   onCaptureBeRealPhoto,
   onStartCamera,
   onStopCamera,
-  onAddBeRealPhoto,
+  onClearBeRealPhotos,
   onStartRecording,
   onStopRecording,
   onTextChange,
@@ -192,6 +192,8 @@ export function CreatePostUnified({
     if (selectedFiles.length === 0) return;
     const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
     onFilesChange([...files, ...selectedFiles], [...previews, ...newPreviews]);
+    // Reset input so the same file can be selected again
+    e.target.value = '';
   };
 
   // Music search with debounce
@@ -229,8 +231,18 @@ export function CreatePostUnified({
   );
 
   // Determine what to show in the viewfinder area
-  const hasMedia = files.length > 0;
-  const totalMedia = files.length;
+  // BeReal counts as 1 item at index 0, uploaded files follow
+  const hasMedia = files.length > 0 || hasBeRealPhotos;
+  const totalMedia = (hasBeRealPhotos ? 1 : 0) + files.length;
+
+  // Get the file index for uploaded files (accounting for BeReal at index 0)
+  const getFileIndex = useCallback(
+    (carouselIndex: number) => (hasBeRealPhotos ? carouselIndex - 1 : carouselIndex),
+    [hasBeRealPhotos]
+  );
+
+  // Check if current index is showing BeReal
+  const isShowingBeReal = hasBeRealPhotos && currentMediaIndex === 0;
 
   // Carousel navigation
   const nextMedia = useCallback(() => {
@@ -245,29 +257,30 @@ export function CreatePostUnified({
     }
   }, [currentMediaIndex]);
 
-  // Reset carousel index when files change
+  // Reset carousel index when media changes
   useEffect(() => {
-    if (currentMediaIndex >= files.length && files.length > 0) {
-      setCurrentMediaIndex(files.length - 1);
-    } else if (files.length === 0) {
+    const maxIndex = totalMedia - 1;
+    if (currentMediaIndex > maxIndex && maxIndex >= 0) {
+      setCurrentMediaIndex(maxIndex);
+    } else if (totalMedia === 0) {
       setCurrentMediaIndex(0);
     }
-  }, [files.length, currentMediaIndex]);
+  }, [totalMedia, currentMediaIndex]);
 
-  // Switch viewfinder mode based on file count changes
-  const prevFilesLength = useRef(0);
+  // Switch viewfinder mode based on media availability
+  const prevHasMedia = useRef(false);
   useEffect(() => {
-    // Switch to preview when going from 0 files to having files
-    if (files.length > 0 && prevFilesLength.current === 0) {
+    // Switch to preview when we get media
+    if (hasMedia && !prevHasMedia.current) {
       setViewfinderMode('preview');
       onStopCamera();
     }
-    // Switch to camera when all files are removed
-    if (files.length === 0 && prevFilesLength.current > 0) {
+    // Switch to camera when all media is removed
+    if (!hasMedia && prevHasMedia.current) {
       setViewfinderMode('camera');
     }
-    prevFilesLength.current = files.length;
-  }, [files.length, onStopCamera]);
+    prevHasMedia.current = hasMedia;
+  }, [hasMedia, onStopCamera]);
 
   // Auto-collapse viewfinder when focusing text inputs (only if no media)
   const collapseViewfinder = useCallback(() => {
@@ -285,13 +298,6 @@ export function CreatePostUnified({
     }
   }, [captureMode, capturedMedia, onUseCapturedMedia]);
 
-  // Auto-add BeReal photos when captured
-  useEffect(() => {
-    if (hasBeRealPhotos) {
-      onAddBeRealPhoto();
-    }
-  }, [hasBeRealPhotos, onAddBeRealPhoto]);
-
   return (
     <>
       <form ref={formRef} className="create-post-unified" onSubmit={onSubmit}>
@@ -304,29 +310,74 @@ export function CreatePostUnified({
             transition: isDragging ? 'none' : 'height 0.25s ease-out',
           }}
         >
-          {/* Preview mode: show media carousel */}
+          {/* Unified preview - handles both BeReal and uploaded files in one carousel */}
           {viewfinderMode === 'preview' && hasMedia && (
             <div className="unified-media-preview">
-              <div className="unified-preview-item">
-                {files[currentMediaIndex]?.type.startsWith('video/') ? (
-                  <video
-                    src={previews[currentMediaIndex]}
-                    controls
-                    className="unified-preview-media"
-                  />
-                ) : (
-                  <img src={previews[currentMediaIndex]} alt="" className="unified-preview-media" />
-                )}
-                <button
-                  type="button"
-                  className="unified-preview-remove"
-                  onClick={() => onRemoveFile(currentMediaIndex)}
-                >
-                  x
-                </button>
-              </div>
+              {/* Show BeReal preview when at index 0 and BeReal exists */}
+              {isShowingBeReal && beRealPhotos.front && beRealPhotos.back ? (
+                <div className="unified-bereal-preview" onClick={onSwapBeRealPhotos}>
+                  {(() => {
+                    const mainPhoto =
+                      mainPhotoPosition === 'front' ? beRealPhotos.front : beRealPhotos.back;
+                    const overlayPhoto =
+                      mainPhotoPosition === 'front' ? beRealPhotos.back : beRealPhotos.front;
+                    return (
+                      <>
+                        <img src={mainPhoto.url} alt="" className="unified-bereal-main" />
+                        <div className="unified-bereal-overlay">
+                          <img src={overlayPhoto.url} alt="" />
+                        </div>
+                      </>
+                    );
+                  })()}
+                  <button
+                    type="button"
+                    className="unified-preview-remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClearBeRealPhotos();
+                      // Only restart camera if no other files exist
+                      if (files.length === 0) {
+                        onStartCamera();
+                        setViewfinderMode('camera');
+                      } else {
+                        // Move to next item (first uploaded file)
+                        setCurrentMediaIndex(0);
+                      }
+                    }}
+                  >
+                    x
+                  </button>
+                </div>
+              ) : (
+                /* Show regular file preview */
+                <div className="unified-preview-item">
+                  {(() => {
+                    const fileIndex = getFileIndex(currentMediaIndex);
+                    const file = files[fileIndex];
+                    const preview = previews[fileIndex];
+                    if (!file || !preview) return null;
+                    return (
+                      <>
+                        {file.type.startsWith('video/') ? (
+                          <video src={preview} controls className="unified-preview-media" />
+                        ) : (
+                          <img src={preview} alt="" className="unified-preview-media" />
+                        )}
+                        <button
+                          type="button"
+                          className="unified-preview-remove"
+                          onClick={() => onRemoveFile(fileIndex)}
+                        >
+                          x
+                        </button>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
 
-              {/* Carousel navigation - only show if more than one photo */}
+              {/* Carousel navigation - show if more than one item */}
               {totalMedia > 1 && (
                 <div className="unified-media-nav">
                   <button
@@ -350,41 +401,6 @@ export function CreatePostUnified({
                   </button>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* BeReal preview mode */}
-          {viewfinderMode === 'preview' && !hasMedia && hasBeRealPhotos && (
-            <div className="unified-bereal-preview" onClick={onSwapBeRealPhotos}>
-              {(() => {
-                const mainPhoto =
-                  mainPhotoPosition === 'front' ? beRealPhotos.front : beRealPhotos.back;
-                const overlayPhoto =
-                  mainPhotoPosition === 'front' ? beRealPhotos.back : beRealPhotos.front;
-                return (
-                  <>
-                    {mainPhoto && (
-                      <img src={mainPhoto.url} alt="" className="unified-bereal-main" />
-                    )}
-                    {overlayPhoto && (
-                      <div className="unified-bereal-overlay">
-                        <img src={overlayPhoto.url} alt="" />
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-              <button
-                type="button"
-                className="unified-preview-remove"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onStartCamera();
-                  setViewfinderMode('camera');
-                }}
-              >
-                x
-              </button>
             </div>
           )}
 

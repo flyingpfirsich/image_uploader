@@ -160,20 +160,6 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     stopCamera();
   }, [capturedMedia, stopCamera]);
 
-  // Add BeReal composite photo to existing files
-  const handleAddBeRealPhoto = useCallback(async () => {
-    if (!hasBeRealPhotos) return;
-
-    const composited = await compositeBeRealPhotos();
-    if (composited) {
-      const preview = URL.createObjectURL(composited);
-      setFiles((prev) => [...prev, composited]);
-      setPreviews((prev) => [...prev, preview]);
-      clearBeRealPhotos();
-      stopCamera();
-    }
-  }, [hasBeRealPhotos, compositeBeRealPhotos, clearBeRealPhotos, stopCamera]);
-
   // Submit post
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,7 +271,7 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
           onCaptureBeRealPhoto={captureBeRealPhoto}
           onStartCamera={handleStartCamera}
           onStopCamera={stopCamera}
-          onAddBeRealPhoto={handleAddBeRealPhoto}
+          onClearBeRealPhotos={clearBeRealPhotos}
           onStartRecording={startRecording}
           onStopRecording={stopRecording}
           onTextChange={setText}
