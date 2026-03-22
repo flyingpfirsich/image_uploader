@@ -9,6 +9,8 @@ import {
 } from 'react';
 import type { User, AuthState } from '../types';
 import * as api from '../services/api';
+import { clearMediaCache } from '../services/api/media';
+import { clearInMemoryMediaCache } from '../hooks/useAuthenticatedMedia';
 
 const ACCESS_TOKEN_KEY = 'druzi_access_token';
 const REFRESH_TOKEN_KEY = 'druzi_refresh_token';
@@ -242,6 +244,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setRefreshToken(null);
     setUser(null);
+    // Clear cached media on logout (both in-memory and service worker cache)
+    clearInMemoryMediaCache();
+    clearMediaCache();
   }, []);
 
   const logoutEverywhere = useCallback(async () => {

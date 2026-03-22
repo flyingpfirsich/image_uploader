@@ -1,5 +1,7 @@
-// Service Worker for push notifications
+// Service Worker for push notifications and media caching
 const CACHE_NAME = 'druzi-v1';
+const MEDIA_CACHE_NAME = 'druzi-media-v1';
+const MAX_MEDIA_CACHE_ITEMS = 500;
 
 // Handle push notifications from server
 self.addEventListener('push', (event) => {
@@ -88,10 +90,12 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
-      // Clean up old caches
+      // Clean up old caches (but keep current media cache)
       caches.keys().then((cacheNames) => {
         return Promise.all(
-          cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+          cacheNames
+            .filter((name) => name !== CACHE_NAME && name !== MEDIA_CACHE_NAME)
+            .map((name) => caches.delete(name))
         );
       }),
     ])
@@ -109,4 +113,154 @@ self.addEventListener('message', (event) => {
       tag: 'test',
     });
   }
+
+  // Allow clearing the media cache from the app
+  if (event.data && event.data.type === 'CLEAR_MEDIA_CACHE') {
+    console.log('[SW] Clearing media cache');
+    caches.delete(MEDIA_CACHE_NAME).then(() => {
+      console.log('[SW] Media cache cleared');
+    });
+  }
+
+  // Invalidate a specific cached item (e.g., when avatar is updated)
+  if (event.data && event.data.type === 'INVALIDATE_CACHE') {
+    const pathToInvalidate = event.data.path;
+    console.log('[SW] Invalidating cache for:', pathToInvalidate);
+    caches.open(MEDIA_CACHE_NAME).then(async (cache) => {
+      await cache.delete(pathToInvalidate);
+      console.log('[SW] Cache invalidated:', pathToInvalidate);
+    });
+  }
 });
+
+// Fetch event - cache media and avatar requests
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Only cache requests to /uploads/media/ and /uploads/avatars/
+  if (
+    !url.pathname.startsWith('/uploads/media/') &&
+    !url.pathname.startsWith('/uploads/avatars/')
+  ) {
+    return;
+  }
+
+  // Use URL pathname as cache key (ignores auth headers)
+  const cacheKey = url.pathname;
+
+  event.respondWith(
+    caches.open(MEDIA_CACHE_NAME).then(async (cache) => {
+      // Check if we have a cached response (by URL only, ignoring headers)
+      const cachedResponse = await cache.match(cacheKey);
+      if (cachedResponse) {
+        console.log('[SW] Cache hit:', cacheKey);
+        // Update access time for LRU tracking
+        updateAccessTime(cacheKey);
+        return cachedResponse;
+      }
+
+      // Not in cache, fetch from network
+      console.log('[SW] Cache miss, fetching:', cacheKey);
+      try {
+        const networkResponse = await fetch(event.request);
+
+        // Only cache successful responses
+        if (networkResponse.ok) {
+          // Clone the response since we need to use it twice
+          const responseToCache = networkResponse.clone();
+
+          // Cache with URL as key (so different auth tokens share the cache)
+          cache.put(cacheKey, responseToCache).then(() => {
+            updateAccessTime(cacheKey);
+            // Trim cache if it gets too large (LRU)
+            trimCacheLRU(MEDIA_CACHE_NAME, MAX_MEDIA_CACHE_ITEMS);
+          });
+        }
+
+        return networkResponse;
+      } catch (error) {
+        console.error('[SW] Fetch failed:', error);
+        throw error;
+      }
+    })
+  );
+});
+
+// LRU tracking using IndexedDB
+const LRU_DB_NAME = 'druzi-cache-lru';
+const LRU_STORE_NAME = 'access-times';
+
+function openLRUDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(LRU_DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(LRU_STORE_NAME)) {
+        db.createObjectStore(LRU_STORE_NAME, { keyPath: 'key' });
+      }
+    };
+  });
+}
+
+async function updateAccessTime(cacheKey) {
+  try {
+    const db = await openLRUDb();
+    const tx = db.transaction(LRU_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(LRU_STORE_NAME);
+    store.put({ key: cacheKey, accessTime: Date.now() });
+    db.close();
+  } catch (e) {
+    console.error('[SW] Failed to update access time:', e);
+  }
+}
+
+async function trimCacheLRU(cacheName, maxItems) {
+  try {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+
+    if (keys.length <= maxItems) return;
+
+    console.log(`[SW] Trimming cache from ${keys.length} to ${maxItems} items (LRU)`);
+
+    // Get all access times from IndexedDB
+    const db = await openLRUDb();
+    const tx = db.transaction(LRU_STORE_NAME, 'readonly');
+    const store = tx.objectStore(LRU_STORE_NAME);
+
+    const accessTimes = await new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+
+    // Create a map of cache key -> access time
+    const accessTimeMap = new Map(accessTimes.map((item) => [item.key, item.accessTime]));
+
+    // Get cache keys as strings
+    const cacheKeys = keys.map((req) => new URL(req.url).pathname);
+
+    // Sort by access time (oldest first), items without access time are oldest
+    cacheKeys.sort((a, b) => {
+      const timeA = accessTimeMap.get(a) || 0;
+      const timeB = accessTimeMap.get(b) || 0;
+      return timeA - timeB;
+    });
+
+    // Delete oldest entries
+    const deleteCount = keys.length - maxItems;
+    for (let i = 0; i < deleteCount; i++) {
+      await cache.delete(cacheKeys[i]);
+      // Also clean up LRU tracking
+      const cleanDb = await openLRUDb();
+      const cleanTx = cleanDb.transaction(LRU_STORE_NAME, 'readwrite');
+      cleanTx.objectStore(LRU_STORE_NAME).delete(cacheKeys[i]);
+      cleanDb.close();
+    }
+  } catch (e) {
+    console.error('[SW] Failed to trim cache:', e);
+  }
+}
