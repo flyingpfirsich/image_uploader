@@ -6,7 +6,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
-    https: true,
+    host: true,
     proxy: {
       // Proxy uploads through the dev server so service worker can cache them
       '/uploads': {

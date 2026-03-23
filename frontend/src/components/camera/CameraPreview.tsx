@@ -86,6 +86,7 @@ export function CameraPreview({
           {/* Camera switch button */}
           {cameraActive && !isRecording && !isCapturingSecond && captureMode === 'photo' && (
             <button
+              type="button"
               className="camera-switch-btn"
               onClick={(e) => {
                 e.stopPropagation();
