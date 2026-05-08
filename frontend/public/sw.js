@@ -1,7 +1,38 @@
-// Service Worker for push notifications and media caching
+// Service Worker for push notifications, media caching, and share target
 const CACHE_NAME = 'druzi-v1';
 const MEDIA_CACHE_NAME = 'druzi-media-v1';
 const MAX_MEDIA_CACHE_ITEMS = 500;
+
+// Share target storage
+const SHARE_DB_NAME = 'druzi-share';
+const SHARE_STORE_NAME = 'shared-content';
+const SHARE_DB_VERSION = 1;
+
+function openShareDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(SHARE_DB_NAME, SHARE_DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(SHARE_STORE_NAME)) {
+        db.createObjectStore(SHARE_STORE_NAME, { keyPath: 'id' });
+      }
+    };
+  });
+}
+
+async function saveSharedContent(content) {
+  const db = await openShareDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SHARE_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(SHARE_STORE_NAME);
+    const request = store.put(content);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+    tx.oncomplete = () => db.close();
+  });
+}
 
 // Handle push notifications from server
 self.addEventListener('push', (event) => {
@@ -133,9 +164,15 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Fetch event - cache media and avatar requests
+// Fetch event - handle share target and cache media/avatar requests
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // Handle share target POST requests
+  if (url.pathname === '/share-target' && event.request.method === 'POST') {
+    event.respondWith(handleShareTarget(event.request));
+    return;
+  }
 
   // Only cache requests to /uploads/media/ and /uploads/avatars/
   if (
@@ -262,5 +299,52 @@ async function trimCacheLRU(cacheName, maxItems) {
     }
   } catch (e) {
     console.error('[SW] Failed to trim cache:', e);
+  }
+}
+
+// Handle incoming share target requests
+async function handleShareTarget(request) {
+  console.log('[SW] Handling share target request');
+
+  try {
+    const formData = await request.formData();
+
+    const sharedContent = {
+      id: 'share-' + Date.now(),
+      title: formData.get('title') || undefined,
+      text: formData.get('text') || undefined,
+      url: formData.get('url') || undefined,
+      files: [],
+      timestamp: Date.now(),
+    };
+
+    // Process shared files
+    const mediaFiles = formData.getAll('media');
+    for (const file of mediaFiles) {
+      if (file instanceof File && file.size > 0) {
+        const arrayBuffer = await file.arrayBuffer();
+        sharedContent.files.push({
+          name: file.name,
+          type: file.type,
+          data: arrayBuffer,
+        });
+      }
+    }
+
+    console.log('[SW] Shared content:', {
+      title: sharedContent.title,
+      text: sharedContent.text,
+      url: sharedContent.url,
+      fileCount: sharedContent.files.length,
+    });
+
+    // Save to IndexedDB for the app to pick up
+    await saveSharedContent(sharedContent);
+
+    // Redirect to the app with a flag
+    return Response.redirect('/?shared=true', 303);
+  } catch (error) {
+    console.error('[SW] Share target error:', error);
+    return Response.redirect('/?share_error=true', 303);
   }
 }

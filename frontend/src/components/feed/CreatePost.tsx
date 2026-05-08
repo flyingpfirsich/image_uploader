@@ -11,19 +11,28 @@ interface CreatePostProps {
   token: string;
   onPostCreated: () => void;
   onClose: () => void;
+  initialFiles?: File[];
+  initialText?: string;
 }
 
-export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
+export function CreatePost({
+  token,
+  onPostCreated,
+  onClose,
+  initialFiles,
+  initialText,
+}: CreatePostProps) {
   const [captureMode, setCaptureMode] = useState<CaptureMode>('photo');
   const [capturedMedia, setCapturedMedia] = useState<CapturedMedia | null>(null);
 
   // Post form state
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText || '');
   const [location, setLocation] = useState('');
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>(initialFiles || []);
   const [previews, setPreviews] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasInitialContent] = useState(!!(initialFiles?.length || initialText));
 
   // Music state
   const [selectedTrack, setSelectedTrack] = useState<SpotifyTrack | null>(null);
@@ -110,9 +119,20 @@ export function CreatePost({ token, onPostCreated, onClose }: CreatePostProps) {
     [files, previews, startCamera]
   );
 
-  // Auto-start camera when component mounts
+  // Auto-start camera when component mounts (unless we have initial content from share)
   useEffect(() => {
-    startCamera();
+    if (!hasInitialContent) {
+      startCamera();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Create previews for initial files
+  useEffect(() => {
+    if (initialFiles && initialFiles.length > 0 && previews.length === 0) {
+      const newPreviews = initialFiles.map((file) => URL.createObjectURL(file));
+      setPreviews(newPreviews);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
