@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './styles/index.css';
 
 // Context
@@ -13,9 +13,21 @@ import { CreatePost } from './components/feed/CreatePost';
 import { Profile } from './components/profile/Profile';
 import { AdminPanel } from './components/admin/AdminPanel';
 
+// Utils
+import {
+  getSharedContent,
+  clearSharedContent,
+  arrayBufferToFile,
+} from './utils/shareStorage';
+
 // Types
 import type { NavMode } from './types';
 import { ADMIN_USERNAME } from './types';
+
+interface SharedFiles {
+  files: File[];
+  text?: string;
+}
 
 function AppContent() {
   const { user, token, isLoading, isAuthenticated, logout, updateUser } = useAuth();
@@ -23,6 +35,51 @@ function AppContent() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [feedKey, setFeedKey] = useState(0);
+  const [sharedData, setSharedData] = useState<SharedFiles | null>(null);
+
+  // Check for shared content on mount and when URL changes
+  useEffect(() => {
+    const checkForSharedContent = async () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('shared') === 'true') {
+        // Clear the URL parameter
+        window.history.replaceState({}, '', '/');
+
+        try {
+          const content = await getSharedContent();
+          if (content) {
+            const files: File[] = [];
+            if (content.files) {
+              for (const fileData of content.files) {
+                const file = arrayBufferToFile(fileData.data, fileData.name, fileData.type);
+                files.push(file);
+              }
+            }
+
+            // Combine text, title, and URL into caption
+            const textParts: string[] = [];
+            if (content.title) textParts.push(content.title);
+            if (content.text) textParts.push(content.text);
+            if (content.url) textParts.push(content.url);
+
+            setSharedData({
+              files,
+              text: textParts.join('\n'),
+            });
+
+            await clearSharedContent();
+            setShowCreatePost(true);
+          }
+        } catch (err) {
+          console.error('Failed to process shared content:', err);
+        }
+      }
+    };
+
+    if (isAuthenticated) {
+      checkForSharedContent();
+    }
+  }, [isAuthenticated]);
 
   // Loading state
   if (isLoading) {
@@ -99,7 +156,12 @@ function AppContent() {
         <CreatePost
           token={token}
           onPostCreated={handlePostCreated}
-          onClose={() => setShowCreatePost(false)}
+          onClose={() => {
+            setShowCreatePost(false);
+            setSharedData(null);
+          }}
+          initialFiles={sharedData?.files}
+          initialText={sharedData?.text}
         />
       )}
     </div>
